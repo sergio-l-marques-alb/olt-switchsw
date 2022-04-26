@@ -1,0 +1,4227 @@
+/** \file instru_sflow.c
+ * $Id$
+ *
+ * Visibility procedures for DNX in instrumentation module.
+ *
+ * This file contains functions for sflow configuration.
+ */
+/*
+ * $Copyright: (c) 2021 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+#ifdef BSL_LOG_MODULE
+#error "BSL_LOG_MODULE redefined"
+#endif
+#define BSL_LOG_MODULE BSL_LS_BCMDNX_INSTRU
+/*
+ * Include files which are specifically for DNX. Final location.
+ * {
+ */
+#include <shared/shrextend/shrextend_debug.h>
+#include <soc/dnx/dbal/dbal.h>
+#include <soc/dnx/dnx_err_recovery_manager.h>
+#include <bcm_int/dnx/algo/swstate/auto_generated/access/instru_access.h>
+#include <bcm_int/dnx/algo/swstate/auto_generated/access/algo_port_pp_access.h>
+
+#include <shared/utilex/utilex_framework.h>
+
+#include <bcm_int/dnx/instru/instru.h>
+#include <bcm_int/dnx/instru/instru_sflow.h>
+#include <bcm_int/dnx/algo/algo_gpm.h>
+
+#include <bcm_int/dnx/lif/lif_lib.h>
+#include <bcm/types.h>
+#include <bcm_int/dnx/algo/lif_mngr/lif_mngr.h>
+#include <bcm_int/dnx/lif/in_lif_profile.h>
+#include <bcm_int/dnx/port/port_esem.h>
+
+#include <soc/dnx/dnx_data/auto_generated/dnx_data_snif.h>
+#include <bcm/trunk.h>
+#include <include/bcm_int/dnx/auto_generated/dnx_trunk_dispatch.h>
+#include <soc/dnx/swstate/auto_generated/types/trunk_types.h>
+#include <src/bcm/dnx/trunk/trunk_sw_db.h>
+#include <src/bcm/dnx/trunk/trunk_utils.h>
+#include <soc/dnx/dnx_data/auto_generated/dnx_data_lif.h>
+
+/*
+ * }
+ */
+
+/*
+ * }
+ */
+/*
+ * Include files.
+ * {
+ */
+#include <bcm/instru.h>
+
+/*
+ * }
+ */
+
+/*
+ * }
+ */
+/*
+ * Function Declaration.
+ * {
+ */
+
+/*
+ * }
+ */
+
+/*
+ * Defines.
+ * {
+ */
+/**
+ * \brief
+ * Default value, needed for the sFlow ETPS.
+ */
+#define INSTRU_SFLOW_OAM_LIF_SET      1
+
+/**
+ * \brief
+ * Default oam lif db key value
+ */
+#define INSTRU_OAM_KEY_PREFIX   0
+
+/**
+ * \brief
+ * Default oam lif db MDL MP TYPE value
+ */
+#define INSTRU_MDL_MP_TYPE  0
+
+/**
+ * \brief
+ * Number of RAW entries in the sFlow stack.
+ */
+#define INSTRU_SFLOW_NOF_RAW_ENCAP_ENTRIES dnx_data_instru.sflow.nof_sflow_raw_entries_per_stack_get(unit)
+
+/**
+ * \brief
+ * Number of
+ */
+#define DNX_INSTRU_SFLOW_VERSION (5)
+ /*
+  * }
+  */
+
+ /*
+  * Internal functions.
+  * {
+  */
+extern shr_error_e dbal_tables_physical_table_get(
+    int unit,
+    dbal_tables_e table_id,
+    int physical_tbl_index,
+    dbal_physical_tables_e * physical_table_id);
+
+ /*
+  * }
+  */
+
+/**
+ * \brief - Given an instru global lif, returns the local lif and it's result type.
+ */
+static shr_error_e
+dnx_instru_sflow_encap_id_to_local_lif(
+    int unit,
+    int sflow_encap_id,
+    int *local_lif,
+    uint32 *result_type)
+{
+    dnx_algo_gpm_gport_hw_resources_t hw_res;
+    bcm_gport_t encap_in_tunnel;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Turn the global lif into a tunnel, then call gport to hw resources.
+     */
+    sal_memset(&hw_res, 0, sizeof(dnx_algo_gpm_gport_hw_resources_t));
+    BCM_GPORT_TUNNEL_ID_SET(encap_in_tunnel, sflow_encap_id);
+
+    SHR_IF_ERR_EXIT(dnx_algo_gpm_gport_to_hw_resources(unit, encap_in_tunnel,
+                                                       DNX_ALGO_GPM_GPORT_HW_RESOURCES_LOCAL_LIF_EGRESS, &hw_res));
+
+    *local_lif = hw_res.local_out_lif;
+    *result_type = hw_res.outlif_dbal_result_type;
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief -
+ * Verify sflow encap is indeed exists and it is with the correct table/result_type/phase
+ */
+static shr_error_e
+dnx_instru_sflow_encap_id_verify(
+    int unit,
+    int sflow_encap_id)
+{
+    dnx_algo_gpm_gport_hw_resources_t hw_res;
+    bcm_gport_t encap_in_tunnel;
+    dbal_result_type_t nof_result_types_eedb_sflow;
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Turn the global lif into a tunnel, then call gport to hw resources.
+     */
+    sal_memset(&hw_res, 0, sizeof(dnx_algo_gpm_gport_hw_resources_t));
+    BCM_GPORT_TUNNEL_ID_SET(encap_in_tunnel, sflow_encap_id);
+
+    SHR_IF_ERR_EXIT(dnx_algo_gpm_gport_to_hw_resources(unit, encap_in_tunnel,
+                                                       DNX_ALGO_GPM_GPORT_HW_RESOURCES_LOCAL_LIF_EGRESS, &hw_res));
+
+    SHR_IF_ERR_EXIT(dbal_tables_table_nof_res_type_get
+                    (unit, DBAL_TABLE_OLP_HEADER_CONFIGURATION, (int *) &nof_result_types_eedb_sflow));
+
+    if ((hw_res.outlif_dbal_table_id != DBAL_TABLE_EEDB_SFLOW)
+        || (hw_res.outlif_dbal_result_type >= nof_result_types_eedb_sflow)
+        || (hw_res.logical_phase != DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_1))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! sFlow encap 0x%x is not of type sFlow, table_id = %s, result_type = %d, logical_phase = %d\n",
+                     sflow_encap_id, dbal_logical_table_to_string(unit, hw_res.outlif_dbal_table_id),
+                     hw_res.outlif_dbal_result_type, hw_res.logical_phase);
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief -
+ * Verify sflow raw is indeed exists and it is with the correct table/result_type
+ */
+static shr_error_e
+dnx_instru_sflow_raw_id_verify(
+    int unit,
+    int sflow_raw_id)
+{
+    dnx_algo_gpm_gport_hw_resources_t hw_res;
+    bcm_gport_t encap_in_tunnel;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Turn the global lif into a tunnel, then call gport to hw resources.
+     */
+    sal_memset(&hw_res, 0, sizeof(dnx_algo_gpm_gport_hw_resources_t));
+    BCM_GPORT_TUNNEL_ID_SET(encap_in_tunnel, sflow_raw_id);
+
+    SHR_IF_ERR_EXIT(dnx_algo_gpm_gport_to_hw_resources(unit, encap_in_tunnel,
+                                                       DNX_ALGO_GPM_GPORT_HW_RESOURCES_LOCAL_LIF_EGRESS, &hw_res));
+
+    if ((hw_res.outlif_dbal_table_id != DBAL_TABLE_EEDB_SFLOW_DATA)
+        || (hw_res.outlif_dbal_result_type != DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! sFlow encap 0x%x is not of type sFlow Data Entry, table_id = %s, result_type = %d\n",
+                     sflow_raw_id, dbal_logical_table_to_string(unit, hw_res.outlif_dbal_table_id),
+                     hw_res.outlif_dbal_result_type);
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow create API params. Verify supported flags. In case of REPLACE flag on, validate that such an encap_id exists
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_encap_info - Pointer to a struct from which the relevant data
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_encap_create_verify(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    int nof_sflow_encaps;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sflow_encap_info, _SHR_E_PARAM, "sflow_encap_info");
+
+    if (sflow_encap_info->flags &
+        (~(BCM_INSTRU_SFLOW_ENCAP_WITH_ID | BCM_INSTRU_SFLOW_ENCAP_REPLACE | BCM_INSTRU_SFLOW_ENCAP_AGGREGATED |
+           BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR | BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW)))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! Unsupported flag: flags = 0x%08x. Supported flags are: BCM_INSTRU_SFLOW_ENCAP_WITH_ID = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_REPLACE = 0x%08x, "
+                     "BCM_INSTRU_SFLOW_ENCAP_AGGREGATED = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW = 0x%08x\n",
+                     sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID, BCM_INSTRU_SFLOW_ENCAP_REPLACE,
+                     BCM_INSTRU_SFLOW_ENCAP_AGGREGATED, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR,
+                     BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW);
+    }
+
+    /** Verify DP (Data-Path sampling): */
+    if (!_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_AGGREGATED))
+    {
+        /** eventor_id is only relevant for header-sampling (eventor) */
+        if (sflow_encap_info->eventor_id != 0)
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! eventor_id = %d is only relevant with flag BCM_INSTRU_SFLOW_ENCAP_AGGREGATED (0x%08x)! flags = 0x%08x",
+                         sflow_encap_info->eventor_id, BCM_INSTRU_SFLOW_ENCAP_AGGREGATED, sflow_encap_info->flags);
+        }
+    }
+    else
+    {
+        /** Verify aggregated header-sampling (eventor): */
+
+        /** tunnel_id is only relevant for DP (Data-Path sampling) */
+        if (sflow_encap_info->tunnel_id != 0)
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! tunnel_id = 0x%08x is only relevant when flag BCM_INSTRU_SFLOW_ENCAP_AGGREGATED (0x%08x) is OFF! flags = 0x%08x",
+                         sflow_encap_info->tunnel_id, BCM_INSTRU_SFLOW_ENCAP_AGGREGATED, sflow_encap_info->flags);
+        }
+    }
+
+    /** Verify replace case */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        /** Verify that the flag WITH_ID is set */
+        if (!(_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID)))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! flags = 0x%08X. flag BCM_INSTRU_SFLOW_ENCAP_REPLACE (0x%08X) is set - flag BCM_INSTRU_SFLOW_ENCAP_WITH_ID (0x%08X) must be set as well!!\n",
+                         sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE, BCM_INSTRU_SFLOW_ENCAP_WITH_ID);
+        }
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_verify(unit, sflow_encap_info->sflow_encap_id));
+    }
+    else
+    {
+        /*
+         * If it's not replace, verify that the maximum number of sFlow encaps wasn't exceeded.
+         */
+        if (!_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR))
+        {
+            SHR_IF_ERR_EXIT(instru.sflow_info.nof_sflow_encaps.get(unit, &nof_sflow_encaps));
+
+            if (nof_sflow_encaps == dnx_data_instru.sflow.max_nof_sflow_encaps_get(unit))
+            {
+                SHR_ERR_EXIT(_SHR_E_PARAM, "Can't create another sFlow instance. Maximum number has been exceeded: %d",
+                             nof_sflow_encaps);
+            }
+        }
+    }
+
+    /** Verify EXTENDED INITIATOR case */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR))
+    {
+
+        /*
+         * The only relevant flags together with "EXTENDED INITIATOR" are "REPLACE" and "WITH_ID"
+         */
+        if (sflow_encap_info->flags &
+            (~
+             (BCM_INSTRU_SFLOW_ENCAP_WITH_ID | BCM_INSTRU_SFLOW_ENCAP_REPLACE |
+              BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR)))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! Unsupported flag: flags = 0x%08x. Supported flags for EXTENDED_INITIATOR are: BCM_INSTRU_SFLOW_ENCAP_WITH_ID = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_REPLACE = 0x%08x, "
+                         "BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR = 0x%08x \n",
+                         sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID, BCM_INSTRU_SFLOW_ENCAP_REPLACE,
+                         BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR);
+        }
+
+        /*
+         * SFLOW DATAGRAM Header fields are not relevant for EXTENDED INITIATOR!
+         * (are relevant for EXTENDED FLOW)
+         */
+        if ((sflow_encap_info->tunnel_id != 0) || (sflow_encap_info->eventor_id != 0)
+            || (sflow_encap_info->sub_agent_id != 0))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! flags = 0x%08x, tunnel_id = %d , eventor_id = %d, sub_agent_id = %d. Are not relevant with flag BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR (0x%08x)!",
+                         sflow_encap_info->flags, sflow_encap_info->tunnel_id, sflow_encap_info->eventor_id,
+                         sflow_encap_info->sub_agent_id, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR);
+        }
+
+        /*
+         * CRPS counter fields are nor relevant for EXTENDED INITIATOR!
+         * (are relevant for EXTENDED FLOW)
+         */
+        if ((sflow_encap_info->stat_cmd != 0) || (sflow_encap_info->counter_command_id != 0))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! flags = 0x%08x, stat_cmd = %d , counter_command_id = %d. Are not relevant with flag BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR (0x%08x)!",
+                         sflow_encap_info->flags, sflow_encap_info->stat_cmd, sflow_encap_info->counter_command_id,
+                         BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR);
+        }
+
+    }
+
+    /** Verify EXTENDED FLOW case */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW))
+    {
+
+        /*
+         * The only relevant flags together with "EXTENDED FLOW", "REPLACE" and "WITH_ID" and "AGGREGATED"
+         */
+        if (sflow_encap_info->flags &
+            (~
+             (BCM_INSTRU_SFLOW_ENCAP_WITH_ID | BCM_INSTRU_SFLOW_ENCAP_REPLACE | BCM_INSTRU_SFLOW_ENCAP_AGGREGATED |
+              BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW)))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! Unsupported flag: flags = 0x%08x. Supported flags for EXTENDED_FLOW are: BCM_INSTRU_SFLOW_ENCAP_WITH_ID = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_REPLACE = 0x%08x "
+                         "BCM_INSTRU_SFLOW_ENCAP_AGGREGATED = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW = 0x%08x \n",
+                         sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID, BCM_INSTRU_SFLOW_ENCAP_REPLACE,
+                         BCM_INSTRU_SFLOW_ENCAP_AGGREGATED, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW);
+        }
+
+        /*
+         * Only AGGREGATED mode is supported
+         */
+        if (!_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_AGGREGATED))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! Unsupported option: flags = 0x%08x. EXTENDED_FLOW is only supported in AGGREGATED mode!\n",
+                         sflow_encap_info->flags);
+        }
+
+        /** tunnel_id and sub_agent_id are irrelevant  */
+        if ((sflow_encap_info->tunnel_id != 0) || (sflow_encap_info->sub_agent_id != 0))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! flags = 0x%08x. tunnel_id = %d and sub_agent_id = %d are not relevant with flag BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW (0x%08x)!",
+                         sflow_encap_info->flags, sflow_encap_info->tunnel_id, sflow_encap_info->sub_agent_id,
+                         BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW);
+        }
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow delete API params.
+ */
+static shr_error_e
+dnx_instru_sflow_encap_delete_verify(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sflow_encap_info, _SHR_E_PARAM, "sflow_encap_info");
+
+    /*
+     * Verify that the sflow_encap_id is indeed allocated and it is EEDB SFLOW.
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_verify(unit, sflow_encap_info->sflow_encap_id));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow sample interface API flags parameter.
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_flags_verify(
+    int unit,
+    uint32 flags,
+    uint32 supported_flags)
+{
+    int is_input, is_output;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    is_input = _SHR_IS_FLAG_SET(flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT);
+    is_output = _SHR_IS_FLAG_SET(flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT);
+
+    /*
+     * Verify flags:
+     *  - Only one of the flags "INPUT" or "OUTPUT" are set.
+     *  - One of the flags "INPUT" or "OUTPUT" must be set.
+     */
+    if ((is_input == TRUE) && (is_output == TRUE))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! Unsupported flags = 0x%08x! both "
+                     "BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT(=0x%08x) and BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT(=0x%08x) are set!\n",
+                     flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT);
+    }
+
+    if ((is_input == FALSE) && (is_output == FALSE))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! Unsupported flags = 0x%08x! One of "
+                     "BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT(=0x%08x) and BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT(=0x%08x) must be set!\n",
+                     flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT);
+    }
+
+    /*
+     * Verify only supported flags are set
+     */
+    if (flags & (~supported_flags))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! Unsupported flags = 0x%08x! Only 0x%08x are supported!\n", flags, supported_flags);
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow sample interface add/remove/get API params.
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_verify(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    uint8 is_physical_port;
+    uint32 is_system_port;
+    uint32 supported_flags;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sample_interface_info, _SHR_E_PARAM, "sample_interface_info");
+
+    is_system_port = BCM_GPORT_IS_SYSTEM_PORT(sample_interface_info->port);
+
+    /*
+     * Verify flags:
+     *  - Only the flags "INPUT" or "OUTPUT" are used
+     *  - Only one of the flags "INPUT" or "OUTPUT" are set.
+     *  - One of the flags "INPUT" or "OUTPUT" must be set.
+     *  - Only supported flags are set.
+     */
+    supported_flags =
+        BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT | BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT |
+        BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_REPLACE;
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_flags_verify
+                    (unit, sample_interface_info->flags, supported_flags));
+
+    /*
+     * Verify port for input-interface: the port is physical port.
+     * For input: the port is system port or system-port which is part of a LAG
+     * For output: the port can be any destination - system port, LAG or VOQ (FLOW_ID and MC_ID).
+     */
+    SHR_IF_ERR_EXIT(dnx_algo_gpm_gport_is_physical(unit, sample_interface_info->port, &is_physical_port));
+
+    if (is_physical_port == FALSE)
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! Unsupported port = 0x%08x! is not a physical port! flags = 0x%08x.\n",
+                     sample_interface_info->port, sample_interface_info->flags);
+    }
+
+    if (_SHR_IS_FLAG_SET(sample_interface_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT))
+    {
+        if (is_system_port == FALSE)
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! Unsupported input port = 0x%08x! is not a system port! flags = 0x%08x.\n",
+                         sample_interface_info->port, sample_interface_info->flags);
+        }
+    }
+    else
+    {
+        uint32 is_mcast = BCM_GPORT_IS_MCAST(sample_interface_info->port);
+        uint32 is_voq = BCM_GPORT_IS_UCAST_QUEUE_GROUP(sample_interface_info->port);
+        uint32 is_trunk = BCM_GPORT_IS_TRUNK(sample_interface_info->port);
+
+        if ((is_system_port == FALSE) && (is_trunk == FALSE) && (is_mcast == FALSE) && (is_voq == FALSE))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! Unsupported output port = 0x%08x! is not a system port, Trunk, MC or FLOW! flags = 0x%08x.\n",
+                         sample_interface_info->port, sample_interface_info->flags);
+        }
+
+        if (is_system_port)
+        {
+            /*
+             * The port is system-port, verify it is not part of a trunk
+             */
+            bcm_trunk_t trunk_id;
+            shr_error_e rv;
+
+            rv = bcm_dnx_trunk_find(unit, 0, sample_interface_info->port, &trunk_id);
+            SHR_IF_ERR_EXIT_EXCEPT_IF(rv, _SHR_E_NOT_FOUND);
+
+            if (rv == _SHR_E_NONE)
+            {
+                /** system port is part of a trunk!! */
+                SHR_ERR_EXIT(_SHR_E_PARAM,
+                             "Error! mapping system port = 0x%08x which is part of trunk is not allowed! Map the whole trunk instead! trunk_id = 0x%08x.\n",
+                             sample_interface_info->port, trunk_id);
+            }
+
+        }
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow sample interface traverse API params.
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_traverse_verify(
+    int unit,
+    bcm_instru_sflow_sample_interface_traverse_info_t * sample_interface_traverse_info,
+    bcm_instru_sflow_sample_traverse_cb cb,
+    void *user_data)
+{
+    uint32 supported_flags;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sample_interface_traverse_info, _SHR_E_PARAM, "sample_interface_traverse_info");
+
+    if (!_SHR_IS_FLAG_SET(sample_interface_traverse_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_DELETE_ALL))
+    {
+        SHR_NULL_CHECK(cb, _SHR_E_PARAM, "cb");
+    }
+
+    /*
+     * Verify flags:
+     *  - Only the flags "INPUT" or "OUTPUT" are used
+     *  - Only one of the flags "INPUT" or "OUTPUT" are set.
+     *  - One of the flags "INPUT" or "OUTPUT" must be set.
+     *  - Only supported flags are set.
+     */
+    supported_flags =
+        BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT | BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT |
+        BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_DELETE_ALL;
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_flags_verify
+                    (unit, sample_interface_traverse_info->flags, supported_flags));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - allocate an sflow encap lif and increase the encaps counter.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_encap_flags_to_result_type(
+    int unit,
+    uint32 flags,
+    uint32 *dbal_result_type)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Determine result type
+     */
+    if (_SHR_IS_FLAG_SET(flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR))
+    {
+        *dbal_result_type = DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_FIRST;
+    }
+    else if (_SHR_IS_FLAG_SET(flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW))
+    {
+        *dbal_result_type = DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_SECOND;
+    }
+    else
+    {
+        if (_SHR_IS_FLAG_SET(flags, BCM_INSTRU_SFLOW_ENCAP_AGGREGATED))
+        {
+            *dbal_result_type = DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_SAMP;
+        }
+        else
+        {
+            *dbal_result_type = DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP;
+        }
+    }
+
+    SHR_EXIT();
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+static shr_error_e
+dnx_instru_sflow_encap_global_lif_bta_set(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info,
+    lif_mngr_global_lif_info_t * global_lif_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_AGGREGATED))
+    {
+        if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW))
+        {
+            global_lif_info->bta = dnx_data_lif.out_lif.global_sflow_extended_gateway_two_outlif_bta_sop_get(unit);
+        }
+        else
+        {
+            global_lif_info->bta = dnx_data_lif.out_lif.global_sflow_header_sampling_outlif_bta_sop_get(unit);
+        }
+    }
+    else if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR))
+    {
+        global_lif_info->bta = dnx_data_lif.out_lif.global_sflow_extended_gateway_one_outlif_bta_sop_get(unit);
+    }
+    else
+    {
+        global_lif_info->bta = dnx_data_lif.out_lif.global_sflow_dp_outlif_bta_sop_get(unit);
+    }
+/** exit: */
+    SHR_FUNC_EXIT;
+}
+/**
+ * \brief - allocate an sflow encap lif and increase the encaps counter.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in,out] sflow_encap_info - The flags will be used as input, as well as the sFlow encap if
+ *                                    the WITH_ID flag is given. Otherwise, the sFlow encap will be filled.
+ * \param [out] sflow_local_outlif - Allocated local sFlow encap lif
+ * \param [in] dbal_result_type - EEDB_SFLOW result_type.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_encap_allocate(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info,
+    int *sflow_local_outlif,
+    uint32 dbal_result_type)
+{
+    int lif_alloc_flags = 0;
+    lif_mngr_local_outlif_info_t outlif_info;
+    lif_mngr_global_lif_info_t global_lif_info = { 0 };
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * If we were given the replace flag, just translate the sFlow encap to local lif and we're done.
+     * The lif's existence has already been verified.
+     */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        /** Get local lif from algo gpm. */
+        uint32 result_type;
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                        (unit, sflow_encap_info->sflow_encap_id, sflow_local_outlif, &result_type));
+        SHR_EXIT();
+    }
+
+    /*
+     * If it's not replace, then allocate the sFlow encap entry.
+     */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID))
+    {
+        /*
+         * If WITH_ID flag is used - get the global out-lif from the user input and
+         * add alloc_with_id flag
+         */
+        global_lif_info.global_lif = sflow_encap_info->sflow_encap_id;
+        lif_alloc_flags |= LIF_MNGR_GLOBAL_LIF_WITH_ID;
+    }
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_global_lif_bta_set(unit, sflow_encap_info, &global_lif_info));
+
+    sal_memset(&outlif_info, 0, sizeof(lif_mngr_local_outlif_info_t));
+    outlif_info.dbal_table_id = DBAL_TABLE_EEDB_SFLOW;
+    outlif_info.dbal_result_type = dbal_result_type;
+    outlif_info.logical_phase = DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_1;
+
+    SHR_IF_ERR_EXIT(dnx_lif_lib_allocate(unit, lif_alloc_flags, &global_lif_info, NULL, &outlif_info));
+
+    /*
+     * Increase the sFlow encaps counter.
+     * NOF sflow is blocked by the NOF of mirror profiles in the system.
+     * There is only one EXTENDED INITIATOR but there can be many EXTENDED FLOW, each one needs one CRPS time per one snooping.
+     */
+    if (!_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR))
+    {
+        SHR_IF_ERR_EXIT(instru.sflow_info.nof_sflow_encaps.inc(unit, 1));
+    }
+
+    /*
+     * Return the allocated global and local lifs.
+     */
+    sflow_encap_info->sflow_encap_id = global_lif_info.global_lif;
+    *sflow_local_outlif = outlif_info.local_outlif;
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - free the sflow encap lif and reduce the encaps counter.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_encap_id - The sFlow encap to free.
+ * \param [in] sflow_local_outlif - The local outlif to free.
+ * \param [in] dbal_result_type - EEDB_SFLOW result_type.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_encap_free(
+    int unit,
+    int sflow_encap_id,
+    int sflow_local_outlif,
+    uint32 dbal_result_type)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Delete global and local lifs.
+     */
+    SHR_IF_ERR_EXIT(dnx_lif_lib_free(unit, sflow_encap_id, NULL, sflow_local_outlif));
+
+    /*
+     * Decrease the sFlow encaps counter.
+     * Note:
+     * NOF sflow is blocked by the NOF of mirror profiles in the system.
+     * There is only one EXTENDED INITIATOR but there can be many EXTENDED FLOW, each one needs one CRPS time per one snooping.
+     * See allocate function.
+     */
+    if (dbal_result_type != DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_FIRST)
+    {
+        SHR_IF_ERR_EXIT(instru.sflow_info.nof_sflow_encaps.dec(unit, 1));
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow Autonomous System Destination create API params.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_dst_create_verify(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info)
+{
+    uint32 ipv6_address[UTILEX_PP_IPV6_ADDRESS_NOF_UINT32S];
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sflow_encap_ext_dst_info, _SHR_E_PARAM, "sflow_encap_ext_dst_info");
+
+    if (sflow_encap_ext_dst_info->flags &
+        (~(BCM_INSTRU_SFLOW_ENCAP_WITH_ID | BCM_INSTRU_SFLOW_ENCAP_REPLACE | BCM_INSTRU_SFLOW_ENCAP_EXTENDED_IPV6)))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! Unsupported flag: flags = 0x%08x. Supported flags are: BCM_INSTRU_SFLOW_ENCAP_WITH_ID = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_REPLACE = 0x%08x, "
+                     "BCM_INSTRU_SFLOW_ENCAP_EXTENDED_IPV6 = 0x%08x\n",
+                     sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID, BCM_INSTRU_SFLOW_ENCAP_REPLACE,
+                     BCM_INSTRU_SFLOW_ENCAP_EXTENDED_IPV6);
+    }
+
+    /** Verify replace case */
+    if (_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        /** Verify that the flag WITH_ID is set */
+        if (!(_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID)))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! flags = 0x%08X. flag BCM_INSTRU_SFLOW_ENCAP_REPLACE (0x%08X) is set - flag BCM_INSTRU_SFLOW_ENCAP_WITH_ID (0x%08X) must be set as well!!\n",
+                         sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE,
+                         BCM_INSTRU_SFLOW_ENCAP_WITH_ID);
+        }
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_id_verify(unit, sflow_encap_ext_dst_info->sflow_encap_extended_dst_id));
+    }
+
+    /*
+     * Verify  Autonomous System path data and length:
+     *   - length range is constant = 4.
+     */
+    if (sflow_encap_ext_dst_info->dst_as_path_length != BCM_INSTRU_SFLOW_ENCAP_EXTENDED_NOF_DSTS)
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! dst_as_path_length = %d. Only %d is supported!",
+                     sflow_encap_ext_dst_info->dst_as_path_length, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_NOF_DSTS);
+
+    }
+
+    /*
+     * Verify IP address
+     */
+    utilex_pp_ipv6_address_struct_to_long(sflow_encap_ext_dst_info->next_hop_ipv6_address, ipv6_address);
+
+    if (!_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_IPV6))
+    {
+        /** IPv4 */
+        if (sflow_encap_ext_dst_info->next_hop_ipv4_address == 0)
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM, "Error! flags = 0x%08x. IPv4 format but next_hop_ipv4_address = 0!",
+                         sflow_encap_ext_dst_info->flags);
+        }
+
+        if ((ipv6_address[0] != 0) || (ipv6_address[1] != 0) || (ipv6_address[2] != 0) || (ipv6_address[3] != 0))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! flags = 0x%08x. IPv4 format but next_hop_ipv6_address = [0x%08x, 0x%08x, 0x%08x, 0x%08x] is not 0!",
+                         sflow_encap_ext_dst_info->flags, ipv6_address[0], ipv6_address[1], ipv6_address[2],
+                         ipv6_address[3]);
+        }
+    }
+    else
+    {
+        /** IPv6 */
+        if ((ipv6_address[0] == 0) && (ipv6_address[1] == 0) && (ipv6_address[2] == 0) && (ipv6_address[3] == 0))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM, "Error! flags = 0x%08x. IPv6 format but next_hop_ipv6_address = 0!",
+                         sflow_encap_ext_dst_info->flags);
+        }
+
+        if (sflow_encap_ext_dst_info->next_hop_ipv4_address != 0)
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM, "Error! flags = 0x%08x. Thus, IPv6 format but next_hop_ipv4_address = 0x%08x!",
+                         sflow_encap_ext_dst_info->flags, sflow_encap_ext_dst_info->next_hop_ipv4_address);
+        }
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow Autonomous System Destination get/delete API params.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_dst_get_delete_verify(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sflow_encap_ext_dst_info, _SHR_E_PARAM, "sflow_encap_ext_dst_info");
+
+    /*
+     * Verify that the sflow_encap_extended_dst_id is indeed allocated and it is EEDB DATA ENTRY.
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_id_verify(unit, sflow_encap_ext_dst_info->sflow_encap_extended_dst_id));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow Autonomous System source create API params.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_src_create_verify(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_info_t * sflow_encap_ext_src_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sflow_encap_ext_src_info, _SHR_E_PARAM, "sflow_encap_ext_src_info");
+
+    if (sflow_encap_ext_src_info->flags & (~(BCM_INSTRU_SFLOW_ENCAP_WITH_ID | BCM_INSTRU_SFLOW_ENCAP_REPLACE)))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM,
+                     "Error! Unsupported flag: flags = 0x%08x. Supported flags are: BCM_INSTRU_SFLOW_ENCAP_WITH_ID = 0x%08x, BCM_INSTRU_SFLOW_ENCAP_REPLACE = 0x%08x \n",
+                     sflow_encap_ext_src_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID, BCM_INSTRU_SFLOW_ENCAP_REPLACE);
+    }
+
+    /** Verify replace case */
+    if (_SHR_IS_FLAG_SET(sflow_encap_ext_src_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        /** Verify that the flag WITH_ID is set */
+        if (!(_SHR_IS_FLAG_SET(sflow_encap_ext_src_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID)))
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! flags = 0x%08X. flag BCM_INSTRU_SFLOW_ENCAP_REPLACE (0x%08X) is set - flag BCM_INSTRU_SFLOW_ENCAP_WITH_ID (0x%08X) must be set as well!!\n",
+                         sflow_encap_ext_src_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE,
+                         BCM_INSTRU_SFLOW_ENCAP_WITH_ID);
+        }
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_id_verify(unit, sflow_encap_ext_src_info->sflow_encap_extended_src_id));
+    }
+
+    /** Verify Autonomous system number of source */
+    if (sflow_encap_ext_src_info->src_as == 0)
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM, "Error! src_as = 0.\n");
+    }
+
+    /** Verify Autonomous system number of source peer */
+    if (sflow_encap_ext_src_info->src_as_peer == 0)
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM, "Error! src_as_peer = 0.\n");
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Verify sflow Autonomous System source get/delete API params.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_src_get_delete_verify(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_info_t * sflow_encap_ext_src_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(sflow_encap_ext_src_info, _SHR_E_PARAM, "sflow_encap_ext_src_info");
+
+    /*
+     * Verify that the sflow_encap_extended_dst_id is indeed allocated and it is EEDB DATA ENTRY.
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_id_verify(unit, sflow_encap_ext_src_info->sflow_encap_extended_src_id));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Allocate a sFlow destination profile according to the required UDP tunnel.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_encap_info - UDP tunnel will be taken from here, as well as the old sFlow destination profile if the
+ *                                  REPLACE flag is set.
+ * \param [out] sflow_destination_profile - The destination profile for this UDP tunnel.
+ * \param [out] write_destination_profile - If set, write the new profile to HW. If not, the profile is already written.
+ * \param [out] old_sflow_destination_profile - If REPLACE flag was set, this holds the profile that the sflow encap was pointing to.
+ * \param [out] delete_old_destination_profile - If REPLACE flag was set, and this is set, then remove this profile from HW.
+ *                                          If it's not set, then then the profile is still in use, and don't remove it.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_destination_profile_allocate(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info,
+    int *sflow_destination_profile,
+    int *write_destination_profile,
+    int *old_sflow_destination_profile,
+    int *delete_old_destination_profile)
+{
+    uint8 first_reference, last_reference;
+    uint8 success;
+    sflow_destination_key_t destination;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    *write_destination_profile = FALSE;
+    *delete_old_destination_profile = FALSE;
+
+    sal_memset(&destination, 0, sizeof(sflow_destination_key_t));
+    destination.sub_agent_id = sflow_encap_info->sub_agent_id;
+    destination.udp_tunnel = sflow_encap_info->tunnel_id;
+    destination.eventor_id = sflow_encap_info->eventor_id;
+
+    /*
+     * Check for replace flag.
+     */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        /*
+         * If the replace flag was given, then read the old sFlow destination profile, and
+         * use exchange operation.
+         * No need to check if the entry was found because it was already checked by _verify.
+         */
+        uint8 found;
+
+        SHR_IF_ERR_EXIT(instru.sflow_info.sflow_encap_to_sflow_destination_profile.find(unit,
+                                                                                        &sflow_encap_info->sflow_encap_id,
+                                                                                        old_sflow_destination_profile,
+                                                                                        &found));
+
+        SHR_IF_ERR_EXIT(instru.sflow_info.sflow_destination_profile.exchange(unit, 0, &destination,
+                                                                             *old_sflow_destination_profile, NULL,
+                                                                             sflow_destination_profile,
+                                                                             &first_reference, &last_reference));
+
+        /*
+         * Remove the mapping from the encap id to the old UDP profile.
+         */
+        SHR_IF_ERR_EXIT(instru.sflow_info.sflow_encap_to_sflow_destination_profile.delete(unit,
+                                                                                          &sflow_encap_info->sflow_encap_id));
+
+        if (last_reference)
+        {
+            *delete_old_destination_profile = TRUE;
+        }
+    }
+    else
+    {
+        /*
+         * If it's not replace, just call allocate.
+         */
+        SHR_IF_ERR_EXIT(instru.sflow_info.sflow_destination_profile.allocate_single(unit, 0,
+                                                                                    &destination, NULL,
+                                                                                    sflow_destination_profile,
+                                                                                    &first_reference));
+        *old_sflow_destination_profile = -1;
+        last_reference = FALSE;
+    }
+
+    /*
+     * If it's the first time we meet this UDP tunnel profile, then we need to update the raw lifs.
+     */
+    if (first_reference)
+    {
+        *write_destination_profile = TRUE;
+    }
+
+    /*
+     * Add the new UDP profile to the mapping.
+     */
+    SHR_IF_ERR_EXIT(instru.sflow_info.sflow_encap_to_sflow_destination_profile.insert(unit,
+                                                                                      &sflow_encap_info->sflow_encap_id,
+                                                                                      sflow_destination_profile,
+                                                                                      &success));
+
+    if (!success)
+    {
+        SHR_ERR_EXIT(_SHR_E_INTERNAL, "Can't create mapping between sFlow encap and UDP profile.");
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Free a sFlow destination profile.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_encap_info - UDP tunnel will be taken from here.
+ * \param [out] sflow_destination_profile - The destination profile for this UDP tunnel.
+ * \param [out] delete_destination_profile - If set, then remove this profile from HW.
+ *                                          If it's not set, then the profile is still in use, and don't remove it.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_destination_profile_free(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info,
+    int *sflow_destination_profile,
+    int *delete_destination_profile)
+{
+    uint8 last_reference, found;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Get the udp profile, then delete it and clear the mapping.
+     * No need to verify found because we already checked it in _verify function.
+     */
+    SHR_IF_ERR_EXIT(instru.sflow_info.sflow_encap_to_sflow_destination_profile.find(unit,
+                                                                                    &sflow_encap_info->sflow_encap_id,
+                                                                                    sflow_destination_profile, &found));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.sflow_destination_profile.free_single(unit,
+                                                                            *sflow_destination_profile,
+                                                                            &last_reference));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.sflow_encap_to_sflow_destination_profile.delete(unit,
+                                                                                      &sflow_encap_info->sflow_encap_id));
+
+    if (last_reference)
+    {
+        *delete_destination_profile = TRUE;
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Allocate one SFLOW DATA Entry ("raw") lif.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_raw_lif_alloc(
+    int unit,
+    dnx_algo_local_outlif_logical_phase_e logical_phase,
+    int lif_alloc_flags,
+    int *local_outlif,
+    int *global_lif)
+{
+    lif_mngr_local_outlif_info_t outlif_info;
+    lif_mngr_global_lif_info_t global_lif_info = { 0 };
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    if (global_lif)
+    {
+        global_lif_info.global_lif = (*global_lif);
+    }
+
+    sal_memset(&outlif_info, 0, sizeof(lif_mngr_local_outlif_info_t));
+    outlif_info.dbal_table_id = DBAL_TABLE_EEDB_SFLOW_DATA;
+    outlif_info.dbal_result_type = DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B;
+
+    outlif_info.logical_phase = logical_phase;
+
+    SHR_IF_ERR_EXIT(dnx_lif_lib_allocate(unit, lif_alloc_flags, &global_lif_info, NULL, &outlif_info));
+
+    *local_outlif = outlif_info.local_outlif;
+    if (global_lif)
+    {
+        *global_lif = global_lif_info.global_lif;
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Free one SFLWO DATA Entry ("raw") lif.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_raw_lif_free(
+    int unit,
+    int local_outlif,
+    int global_lif)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_lif_lib_free(unit, global_lif, NULL, local_outlif));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Clears the data of one SFLOW DATA Entry ("raw") lif.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_raw_lif_data_clear(
+    int unit,
+    int local_outlif)
+{
+    uint32 entry_handle_id;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /** Set RESULT_TYPE field */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, local_outlif);
+
+    /** Clear dbal entry */
+    SHR_IF_ERR_EXIT(dbal_entry_clear(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Allocate the raw lifs for a header sampling destination profile.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [out] sflow_destination_profile - The destination profile for these raw lifs.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_header_sampling_raw_lifs_allocate(
+    int unit,
+    int sflow_destination_profile)
+{
+    int local_outlif;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_alloc
+                    (unit, DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2, LIF_MNGR_DONT_ALLOCATE_GLOBAL_LIF, &local_outlif,
+                     NULL));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.set(unit, sflow_destination_profile, 0, local_outlif));
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_alloc
+                    (unit, DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_3, LIF_MNGR_DONT_ALLOCATE_GLOBAL_LIF, &local_outlif,
+                     NULL));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.set(unit, sflow_destination_profile, 1, local_outlif));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Free the raw lifs for a header sampling destination profile.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [out] sflow_destination_profile - The destination profile for these raw lifs.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_header_sampling_raw_lifs_free(
+    int unit,
+    int sflow_destination_profile)
+{
+    int local_outlif;
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.get(unit, sflow_destination_profile, 0, &local_outlif));
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_free(unit, local_outlif, LIF_MNGR_INVALID));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.set(unit, sflow_destination_profile, 0, 0));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.get(unit, sflow_destination_profile, 1, &local_outlif));
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_free(unit, local_outlif, LIF_MNGR_INVALID));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.set(unit, sflow_destination_profile, 1, 0));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Delete header sampling raw data etps entries.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_destination_profile - the sFlow destination profile that holds the raw lifs.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_header_sampling_raw_lifs_data_clear(
+    int unit,
+    int sflow_destination_profile)
+{
+    uint32 entry_handle_id;
+    int current_outlif, current_outlif_index;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /** Set RESULT_TYPE field */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    for (current_outlif_index = 0; current_outlif_index < INSTRU_SFLOW_NOF_RAW_ENCAP_ENTRIES; current_outlif_index++)
+    {
+        SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.get(unit, sflow_destination_profile,
+                                                                     current_outlif_index, &current_outlif));
+
+        dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, current_outlif);
+
+        /** Clear dbal entry */
+        SHR_IF_ERR_EXIT(dbal_entry_clear(unit, entry_handle_id, DBAL_COMMIT));
+    }
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - set raw data lif
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_encap_info - Encap info for these raw data lifs.
+ * \param [in] sflow_destination_profile - the sFlow destination profile for these lifs.
+ * \param [in] dbal_result_type - the lif entry result type.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_raw_data_lifs_write(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info,
+    int sflow_destination_profile,
+    uint32 dbal_result_type)
+{
+    uint32 entry_handle_id;
+    int current_outlif, next_outlif;
+    dnx_algo_gpm_gport_hw_resources_t hw_res;
+    uint32 entry_data[4];
+    bcm_ip_t agent_ip_address;
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle. */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /*
+     * Write the raw outlif for encap 3.
+     * Its data is described below.
+     * It's next pointer is the UDP tunnel local lif, so get it from algo_gpm.
+     */
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.get(unit, sflow_destination_profile, 1, &current_outlif));
+
+    /*
+     * Entry data is different in case of DP or eventor
+     */
+    if (dbal_result_type == DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP)
+    {
+        /*
+         * entry_data[0] - sub agent id - take from input.
+         * entry_data[1] - agent ip addr - take from sw state
+         * entry_data[2] - agent ip - currently 1 for ipv4.
+         * entry_data[3] - sFlow version - const 5 for now.
+         */
+        SHR_IF_ERR_EXIT(instru.sflow_info.agent_ip_address.get(unit, &agent_ip_address));
+        entry_data[0] = sflow_encap_info->sub_agent_id;
+        entry_data[1] = agent_ip_address;
+        entry_data[2] = 1;
+        entry_data[3] = DNX_INSTRU_SFLOW_VERSION;
+    }
+    else
+    {
+        entry_data[0] = entry_data[1] = entry_data[2] = 0;
+        entry_data[3] = sflow_encap_info->eventor_id << 24;
+    }
+
+    sal_memset(&hw_res, 0, sizeof(dnx_algo_gpm_gport_hw_resources_t));
+
+    /*
+     * Tunnel encap pointer is needed only in case of DP
+     */
+    if (dbal_result_type == DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP)
+    {
+        SHR_IF_ERR_EXIT(dnx_algo_gpm_gport_to_hw_resources(unit, sflow_encap_info->tunnel_id,
+                                                           DNX_ALGO_GPM_GPORT_HW_RESOURCES_LOCAL_LIF_EGRESS, &hw_res));
+    }
+
+    next_outlif = hw_res.local_out_lif;
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, current_outlif);
+    /** Data fields*/
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NEXT_OUTLIF_POINTER, INST_SINGLE, next_outlif);
+
+    dbal_entry_value_field_arr32_set(unit, entry_handle_id, DBAL_FIELD_SFLOW_DATA, INST_SINGLE, entry_data);
+
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_CLEAR(unit, DBAL_TABLE_EEDB_SFLOW_DATA, entry_handle_id));
+    /*
+     * Write the raw outlif for encap 2.
+     * Its data is 0.
+     * Its next pointer is the raw outlif for encap 3.
+     */
+    next_outlif = current_outlif;
+    entry_data[0] = entry_data[1] = entry_data[2] = entry_data[3] = 0;
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.get(unit, sflow_destination_profile, 0, &current_outlif));
+
+    /** Take DBAL handle. */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, current_outlif);
+    /** Data fields*/
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NEXT_OUTLIF_POINTER, INST_SINGLE, next_outlif);
+
+    dbal_entry_value_field_arr32_set(unit, entry_handle_id, DBAL_FIELD_SFLOW_DATA, INST_SINGLE, entry_data);
+
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - set sflow encap lif
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_local_outlif - Local sFlow encap lif
+ * \param [in] sflow_destination_profile - sFlow destination profile for this sFlow encap. It will be used to
+ *                                  get the next outlif pointer.
+ * \param [in] eventor_id - the Eventor ID.
+ * \param [in] dbal_result_type - the EEDB SFLOW result type.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_encap_write(
+    int unit,
+    int sflow_local_outlif,
+    uint32 sflow_destination_profile,
+    uint16 eventor_id,
+    uint32 dbal_result_type)
+{
+    uint32 entry_handle_id;
+    uint32 entry_data[3];
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, sflow_local_outlif);
+
+    /** Set RESULT_TYPE field */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE, dbal_result_type);
+
+    switch (dbal_result_type)
+    {
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP:
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_SAMP:
+        {
+            int next_outlif;
+            uint32 esem_access_cmd;
+
+            SHR_IF_ERR_EXIT(instru.sflow_info.raw_outlifs_by_profile.get(unit, sflow_destination_profile,
+                                                                         0, &next_outlif));
+
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_LIF_SET, INST_SINGLE,
+                                         INSTRU_SFLOW_OAM_LIF_SET);
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NEXT_OUTLIF_POINTER, INST_SINGLE,
+                                         next_outlif);
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : const 0.
+             * entry_data[1] : Number of flow records (currently const 1)
+             * entry_data[2] : Data format2 (currently const 1)
+             *
+             */
+            entry_data[0] = 0;
+            entry_data[1] = 1;
+            entry_data[2] = 1;
+
+            esem_access_cmd = dnx_data_esem.access_cmd.sflow_sample_interface_get(unit);
+
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_ESEM_COMMAND, INST_SINGLE, esem_access_cmd);
+
+            break;
+        }
+
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_FIRST:
+        {
+            /*
+             * Set entry raw data.
+             * entry_data[0] : const 0.
+             * entry_data[1] : const 1 = data format.
+             * entry_data[2] : const 1 = protocol ETH.
+             *
+             */
+            entry_data[0] = 0;
+            entry_data[1] = 1;
+            entry_data[2] = 1;
+
+            break;
+        }
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_SECOND:
+        {
+            uint32 esem_access_cmd;
+
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_LIF_SET, INST_SINGLE,
+                                         INSTRU_SFLOW_OAM_LIF_SET);
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : const 0.
+             * entry_data[1] : const 0.
+             * entry_data[2] : eventor_id (MSBs).
+             * Note: this entry is TOS of 2nd pass - only used for context setup and CRPS counter.
+             */
+            entry_data[0] = 0;
+            entry_data[1] = 0;
+            entry_data[2] = eventor_id << 24;
+
+            esem_access_cmd = dnx_data_esem.access_cmd.sflow_sample_interface_get(unit);
+
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_ESEM_COMMAND, INST_SINGLE, esem_access_cmd);
+
+            break;
+        }
+        default:
+        {
+
+            SHR_ERR_EXIT(_SHR_E_INTERNAL,
+                         "Error! Unsupported result type: dbal_result_type = %d. Supported result_type are: DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP = %d, DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_SAMP = %d, "
+                         "DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_FIRST = %d, DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_SECOND = %d\n",
+                         dbal_result_type, DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP,
+                         DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_SAMP,
+                         DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_FIRST,
+                         DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_SECOND);
+        }
+    }
+
+    dbal_entry_value_field_arr32_set(unit, entry_handle_id, DBAL_FIELD_RAW_DATA, INST_SINGLE, entry_data);
+
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - set oam lif db data
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_encap_info - Pointer to a struct from which the relevant data (stat_cmd, counter_command_id) is taken
+ * \param [in] sflow_outlif - Serves as a key to the oam lif db dbal table
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_add_oam_lif_db(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info,
+    int sflow_outlif)
+{
+    uint32 entry_handle_id;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EGRESS_OAM_LIF_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_KEY_PREFIX, INSTRU_OAM_KEY_PREFIX);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_KEY_BASE, sflow_outlif);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_CORE_ID, _SHR_CORE_ALL);
+    /** Set DATA fields */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_MDL_MP_TYPE, INST_SINGLE, INSTRU_MDL_MP_TYPE);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_COUNTER_BASE, INST_SINGLE,
+                                 sflow_encap_info->stat_cmd);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_COUNTER_INTERFACE, INST_SINGLE,
+                                 sflow_encap_info->counter_command_id);
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT_UPDATE));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - get oam lif db data
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_encap_info - Pointer to a struct to which the relevant data (stat_cmd, counter_command_id) will be written into
+ * \param [in] sflow_outlif - Serves as a key to the oam lif db dbal table
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_oam_lif_db_get(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info,
+    int sflow_outlif)
+{
+    uint32 entry_handle_id;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EGRESS_OAM_LIF_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_KEY_PREFIX, INSTRU_OAM_KEY_PREFIX);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_KEY_BASE, sflow_outlif);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_CORE_ID, DBAL_CORE_DEFAULT);
+    /** Get DATA fields */
+    SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_GET_ALL_FIELDS));
+    SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get(unit,
+                                                        entry_handle_id,
+                                                        DBAL_FIELD_OAM_COUNTER_BASE, INST_SINGLE,
+                                                        (uint32 *) &sflow_encap_info->stat_cmd));
+    SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get
+                    (unit, entry_handle_id, DBAL_FIELD_COUNTER_INTERFACE, INST_SINGLE,
+                     (uint32 *) &sflow_encap_info->counter_command_id));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - get the sFlow destination connected to the sFlow encap.
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in,out] sflow_encap_info - sFlow encap info. The encap id is used as input, and the tunnel_id
+ *                                      and sub_agent_id fields will be filled.
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_destination_get(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    uint8 found;
+    int sflow_destination_profile;
+    sflow_destination_key_t destination_key;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.sflow_encap_to_sflow_destination_profile.find(unit,
+                                                                                    &sflow_encap_info->sflow_encap_id,
+                                                                                    &sflow_destination_profile,
+                                                                                    &found));
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.sflow_destination_profile.profile_data_get(unit,
+                                                                                 sflow_destination_profile, NULL,
+                                                                                 &destination_key));
+
+    sflow_encap_info->tunnel_id = destination_key.udp_tunnel;
+    sflow_encap_info->sub_agent_id = destination_key.sub_agent_id;
+    sflow_encap_info->eventor_id = destination_key.eventor_id;
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Delete oam lif db entry
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_outlif - the sflow lif id, key to the dbal table
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_oam_lif_db_delete(
+    int unit,
+    int sflow_outlif)
+{
+    uint32 entry_handle_id;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EGRESS_OAM_LIF_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_KEY_PREFIX, INSTRU_OAM_KEY_PREFIX);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_KEY_BASE, sflow_outlif);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_CORE_ID, _SHR_CORE_ALL);
+    /** Clear dbal entry */
+    SHR_IF_ERR_EXIT(dbal_entry_clear(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Clear sflow EEDB entry
+ *
+ * \param [in] unit - Relevant unit
+ * \param [in] sflow_local_outlif - the sflow lif id, key to the dbal table
+ * \param [in] result_type - the sflow EEDB entry result type
+ *
+ * \return
+ *   shr_error_e, negative in case of an error.
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_encap_clear(
+    int unit,
+    int sflow_local_outlif,
+    uint32 result_type)
+{
+    uint32 entry_handle_id;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, sflow_local_outlif);
+    /** Set RESULT_TYPE field */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE, result_type);
+
+    /** Clear dbal entry */
+    SHR_IF_ERR_EXIT(dbal_entry_clear(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Create an sflow entity for Header sampling - aggregated/non-aggregated..
+ * Sflow ETPS points to a raw data ETPS, which points to a udp ETPS entry in the EEDB
+ *
+ */
+int
+dnx_instru_sflow_encap_header_sampling_create(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    int sflow_global_lif = 0;
+    int sflow_destination_profile = 0;
+    int sflow_local_outlif = 0;
+    int write_destination_profile, old_sflow_destination_profile, delete_old_destination_profile;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_flags_to_result_type(unit, sflow_encap_info->flags, &result_type));
+
+    /*
+     * Allocate all resource
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_allocate(unit, sflow_encap_info, &sflow_local_outlif, result_type));
+    sflow_global_lif = sflow_encap_info->sflow_encap_id;
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_destination_profile_allocate
+                    (unit, sflow_encap_info, &sflow_destination_profile, &write_destination_profile,
+                     &old_sflow_destination_profile, &delete_old_destination_profile));
+
+    if (write_destination_profile && (sflow_destination_profile != old_sflow_destination_profile))
+    {
+        /*
+         * We need to allocate new raw lifs if the udp profile is new, but not if we replace the content of
+         * an existing profile.
+         */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_header_sampling_raw_lifs_allocate(unit, sflow_destination_profile));
+    }
+
+    /*
+     * Write to HW.
+     */
+    if (write_destination_profile)
+    {
+        /*
+         * Only write the raw lifs if it's a new UDP profile, or same profile with new content.
+         */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_data_lifs_write
+                        (unit, sflow_encap_info, sflow_destination_profile, result_type));
+    }
+
+    if (sflow_destination_profile != old_sflow_destination_profile)
+    {
+        /*
+         * The only information stored by the sFlow encap is the pointer to the udp tunnel,
+         * so if it didn't change then no need to update it.
+         */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_write
+                        (unit, sflow_local_outlif, sflow_destination_profile, sflow_encap_info->eventor_id,
+                         result_type));
+    }
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_add_oam_lif_db(unit, sflow_encap_info, sflow_local_outlif));
+
+    if (!_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        /**
+         * No need to write to GLEM if we perform replace since the global and local lif don't change.
+         */
+        SHR_IF_ERR_EXIT(dnx_lif_lib_add_to_glem(unit, _SHR_CORE_ALL, sflow_global_lif, sflow_local_outlif, TRUE));
+    }
+
+    if (delete_old_destination_profile)
+    {
+        /*
+         * If it's the last instance of the old UDP profile, and it wasn't reused,
+         * then free and clear the raw lifs associated with it.
+         */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_header_sampling_raw_lifs_data_clear(unit, old_sflow_destination_profile));
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_header_sampling_raw_lifs_free(unit, sflow_destination_profile));
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Create an sflow extended entity.
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_create(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    int sflow_destination_profile = 0;
+    int sflow_local_outlif = 0;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_flags_to_result_type(unit, sflow_encap_info->flags, &result_type));
+
+    /*
+     * Allocate SFLOW EEDB resource
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_allocate(unit, sflow_encap_info, &sflow_local_outlif, result_type));
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_write
+                    (unit, sflow_local_outlif, sflow_destination_profile, sflow_encap_info->eventor_id, result_type));
+
+    /*
+     * For Extended SFLOW 2nd pass:
+     *  - Update CRPS counter with the SFLOW EEDB
+     *  - Save relevant info in DB
+     */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW))
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_add_oam_lif_db(unit, sflow_encap_info, sflow_local_outlif));
+    }
+
+    if (!_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        /**
+         * No need to write to GLEM if we perform replace since the global and local lif don't change.
+         */
+        SHR_IF_ERR_EXIT(dnx_lif_lib_add_to_glem
+                        (unit, _SHR_CORE_ALL, sflow_encap_info->sflow_encap_id, sflow_local_outlif, TRUE));
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Create an sflow entity.
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] sflow_encap_info - A pointer to sflow struct:
+ *                                   flags -
+ *                                          BCM_INSTRU_SFLOW_ENCAP_WITH_ID - sflow encap id given
+ *                                          BCM_INSTRU_SFLOW_ENCAP_REPLACE - replace an existing sflow lif. No need to update glem
+ *                                          BCM_INSTRU_SFLOW_ENCAP_AGGREGATED - aggregated samples (using eventor)
+ *                                          BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR - Sflow IPoETH sampling initator
+ *                                          BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW - Sflow IPoETH sampling per flow
+ *                                   sflow_encap_id - sflow global lif
+ *                                   tunnel_id - udp eedb entry tunnel id
+ *                                   stat_cmd - statistic command to the crps - increment and read
+ *                                   counter_command_id - crps interface id
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+int
+bcm_dnx_instru_sflow_encap_create(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_create_verify(unit, sflow_encap_info));
+
+    /*
+     * For SFLOW Extended - only EEDB should be allocated.
+     */
+    if (_SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR) ||
+        _SHR_IS_FLAG_SET(sflow_encap_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW))
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_create(unit, sflow_encap_info));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_header_sampling_create(unit, sflow_encap_info));
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Delete an sflow entity, based on the encap id (sflow global lif) specified
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] sflow_encap_info - A pointer to sflow struct with the global lif which serves as "key" for deletion
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+int
+bcm_dnx_instru_sflow_encap_delete(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    int local_lif;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_delete_verify(unit, sflow_encap_info));
+
+    /**
+     * Clear HW.
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                    (unit, sflow_encap_info->sflow_encap_id, &local_lif, &result_type));
+
+    switch (result_type)
+    {
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP:
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_SAMP:
+        {
+            int sflow_destination_profile, delete_destination_profile = -1;
+
+            /** Remove global lif from GLEM */
+            SHR_IF_ERR_EXIT(dnx_lif_lib_remove_from_glem(unit, _SHR_CORE_ALL, sflow_encap_info->sflow_encap_id));
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_oam_lif_db_delete(unit, local_lif));
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_clear(unit, local_lif, result_type));
+
+            /*
+             * Free sFlow destination profile, and if necessary, free and clear raw outlifs.
+             */
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_destination_profile_free
+                            (unit, sflow_encap_info, &sflow_destination_profile, &delete_destination_profile));
+
+            if (delete_destination_profile)
+            {
+                SHR_IF_ERR_EXIT(dnx_instru_sflow_header_sampling_raw_lifs_data_clear(unit, sflow_destination_profile));
+
+                SHR_IF_ERR_EXIT(dnx_instru_sflow_header_sampling_raw_lifs_free(unit, sflow_destination_profile));
+            }
+
+            /*
+             * Free sFlow encap outlif.
+             */
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_free
+                            (unit, sflow_encap_info->sflow_encap_id, local_lif, result_type));
+
+            break;
+        }
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_FIRST:
+        {
+            /** Remove global lif from GLEM */
+            SHR_IF_ERR_EXIT(dnx_lif_lib_remove_from_glem(unit, _SHR_CORE_ALL, sflow_encap_info->sflow_encap_id));
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_clear(unit, local_lif, result_type));
+
+            /*
+             * Free sFlow encap outlif.
+             */
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_free
+                            (unit, sflow_encap_info->sflow_encap_id, local_lif, result_type));
+
+            break;
+        }
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_SECOND:
+        {
+            /** Remove global lif from GLEM */
+            SHR_IF_ERR_EXIT(dnx_lif_lib_remove_from_glem(unit, _SHR_CORE_ALL, sflow_encap_info->sflow_encap_id));
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_oam_lif_db_delete(unit, local_lif));
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_clear(unit, local_lif, result_type));
+
+            /*
+             * Free sFlow encap outlif.
+             */
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_free
+                            (unit, sflow_encap_info->sflow_encap_id, local_lif, result_type));
+
+            break;
+        }
+        default:
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! sflow_encap_id = 0x%08x has unsupported result type: result_type = %d! \n",
+                         sflow_encap_info->sflow_encap_id, result_type);
+        }
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Get an sflow entity data, based on the local lif and result type
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_encap_get(
+    int unit,
+    int local_lif,
+    uint32 result_type,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    switch (result_type)
+    {
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_DP:
+        {
+            sflow_encap_info->flags = 0;
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_oam_lif_db_get(unit, sflow_encap_info, local_lif));
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_destination_get(unit, sflow_encap_info));
+
+            break;
+        }
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_HDR_SAMP:
+        {
+            sflow_encap_info->flags = BCM_INSTRU_SFLOW_ENCAP_AGGREGATED;
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_oam_lif_db_get(unit, sflow_encap_info, local_lif));
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_destination_get(unit, sflow_encap_info));
+
+            break;
+        }
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_FIRST:
+        {
+            sflow_encap_info->flags = BCM_INSTRU_SFLOW_ENCAP_EXTENDED_INITIATOR;
+            sflow_encap_info->tunnel_id = 0;
+            sflow_encap_info->sub_agent_id = 0;
+            sflow_encap_info->eventor_id = 0;
+            sflow_encap_info->stat_cmd = 0;
+            sflow_encap_info->counter_command_id = 0;
+
+            break;
+        }
+        case DBAL_RESULT_TYPE_EEDB_SFLOW_ETPS_SFLOW_EXT_SECOND:
+        {
+            uint32 entry_handle_id;
+            uint32 entry_data[4];
+
+            sflow_encap_info->flags = BCM_INSTRU_SFLOW_ENCAP_EXTENDED_FLOW | BCM_INSTRU_SFLOW_ENCAP_AGGREGATED;
+
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_oam_lif_db_get(unit, sflow_encap_info, local_lif));
+
+            /** Get Eventor ID from the Entry */
+
+            /** Take DBAL handle */
+            SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW, &entry_handle_id));
+
+            /** Set KEY field */
+            dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, local_lif);
+
+            /** Set RESULT_TYPE field */
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE, result_type);
+
+            dbal_value_field_arr32_request(unit, entry_handle_id, DBAL_FIELD_RAW_DATA, INST_SINGLE, entry_data);
+            SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_COMMIT));
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : const 0.
+             * entry_data[1] : const 0.
+             * entry_data[2] : eventor_id (MSBs).
+             */
+            sflow_encap_info->eventor_id = (entry_data[2] >> 24);
+
+            break;
+        }
+        default:
+        {
+            SHR_ERR_EXIT(_SHR_E_PARAM,
+                         "Error! sflow_encap_id = 0x%08x has unsupported result type: result_type = %d! \n",
+                         sflow_encap_info->sflow_encap_id, result_type);
+        }
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Get an sflow entity, based on the encap id (sflow global lif) specified
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] sflow_encap_info - A pointer to sflow struct with the global lif, write data into it
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+int
+bcm_dnx_instru_sflow_encap_get(
+    int unit,
+    bcm_instru_sflow_encap_info_t * sflow_encap_info)
+{
+    int local_lif;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_NOT_NEEDED(unit);
+
+    /** Check if entry exists in GLEM*/
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                    (unit, sflow_encap_info->sflow_encap_id, &local_lif, &result_type));
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_get(unit, local_lif, result_type, sflow_encap_info));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Traverse over all configured sflow entries. Use given callback function on each entity
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] cb - A pointer to a callback function for data retreive
+ * \param [in] user_data - data sent from the user that will be passed to the callback function
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+int
+bcm_dnx_instru_sflow_encap_traverse(
+    int unit,
+    bcm_instru_sflow_encap_traverse_cb cb,
+    void *user_data)
+{
+    uint32 entry_handle_id;
+    int is_end = 0;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_NOT_NEEDED(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW, &entry_handle_id));
+    SHR_IF_ERR_EXIT(dbal_iterator_init(unit, entry_handle_id, DBAL_ITER_MODE_ALL));
+
+    /*
+     * Receive first entry in table.
+     */
+    SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    while (!is_end)
+    {
+        bcm_instru_sflow_encap_info_t sflow_encap_info;
+        uint32 result_type, local_out_lif;
+        bcm_gport_t gport;
+
+        sal_memset(&sflow_encap_info, 0, sizeof(bcm_instru_sflow_encap_info_t));
+
+        SHR_IF_ERR_EXIT(dbal_entry_handle_value_field_arr32_get(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE,
+                                                                INST_SINGLE, &result_type));
+
+        SHR_IF_ERR_EXIT(dbal_entry_handle_key_field_arr32_get
+                        (unit, entry_handle_id, DBAL_FIELD_OUT_LIF, &local_out_lif));
+
+        SHR_IF_ERR_EXIT(dnx_algo_gpm_gport_from_lif(unit, DNX_ALGO_GPM_GPORT_HW_RESOURCES_LOCAL_LIF_EGRESS,
+                                                    _SHR_CORE_ALL, local_out_lif, &gport));
+
+        sflow_encap_info.sflow_encap_id = BCM_GPORT_TUNNEL_ID_GET(gport);
+
+        /** Get Sflow info */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_get(unit, local_out_lif, result_type, &sflow_encap_info));
+
+        /*
+         * If user provided a name for the callback function,
+         * call it with passing the data from the found entry.
+         */
+        if (cb != NULL)
+        {
+            /*
+             * Invoke callback function
+             */
+            SHR_IF_ERR_EXIT((*cb) (unit, &sflow_encap_info, user_data));
+        }
+
+        /*
+         * Receive next entry in table.
+         */
+        SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+static shr_error_e
+dnx_instru_sflow_virtual_register_set(
+    int unit,
+    dbal_fields_e field,
+    int value)
+{
+    uint32 entry_handle_id;
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_PEMLA_SFLOW, &entry_handle_id));
+
+    /** Set the sampling rate field. */
+    dbal_entry_value_field32_set(unit, entry_handle_id, field, INST_SINGLE, value);
+
+    /** Commit dbal entry */
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+static shr_error_e
+dnx_instru_sflow_virtual_register_get(
+    int unit,
+    dbal_fields_e field,
+    int *value)
+{
+    uint32 entry_handle_id;
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    SHR_NULL_CHECK(value, _SHR_E_PARAM, "value");
+
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_PEMLA_SFLOW, &entry_handle_id));
+
+    SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_GET_ALL_FIELDS));
+
+    SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get(unit, entry_handle_id, field, INST_SINGLE, (uint32 *) value));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_sampling_rate_set(
+    int unit,
+    int sampling_rate)
+{
+    uint32 prob_max_val;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Sampling rate range:
+     *   1. If the sflow mode of operation is non-aggregated (without Eventor):
+     *           There is no limitation.
+     *   2. If the sflow mode of operation is aggregated (using Eventor):
+     *           The limitation is ~30Gbps --> 1/200 of line-rate.
+     *           Typical sampling rate should be 1:1000 - 1:5000.
+     *
+     * The sampling rate is used for setting the mirroring, thus check mirroring range.
+     * See bcm_dnx_mirror_destination_create.
+     */
+    prob_max_val = dnx_data_snif.ingress.prob_max_val_get(unit);
+
+    if ((sampling_rate < 1) || (sampling_rate > prob_max_val))
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM, "sampling_rate = %d is out of range [1:%d]!\n", sampling_rate, prob_max_val);
+    }
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_virtual_register_set(unit, DBAL_FIELD_SFLOW_SAMPLING_RATE, sampling_rate));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_sampling_rate_get(
+    int unit,
+    int *sampling_rate)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_virtual_register_get(unit, DBAL_FIELD_SFLOW_SAMPLING_RATE, sampling_rate));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_uptime_set(
+    int unit,
+    int uptime)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_virtual_register_set(unit, DBAL_FIELD_SFLOW_UPTIME, uptime));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_uptime_get(
+    int unit,
+    int *uptime)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_virtual_register_get(unit, DBAL_FIELD_SFLOW_UPTIME, uptime));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_myrouter_as_number_set(
+    int unit,
+    int as_number)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_virtual_register_set(unit, DBAL_FIELD_SFLOW_MYROUTER_AS_NUMBER, as_number));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_myrouter_as_number_get(
+    int unit,
+    int *as_number)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_virtual_register_get(unit, DBAL_FIELD_SFLOW_MYROUTER_AS_NUMBER, as_number));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_agent_id_address_set(
+    int unit,
+    bcm_ip_t agent_ip_address)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.agent_ip_address.set(unit, agent_ip_address));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+shr_error_e
+dnx_instru_sflow_agent_id_address_get(
+    int unit,
+    bcm_ip_t * agent_ip_address)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(instru.sflow_info.agent_ip_address.get(unit, agent_ip_address));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - set extended dst raw data lif
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_dst_raw_data_lif_write(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info,
+    dnx_algo_local_outlif_logical_phase_e logical_phase,
+    int current_local_outlif,
+    int next_local_lif)
+{
+    uint32 entry_handle_id;
+    uint32 entry_data[4];
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle. */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    switch (logical_phase)
+    {
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2:
+        {
+            /*
+             * Set entry raw data.
+             * entry_data[0] : dst_as_path[0].
+             * entry_data[1] : dst_as_path[1].
+             * entry_data[2] : dst_as_path[2].
+             * entry_data[3] : dst_as_path[3].
+             * Note: invalid entries are set to 0, see verification.
+             */
+            entry_data[0] = sflow_encap_ext_dst_info->dst_as_path[0];
+            entry_data[1] = sflow_encap_ext_dst_info->dst_as_path[1];
+            entry_data[2] = sflow_encap_ext_dst_info->dst_as_path[2];
+            entry_data[3] = sflow_encap_ext_dst_info->dst_as_path[3];
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_3:
+        {
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : const 2 = AS-Path-Segment-Type.
+             * entry_data[1] : const 4 = AS-List-Length.
+             * entry_data[2] : const 1 = Num-of-Dest-Paths.
+             * entry_data[3] : 0.
+             * Note:
+             * AS-List-Length is set constantly to 4 even if the user set it to less since the record contains 4 entries.
+             * If the user set it to less, the invalid entries should be with zero value. See verification.
+             *
+             */
+            entry_data[0] = 2;
+            entry_data[1] = 4;
+            entry_data[2] = 1;
+            entry_data[3] = 0;
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_4:
+        {
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : Next-Hop-IPv6/4[31:0].
+             * entry_data[1] : Next-Hop-IPv6[63:32].
+             * entry_data[2] : Next-Hop-IPv6[95:64].
+             * entry_data[3] : Next-Hop-IPv6[127:96].
+             *
+             */
+            if (!_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_IPV6))
+            {
+                entry_data[0] = sflow_encap_ext_dst_info->next_hop_ipv4_address;
+                entry_data[1] = 0;
+                entry_data[2] = 0;
+                entry_data[3] = 0;
+            }
+            else
+            {
+                utilex_pp_ipv6_address_struct_to_long(sflow_encap_ext_dst_info->next_hop_ipv6_address, entry_data);
+            }
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_5:
+        {
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : Record-Length (Extended Gateway record length = 56).
+             * entry_data[1] : Next-Hop-IP-Type (unknown = 0, IPv4 =1, IPv6 = 2).
+             * entry_data[2] : Data-Format2 (= 1003).
+             * entry_data[3] : Num-of-Records (=2, Header sample + Extended Gateway data).
+             */
+            entry_data[0] = 56;
+
+            if (!_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_EXTENDED_IPV6))
+            {
+                /** IPv4 */
+                entry_data[1] = 1;
+            }
+            else
+            {
+                /** IPv6 */
+                entry_data[1] = 2;
+            }
+            entry_data[2] = 1003;
+            entry_data[3] = 2;
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6:
+        {
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : Data-Format1 (= 1).
+             * entry_data[1] : Length (total sample langth = 248
+             * entry_data[2] : 0.
+             * entry_data[3] : 0.
+             */
+            entry_data[0] = 1;
+            entry_data[1] = 248;
+            entry_data[2] = 0;
+            entry_data[3] = 0;
+
+            break;
+        }
+        default:
+        {
+
+            SHR_ERR_EXIT(_SHR_E_INTERNAL,
+                         "Error! Unsupported SFLOW Extended Destination RAW pahse: logical_phase = %d. \n",
+                         logical_phase);
+        }
+    }
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, current_local_outlif);
+    /** Data fields*/
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    dbal_entry_value_field_arr32_set(unit, entry_handle_id, DBAL_FIELD_SFLOW_DATA, INST_SINGLE, entry_data);
+
+    /** For REPLACE, need to update only the data */
+    if (!_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NEXT_OUTLIF_POINTER, INST_SINGLE,
+                                     next_local_lif);
+    }
+
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - get the extended dst next outlif from the raw lif
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_dst_raw_data_lif_next_outlif_get(
+    int unit,
+    int current_local_outlif,
+    int *next_local_outlif)
+{
+    uint32 entry_handle_id;
+    uint32 next_outlif_ptr;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle. */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, current_local_outlif);
+    /** Data fields*/
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    /** Get next_outlif_ptr */
+    dbal_value_field_arr32_request(unit, entry_handle_id, DBAL_FIELD_NEXT_OUTLIF_POINTER, INST_SINGLE,
+                                   &next_outlif_ptr);
+    SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_COMMIT));
+
+    *next_local_outlif = (int) next_outlif_ptr;
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - get the extended dst data from the raw lif
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_dst_raw_data_lif_get(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info,
+    dnx_algo_local_outlif_logical_phase_e logical_phase,
+    int current_local_outlif)
+{
+    uint32 entry_handle_id;
+    uint32 entry_data[4];
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle. */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, current_local_outlif);
+    /** Data fields*/
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    /** Get Sflow data */
+    dbal_value_field_arr32_request(unit, entry_handle_id, DBAL_FIELD_SFLOW_DATA, INST_SINGLE, entry_data);
+    SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_COMMIT));
+
+    switch (logical_phase)
+    {
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2:
+        {
+            /*
+             * Get entry raw data.
+             * entry_data[0] : dst_as_path[0].
+             * entry_data[1] : dst_as_path[1].
+             * entry_data[2] : dst_as_path[2].
+             * entry_data[3] : dst_as_path[3].
+             */
+            sflow_encap_ext_dst_info->dst_as_path[0] = entry_data[0];
+            sflow_encap_ext_dst_info->dst_as_path[1] = entry_data[1];
+            sflow_encap_ext_dst_info->dst_as_path[2] = entry_data[2];
+            sflow_encap_ext_dst_info->dst_as_path[3] = entry_data[3];
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_3:
+        {
+
+            /*
+             * Get entry raw data.
+             * entry_data[0] : const 2 = AS-Path-Segment-Type.
+             * entry_data[1] : const 4 = AS-List-Length.
+             * entry_data[2] : const 1 = Num-of-Dest-Paths.
+             * entry_data[3] : 0.
+             *
+             */
+            sflow_encap_ext_dst_info->dst_as_path_length = 4;
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_4:
+        {
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : Next-Hop-IPv6/4[31:0].
+             * entry_data[1] : Next-Hop-IPv6[63:32].
+             * entry_data[2] : Next-Hop-IPv6[95:64].
+             * entry_data[3] : Next-Hop-IPv6[127:96].
+             *
+             * Note:
+             * Updating here both IPv4 and IPv6 values. On next step, when reading the format type, will zero the one that was not set.
+             */
+            sflow_encap_ext_dst_info->next_hop_ipv4_address = entry_data[0];
+            utilex_pp_ipv6_address_long_to_struct(entry_data, sflow_encap_ext_dst_info->next_hop_ipv6_address);
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_5:
+        {
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : Record-Length (Extended Gateway record length = 56).
+             * entry_data[1] : Next-Hop-IP-Type (unknown = 0, IPv4 =1, IPv6 = 2).
+             * entry_data[2] : Data-Format2 (= 1003).
+             * entry_data[3] : Num-of-Records (=2, Header sample + Extended Gateway data).
+             * Note:
+             * based on Next-Hop-IP-Type (IPv4 or IPv6), zero the one that was not set.
+             */
+            if (entry_data[1] == 1)
+            {
+                /** It is IPv4, zero the IPv6  */
+                entry_data[0] = entry_data[1] = entry_data[2] = entry_data[3] = 0;
+                utilex_pp_ipv6_address_long_to_struct(entry_data, sflow_encap_ext_dst_info->next_hop_ipv6_address);
+            }
+            else if (entry_data[1] == 2)
+            {
+                /** It is IPv6, zero the IPv4 */
+                sflow_encap_ext_dst_info->next_hop_ipv4_address = 0;
+
+                sflow_encap_ext_dst_info->flags = BCM_INSTRU_SFLOW_ENCAP_EXTENDED_IPV6;
+            }
+            else
+            {
+                SHR_ERR_EXIT(_SHR_E_INTERNAL,
+                             "Error! reading sFlow encap 0x%x, Next-Hop-IP-Type = %d! Valid values are IPv4(=1) and IPv6(=2).\n",
+                             sflow_encap_ext_dst_info->sflow_encap_extended_dst_id, entry_data[1]);
+            }
+
+            break;
+        }
+        case DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6:
+        {
+
+            /*
+             * Set entry raw data.
+             * entry_data[0] : Data-Format1 (= 1).
+             * entry_data[1] : Length (total sample langth = 248
+             * entry_data[2] : 0.
+             * entry_data[3] : 0.
+             */
+
+            break;
+        }
+        default:
+        {
+
+            SHR_ERR_EXIT(_SHR_E_INTERNAL,
+                         "Error! Unsupported SFLOW Extended Destination RAW pahse: logical_phase = %d. \n",
+                         logical_phase);
+        }
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+static int
+dnx_instru_sflow_encap_extended_dst_create(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info)
+{
+    int current_local_outlif, next_local_outlif;
+    dnx_algo_local_outlif_logical_phase_e logical_phase;
+    int lif_alloc_flags;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * Start to allocate RAW entries from last-to-first:
+     * 1. Loop from DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6 to DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_3:
+     *      - allocate without global lif allocation.
+     *      - set entry data.
+     * 2. DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2:
+     *      - allocate with global lif allocation.
+     *      - set entry data.
+     *      - update GLEM.
+     */
+    lif_alloc_flags = LIF_MNGR_DONT_ALLOCATE_GLOBAL_LIF;
+    next_local_outlif = 0;
+    for (logical_phase = DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6; logical_phase > DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2;
+         logical_phase--)
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_alloc
+                        (unit, logical_phase, lif_alloc_flags, &current_local_outlif, NULL));
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_write
+                        (unit, sflow_encap_ext_dst_info, logical_phase, current_local_outlif, next_local_outlif));
+
+        next_local_outlif = current_local_outlif;
+    }
+
+    /** DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2: */
+    if (_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID))
+    {
+        lif_alloc_flags = LIF_MNGR_GLOBAL_LIF_WITH_ID;
+    }
+    else
+    {
+        lif_alloc_flags = 0;
+    }
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_alloc
+                    (unit, DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2, lif_alloc_flags, &current_local_outlif,
+                     &(sflow_encap_ext_dst_info->sflow_encap_extended_dst_id)));
+
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_write
+                    (unit, sflow_encap_ext_dst_info, DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2, current_local_outlif,
+                     next_local_outlif));
+
+    SHR_IF_ERR_EXIT(dnx_lif_lib_add_to_glem
+                    (unit, _SHR_CORE_ALL, sflow_encap_ext_dst_info->sflow_encap_extended_dst_id, current_local_outlif,
+                     TRUE));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+static int
+dnx_instru_sflow_encap_extended_dst_replace(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info)
+{
+    int current_local_outlif, next_local_outlif;
+    dnx_algo_local_outlif_logical_phase_e logical_phase;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /** Get local lif from algo gpm. */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                    (unit, sflow_encap_ext_dst_info->sflow_encap_extended_dst_id, &current_local_outlif, &result_type));
+
+    /*
+     * Loop from first-to-last:
+     *      - get next outlif pointer.
+     *      - set entry data.
+     */
+    for (logical_phase = DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2; logical_phase <= DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6;
+         logical_phase++)
+    {
+        /** Get next outlif */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_next_outlif_get
+                        (unit, current_local_outlif, &next_local_outlif));
+
+        /** Update entry with new data */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_write
+                        (unit, sflow_encap_ext_dst_info, logical_phase, current_local_outlif, next_local_outlif));
+
+        current_local_outlif = next_local_outlif;
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_dst_create(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info)
+{
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_extended_dst_create_verify(unit, sflow_encap_ext_dst_info));
+
+    if (_SHR_IS_FLAG_SET(sflow_encap_ext_dst_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_replace(unit, sflow_encap_ext_dst_info));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_create(unit, sflow_encap_ext_dst_info));
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_dst_delete(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info)
+{
+    int current_local_outlif, next_local_outlif;
+    int outlif_phase;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_extended_dst_get_delete_verify(unit, sflow_encap_ext_dst_info));
+
+    /** Get local lif from algo gpm. */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                    (unit, sflow_encap_ext_dst_info->sflow_encap_extended_dst_id, &current_local_outlif, &result_type));
+
+    /** Remove global lif from GLEM */
+    SHR_IF_ERR_EXIT(dnx_lif_lib_remove_from_glem
+                    (unit, _SHR_CORE_ALL, sflow_encap_ext_dst_info->sflow_encap_extended_dst_id));
+
+    /*
+     * Loop on all:
+     *  - get next outlif pointer.
+     *  - clear the EEDB entry
+     *  - deallocate the LIF
+     */
+    for (outlif_phase = DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2; outlif_phase <= DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6;
+         outlif_phase++)
+    {
+        /** Get next outlif */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_next_outlif_get
+                        (unit, current_local_outlif, &next_local_outlif));
+
+        /** Clears entry data */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_data_clear(unit, current_local_outlif));
+
+        /*
+         * Delete the local lif.
+         */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_free(unit, current_local_outlif, LIF_MNGR_INVALID));
+
+        current_local_outlif = next_local_outlif;
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_dst_get(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_info_t * sflow_encap_ext_dst_info)
+{
+    int current_local_outlif, next_local_outlif;
+    dnx_algo_local_outlif_logical_phase_e logical_phase;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_NOT_NEEDED(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_extended_dst_get_delete_verify(unit, sflow_encap_ext_dst_info));
+
+    /** Get local lif from algo gpm. */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                    (unit, sflow_encap_ext_dst_info->sflow_encap_extended_dst_id, &current_local_outlif, &result_type));
+
+    /*
+     * Loop on all:
+     *  - Get next outlif pointer.
+     *  - Get the EEDB entry data
+     */
+    for (logical_phase = DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2; logical_phase <= DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6;
+         logical_phase++)
+    {
+        /** Get next outlif */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_next_outlif_get
+                        (unit, current_local_outlif, &next_local_outlif));
+
+        /** Get the entry data */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_get
+                        (unit, sflow_encap_ext_dst_info, logical_phase, current_local_outlif));
+
+        current_local_outlif = next_local_outlif;
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_dst_traverse(
+    int unit,
+    bcm_instru_sflow_encap_extended_dst_cb cb,
+    void *user_data)
+{
+    bcm_instru_sflow_encap_extended_dst_info_t sflow_encap_ext_dst_info;
+    dnx_algo_local_outlif_logical_phase_e logical_phase;
+    lif_mapping_local_lif_key_t local_lif_info;
+    dbal_physical_tables_e physical_table_id;
+    dbal_tables_e dbal_table_id;
+    uint32 entry_handle_id;
+    int current_local_outlif;
+    int next_local_outlif[5];
+    int global_lif;
+    int is_end;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_NOT_NEEDED(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /*
+     * Get physical table id
+     */
+    SHR_IF_ERR_EXIT(dbal_tables_physical_table_get
+                    (unit, DBAL_TABLE_EEDB_SFLOW_DATA, DBAL_PHY_DB_DEFAULT_INDEX, &physical_table_id));
+
+    /*
+     * Allocate handle to the table of the iteration and initialize an iterator entity.
+     * The iterator is in mode ALL, which means that it will consider all entries regardless
+     * of them being default entries or not.
+     */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+    SHR_IF_ERR_EXIT(dbal_iterator_init(unit, entry_handle_id, DBAL_ITER_MODE_ALL));
+
+    /*
+     * Receive first entry in table.
+     */
+    SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    while (!is_end)
+    {
+        /*
+         * Get local outlif
+         */
+        SHR_IF_ERR_EXIT(dbal_entry_handle_key_field_arr32_get
+                        (unit, entry_handle_id, DBAL_FIELD_OUT_LIF, (uint32 *) &current_local_outlif));
+
+        /*
+         * Get local outlif access phase
+         */
+        SHR_IF_ERR_EXIT(dnx_lif_mngr_outlif_sw_info_get
+                        (unit, current_local_outlif, NULL, NULL, &logical_phase, NULL, NULL, NULL));
+
+        /*
+         * sFlow encap extended destination resides in phase 2
+         */
+        if (logical_phase == DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2)
+        {
+            next_local_outlif[0] = current_local_outlif;
+
+            /*
+             * Loop on all:
+             *  - Get next outlif pointer.
+             */
+            for (logical_phase = DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_3;
+                 (logical_phase <= DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6) && (current_local_outlif != 0);
+                 logical_phase++)
+            {
+                /*
+                 * Get local outlif access phase
+                 */
+                SHR_IF_ERR_EXIT(dnx_lif_mngr_outlif_sw_info_get
+                                (unit, current_local_outlif, &dbal_table_id, NULL, NULL, NULL, NULL, NULL));
+
+                if (dbal_table_id == DBAL_TABLE_EEDB_SFLOW_DATA)
+                {
+                    /** Get next outlif */
+                    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_next_outlif_get
+                                    (unit, current_local_outlif,
+                                     &next_local_outlif[logical_phase - DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2]));
+                    current_local_outlif = next_local_outlif[logical_phase - DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2];
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            /*
+             * SFlow encap extended dst takes phase 2-6
+             * SFlow encap header sampling takes phase 2&3 only
+             */
+            if (logical_phase <= DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6)
+            {
+                /*
+                 * Not SFlow encap extended dst entry.
+                 * Receive next entry in table.
+                 */
+                SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+
+                continue;
+            }
+
+            /*
+             * Get global outlif
+             */
+            local_lif_info.phy_table = physical_table_id;
+            local_lif_info.local_lif = next_local_outlif[0];
+            SHR_IF_ERR_EXIT(dnx_algo_lif_mapping_local_to_global_get
+                            (unit, DNX_ALGO_LIF_EGRESS, &local_lif_info, &global_lif));
+
+            sal_memset(&sflow_encap_ext_dst_info, 0, sizeof(sflow_encap_ext_dst_info));
+
+            sflow_encap_ext_dst_info.sflow_encap_extended_dst_id = global_lif;
+
+            /*
+             * Loop on all:
+             *  - Get the EEDB entry data
+             */
+            for (logical_phase = DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2;
+                 logical_phase <= DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_6; logical_phase++)
+            {
+                /** Get the entry data */
+                SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_dst_raw_data_lif_get
+                                (unit, &sflow_encap_ext_dst_info, logical_phase,
+                                 next_local_outlif[logical_phase - DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_2]));
+            }
+
+            /*
+             * If user provided a name for the callback function,
+             * call it with passing the data from the found entry.
+             */
+            if (cb != NULL)
+            {
+                /*
+                 * Invoke callback function
+                 */
+                SHR_IF_ERR_EXIT((*cb) (unit, &sflow_encap_ext_dst_info, user_data));
+            }
+        }
+
+        /*
+         * Receive next entry in table.
+         */
+
+        SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - set extended source raw data lif
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_src_raw_data_lif_write(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_info_t * sflow_encap_ext_src_info,
+    int local_outlif)
+{
+    uint32 entry_handle_id;
+    uint32 entry_data[4];
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle. */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /*
+     * Set entry raw data.
+     * entry_data[0] : AS-Source-Number.
+     * entry_data[1] : AS-Number-of-Source-Peer.
+     * entry_data[2] : 0.
+     * entry_data[3] : 0.
+     */
+    entry_data[0] = sflow_encap_ext_src_info->src_as;
+    entry_data[1] = sflow_encap_ext_src_info->src_as_peer;
+    entry_data[2] = 0;
+    entry_data[3] = 0;
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, local_outlif);
+    /** Data fields*/
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    dbal_entry_value_field_arr32_set(unit, entry_handle_id, DBAL_FIELD_SFLOW_DATA, INST_SINGLE, entry_data);
+
+    /** For REPLACE, need to update only the data */
+    if (!_SHR_IS_FLAG_SET(sflow_encap_ext_src_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NEXT_OUTLIF_POINTER, INST_SINGLE, 0);
+    }
+
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - get extended source raw data lif
+ */
+static shr_error_e
+dnx_instru_sflow_encap_extended_src_raw_data_lif_get(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_info_t * sflow_encap_ext_src_info,
+    int local_outlif)
+{
+    uint32 entry_handle_id;
+    uint32 entry_data[4];
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle. */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OUT_LIF, local_outlif);
+    /** Data fields*/
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_EEDB_SFLOW_DATA_ETPS_DATA_128B);
+
+    /** Get Sflow data */
+    dbal_value_field_arr32_request(unit, entry_handle_id, DBAL_FIELD_SFLOW_DATA, INST_SINGLE, entry_data);
+    SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_COMMIT));
+
+    /*
+     * Get entry raw data.
+     * entry_data[0] : AS-Source-Number.
+     * entry_data[1] : AS-Number-of-Source-Peer.
+     * entry_data[2] : 0.
+     * entry_data[3] : 0.
+     */
+    sflow_encap_ext_src_info->src_as = entry_data[0];
+    sflow_encap_ext_src_info->src_as_peer = entry_data[1];
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_src_create(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_info_t * sflow_encap_ext_src_info)
+{
+    int local_outlif;
+    int lif_alloc_flags;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_extended_src_create_verify(unit, sflow_encap_ext_src_info));
+
+    if (_SHR_IS_FLAG_SET(sflow_encap_ext_src_info->flags, BCM_INSTRU_SFLOW_ENCAP_REPLACE))
+    {
+        uint32 result_type;
+
+        /** Get local lif from algo gpm. */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                        (unit, sflow_encap_ext_src_info->sflow_encap_extended_src_id, &local_outlif, &result_type));
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_src_raw_data_lif_write
+                        (unit, sflow_encap_ext_src_info, local_outlif));
+    }
+    else
+    {
+        /** Allocate data entry */
+        if (_SHR_IS_FLAG_SET(sflow_encap_ext_src_info->flags, BCM_INSTRU_SFLOW_ENCAP_WITH_ID))
+        {
+            lif_alloc_flags = LIF_MNGR_GLOBAL_LIF_WITH_ID;
+        }
+        else
+        {
+            lif_alloc_flags = 0;
+        }
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_alloc
+                        (unit, DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_7, lif_alloc_flags, &local_outlif,
+                         &(sflow_encap_ext_src_info->sflow_encap_extended_src_id)));
+
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_src_raw_data_lif_write
+                        (unit, sflow_encap_ext_src_info, local_outlif));
+
+        SHR_IF_ERR_EXIT(dnx_lif_lib_add_to_glem
+                        (unit, _SHR_CORE_ALL, sflow_encap_ext_src_info->sflow_encap_extended_src_id, local_outlif,
+                         TRUE));
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_src_delete(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_info_t * sflow_encap_ext_src_info)
+{
+    int current_local_outlif;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_extended_src_get_delete_verify(unit, sflow_encap_ext_src_info));
+
+    /** Get local lif from algo gpm. */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                    (unit, sflow_encap_ext_src_info->sflow_encap_extended_src_id, &current_local_outlif, &result_type));
+
+    /** Remove global lif from GLEM */
+    SHR_IF_ERR_EXIT(dnx_lif_lib_remove_from_glem
+                    (unit, _SHR_CORE_ALL, sflow_encap_ext_src_info->sflow_encap_extended_src_id));
+
+    /** Clears entry data */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_data_clear(unit, current_local_outlif));
+
+    /*
+     * Delete global and local lif.
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_raw_lif_free
+                    (unit, current_local_outlif, sflow_encap_ext_src_info->sflow_encap_extended_src_id));
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_src_get(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_info_t * sflow_encap_ext_src_info)
+{
+    int current_local_outlif;
+    uint32 result_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    DNX_ERR_RECOVERY_NOT_NEEDED(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_encap_extended_src_get_delete_verify(unit, sflow_encap_ext_src_info));
+
+    /** Get local lif from algo gpm. */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_id_to_local_lif
+                    (unit, sflow_encap_ext_src_info->sflow_encap_extended_src_id, &current_local_outlif, &result_type));
+
+    /** Get entry data */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_src_raw_data_lif_get
+                    (unit, sflow_encap_ext_src_info, current_local_outlif));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+int
+bcm_dnx_instru_sflow_encap_extended_src_traverse(
+    int unit,
+    bcm_instru_sflow_encap_extended_src_cb cb,
+    void *user_data)
+{
+    bcm_instru_sflow_encap_extended_src_info_t sflow_encap_ext_src_info;
+    dnx_algo_local_outlif_logical_phase_e logical_phase;
+    lif_mapping_local_lif_key_t local_lif_info;
+    dbal_physical_tables_e physical_table_id;
+    uint32 entry_handle_id;
+    int current_local_outlif;
+    int global_lif;
+    int is_end;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_NOT_NEEDED(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /*
+     * Get physical table id
+     */
+    SHR_IF_ERR_EXIT(dbal_tables_physical_table_get
+                    (unit, DBAL_TABLE_EEDB_SFLOW_DATA, DBAL_PHY_DB_DEFAULT_INDEX, &physical_table_id));
+
+    /*
+     * Allocate handle to the table of the iteration and initialize an iterator entity.
+     * The iterator is in mode ALL, which means that it will consider all entries regardless
+     * of them being default entries or not.
+     */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EEDB_SFLOW_DATA, &entry_handle_id));
+    SHR_IF_ERR_EXIT(dbal_iterator_init(unit, entry_handle_id, DBAL_ITER_MODE_ALL));
+
+    /*
+     * Receive first entry in table.
+     */
+    SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    while (!is_end)
+    {
+        /*
+         * Get local outlif
+         */
+        SHR_IF_ERR_EXIT(dbal_entry_handle_key_field_arr32_get
+                        (unit, entry_handle_id, DBAL_FIELD_OUT_LIF, (uint32 *) &current_local_outlif));
+
+        /*
+         * Get local outlif access phase
+         */
+        SHR_IF_ERR_EXIT(dnx_lif_mngr_outlif_sw_info_get
+                        (unit, current_local_outlif, NULL, NULL, &logical_phase, NULL, NULL, NULL));
+
+        /*
+         * sFlow encap extended source resides in phase 7
+         */
+        if (logical_phase == DNX_ALGO_LOCAL_OUTLIF_LOGICAL_PHASE_7)
+        {
+            /*
+             * Get global outlif
+             */
+            local_lif_info.phy_table = physical_table_id;
+            local_lif_info.local_lif = current_local_outlif;
+            SHR_IF_ERR_EXIT(dnx_algo_lif_mapping_local_to_global_get
+                            (unit, DNX_ALGO_LIF_EGRESS, &local_lif_info, &global_lif));
+
+            sal_memset(&sflow_encap_ext_src_info, 0, sizeof(sflow_encap_ext_src_info));
+
+            sflow_encap_ext_src_info.sflow_encap_extended_src_id = global_lif;
+
+            /** Get entry data */
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_encap_extended_src_raw_data_lif_get
+                            (unit, &sflow_encap_ext_src_info, current_local_outlif));
+
+            /*
+             * If user provided a name for the callback function,
+             * call it with passing the data from the found entry.
+             */
+            if (cb != NULL)
+            {
+                /*
+                 * Invoke callback function
+                 */
+                SHR_IF_ERR_EXIT((*cb) (unit, &sflow_encap_ext_src_info, user_data));
+            }
+        }
+
+        /*
+         * Receive next entry in table.
+         */
+
+        SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Encode Source-System-Port from System-Port.
+ *
+ * \see
+ *   dnx_instru_sflow_sample_interface_input_add
+ *   dnx_instru_sflow_sample_interface_input_remove
+ *   dnx_instru_sflow_sample_interface_input_get
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_input_system_port_to_source_system_port(
+    int unit,
+    bcm_gport_t system_port,
+    uint32 *source_system_port)
+{
+    bcm_trunk_t trunk_id;
+    shr_error_e rv;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /*
+     * The system-port can be part of LAG
+     */
+    rv = bcm_dnx_trunk_find(unit, 0, system_port, &trunk_id);
+    SHR_IF_ERR_EXIT_EXCEPT_IF(rv, _SHR_E_NOT_FOUND);
+
+    if (rv == _SHR_E_NOT_FOUND)
+    {
+        /** system port */
+        *source_system_port = BCM_GPORT_SYSTEM_PORT_ID_GET(system_port);
+    }
+    else
+    {
+        /*
+         * The system port is part of LAG.
+         * Need to decode it as SSPA.
+         */
+        SHR_IF_ERR_EXIT(dnx_trunk_system_port_to_spa_map_get(unit, system_port, trunk_id, source_system_port));
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Get System-Port from Source-System-Port.
+ *
+ * \see
+ *   dnx_instru_sflow_sample_interface_input_traverse
+ *
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_input_source_system_port_to_system_port(
+    int unit,
+    bcm_gport_t source_system_port,
+    uint32 *system_port)
+{
+    int is_lag_member;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_trunk_system_port_is_spa(unit, source_system_port, &is_lag_member));
+
+    if (is_lag_member == FALSE)
+    {
+        BCM_GPORT_SYSTEM_PORT_ID_SET(*system_port, source_system_port);
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(bcm_dnx_trunk_spa_to_system_phys_port_map_get
+                        (unit, 0, source_system_port, (bcm_gport_t *) system_port));
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Add SFLOW mapping  - ingress port to sample input interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_input_add(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    uint32 entry_handle_id;
+    uint32 port;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /*
+     * The system-port can be part of LAG
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_system_port_to_source_system_port
+                    (unit, sample_interface_info->port, &port));
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_1_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_SYSTEM_PORT, port);
+
+    /** Set VALUE field */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_ESEM_PEM_ACCESS_1_DB_SFLOW_ESEM);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_SFLOW_INPUT_INTERFACE, INST_SINGLE,
+                                 sample_interface_info->interface);
+
+    if (_SHR_IS_FLAG_SET(sample_interface_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_REPLACE))
+    {
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT_UPDATE));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Add SFLOW mapping  - egress port to sample output interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_output_add(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    uint32 entry_handle_id;
+    uint32 destination;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** encode destination from gport */
+    SHR_IF_ERR_EXIT(algo_gpm_encode_destination_field_from_gport
+                    (unit, ALGO_GPM_ENCODE_DESTINATION_FLAGS_NONE, sample_interface_info->port, &destination));
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_2_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_DESTINATION, destination);
+
+    /** Set VALUE field */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RESULT_TYPE, INST_SINGLE,
+                                 DBAL_RESULT_TYPE_ESEM_PEM_ACCESS_2_DB_SFLOW_ESEM);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_SFLOW_OUTPUT_INTERFACE, INST_SINGLE,
+                                 sample_interface_info->interface);
+
+    if (_SHR_IS_FLAG_SET(sample_interface_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_REPLACE))
+    {
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT_UPDATE));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Remove SFLOW mapping  - ingress port to sample input interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_input_remove(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    uint32 entry_handle_id;
+    uint32 port;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /*
+     * The system-port can be part of LAG
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_system_port_to_source_system_port
+                    (unit, sample_interface_info->port, &port));
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_1_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_SYSTEM_PORT, port);
+
+    SHR_IF_ERR_EXIT(dbal_entry_clear(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Remove SFLOW mapping  - egress port to sample output interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_output_remove(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    uint32 entry_handle_id;
+    uint32 destination;
+    uint32 flags;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    if (BCM_GPORT_IS_MCAST_QUEUE_GROUP(sample_interface_info->port))
+    {
+        flags = ALGO_GPM_ENCODE_DESTINATION_EGRESS_MULTICAST;
+    }
+    else
+    {
+        flags = ALGO_GPM_ENCODE_DESTINATION_FLAGS_NONE;
+    }
+
+    SHR_IF_ERR_EXIT(algo_gpm_encode_destination_field_from_gport
+                    (unit, flags, sample_interface_info->port, &destination));
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_2_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_DESTINATION, destination);
+
+    SHR_IF_ERR_EXIT(dbal_entry_clear(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Get SFLOW mapping  - ingress port to sample input interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_input_get(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    uint32 entry_handle_id;
+    uint32 port, interface;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /*
+     * The system-port can be part of LAG
+     */
+    SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_system_port_to_source_system_port
+                    (unit, sample_interface_info->port, &port));
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_1_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_SYSTEM_PORT, port);
+
+    /** Get all fields   */
+    SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_GET_ALL_FIELDS));
+
+  /** Read format   */
+    SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get
+                    (unit, entry_handle_id, DBAL_FIELD_SFLOW_INPUT_INTERFACE, INST_SINGLE, &interface));
+
+    sample_interface_info->interface = (int) interface;
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Get SFLOW mapping  - egress port to sample output interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_output_get(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    uint32 entry_handle_id;
+    uint32 destination, interface;
+    uint32 flags;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    if (BCM_GPORT_IS_MCAST_QUEUE_GROUP(sample_interface_info->port))
+    {
+        flags = ALGO_GPM_ENCODE_DESTINATION_EGRESS_MULTICAST;
+    }
+    else
+    {
+        flags = ALGO_GPM_ENCODE_DESTINATION_FLAGS_NONE;
+    }
+
+    SHR_IF_ERR_EXIT(algo_gpm_encode_destination_field_from_gport
+                    (unit, flags, sample_interface_info->port, &destination));
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_2_DB, &entry_handle_id));
+
+    /** Set KEY field */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_DESTINATION, destination);
+
+    /** Get all fields   */
+    SHR_IF_ERR_EXIT(dbal_entry_get(unit, entry_handle_id, DBAL_GET_ALL_FIELDS));
+
+   /** Read format   */
+    SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get
+                    (unit, entry_handle_id, DBAL_FIELD_SFLOW_OUTPUT_INTERFACE, INST_SINGLE, &interface));
+
+    sample_interface_info->interface = (int) interface;
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Traverse SFLOW mapping  - ingress port to sample input interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_input_traverse(
+    int unit,
+    bcm_instru_sflow_sample_interface_traverse_info_t * sample_interface_traverse_info,
+    bcm_instru_sflow_sample_traverse_cb cb,
+    void *user_data)
+{
+    uint32 entry_handle_id;
+    int is_end;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_1_DB, &entry_handle_id));
+    SHR_IF_ERR_EXIT(dbal_iterator_init(unit, entry_handle_id, DBAL_ITER_MODE_GET_ALL_EXCEPT_DEFAULT));
+
+    SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+
+    while (!is_end)
+    {
+        bcm_instru_sflow_sample_interface_info_t sample_interface_info;
+        uint32 port, interface;
+        uint32 system_port;
+
+        sample_interface_info.flags = BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT;
+
+        /*
+         * Get port -table key
+         */
+        SHR_IF_ERR_EXIT(dbal_entry_handle_key_field_arr32_get(unit, entry_handle_id, DBAL_FIELD_SYSTEM_PORT, &port));
+
+        /*
+         * The key is SSPA (can be physical-port or LAG-member)
+         */
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_source_system_port_to_system_port
+                        (unit, port, &system_port));
+
+        sample_interface_info.port = system_port;
+
+        /*
+         * Get interface value
+         */
+        SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get
+                        (unit, entry_handle_id, DBAL_FIELD_SFLOW_INPUT_INTERFACE, INST_SINGLE, &interface));
+        sample_interface_info.interface = interface;
+
+        /*
+         * Run delete or callback function
+         */
+        if (_SHR_IS_FLAG_SET(sample_interface_traverse_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_DELETE_ALL))
+        {
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_remove(unit, &sample_interface_info));
+        }
+        else
+        {
+            SHR_IF_ERR_EXIT(cb(unit, &sample_interface_info, user_data));
+        }
+
+        SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Traverse SFLOW mapping  - egress port to sample input interface.
+ *
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_instru_sflow_sample_interface_output_traverse(
+    int unit,
+    bcm_instru_sflow_sample_interface_traverse_info_t * sample_interface_traverse_info,
+    bcm_instru_sflow_sample_traverse_cb cb,
+    void *user_data)
+{
+    uint32 entry_handle_id;
+    int is_end;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Take DBAL handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_ESEM_PEM_ACCESS_2_DB, &entry_handle_id));
+    SHR_IF_ERR_EXIT(dbal_iterator_init(unit, entry_handle_id, DBAL_ITER_MODE_GET_ALL_EXCEPT_DEFAULT));
+
+    SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+
+    while (!is_end)
+    {
+        bcm_instru_sflow_sample_interface_info_t sample_interface_info;
+        uint32 destination, interface;
+
+        sample_interface_info.flags = BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_OUTPUT;
+
+        /*
+         * Get destination -table key
+         */
+        SHR_IF_ERR_EXIT(dbal_entry_handle_key_field_arr32_get
+                        (unit, entry_handle_id, DBAL_FIELD_DESTINATION, &destination));
+
+        SHR_IF_ERR_EXIT(algo_gpm_gport_from_encoded_destination_field
+                        (unit, ALGO_GPM_ENCODE_DESTINATION_FLAGS_NONE, destination, &(sample_interface_info.port)));
+
+        /*
+         * Get interface value
+         */
+        SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get
+                        (unit, entry_handle_id, DBAL_FIELD_SFLOW_OUTPUT_INTERFACE, INST_SINGLE, &interface));
+        sample_interface_info.interface = interface;
+
+        /*
+         * Run delete or callback function
+         */
+        if (_SHR_IS_FLAG_SET(sample_interface_traverse_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_DELETE_ALL))
+        {
+            SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_output_remove(unit, &sample_interface_info));
+        }
+        else
+        {
+            SHR_IF_ERR_EXIT(cb(unit, &sample_interface_info, user_data));
+        }
+
+        SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_end));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Add SFLOW mapping  - port to sample interface.
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] sample_interface_info - Sflow Sample Interface info
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   sample_interface_info->port can be:
+ *   For input interface: system-port encoded as gport (the system-port may be part of a trunk)
+ *   For output interface: system-port, trunk, MC of FLOW encoded as gport.
+ * \see
+ *   * None
+ */
+shr_error_e
+bcm_dnx_instru_sflow_sample_interface_add(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_sample_interface_verify(unit, sample_interface_info));
+
+    if (_SHR_IS_FLAG_SET(sample_interface_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT))
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_add(unit, sample_interface_info));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_output_add(unit, sample_interface_info));
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Remove SFLOW mapping  - port to sample interface.
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] sample_interface_info - Sflow Sample Interface info
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+shr_error_e
+bcm_dnx_instru_sflow_sample_interface_remove(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_sample_interface_verify(unit, sample_interface_info));
+
+    if (_SHR_IS_FLAG_SET(sample_interface_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT))
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_remove(unit, sample_interface_info));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_output_remove(unit, sample_interface_info));
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief
+ * Get SFLOW mapping  - port to sample interface.
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] sample_interface_info - Sflow Sample Interface info
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+shr_error_e
+bcm_dnx_instru_sflow_sample_interface_get(
+    int unit,
+    bcm_instru_sflow_sample_interface_info_t * sample_interface_info)
+{
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_START(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_sample_interface_verify(unit, sample_interface_info));
+
+    if (_SHR_IS_FLAG_SET(sample_interface_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT))
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_get(unit, sample_interface_info));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_output_get(unit, sample_interface_info));
+    }
+
+exit:
+    DNX_ERR_RECOVERY_END(unit);
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - SFLOW mapping  - port to sample interface traverse function.
+ *
+ * \param [in] unit - relevant unit
+ * \param [in] sample_interface_traverse_info - Sflow Sample Interface traverse info.
+ * \param [in] cb - Sflow Sample Interface callback function.
+ * \param [in] user_data - Sflow Sample Interface traverse info.
+ *   additional data to pass to the call-back function, along with the returned object
+ *
+ * \return
+ *   Negative in case of an error
+ *
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+shr_error_e
+bcm_dnx_instru_sflow_sample_interface_traverse(
+    int unit,
+    bcm_instru_sflow_sample_interface_traverse_info_t * sample_interface_traverse_info,
+    bcm_instru_sflow_sample_traverse_cb cb,
+    void *user_data)
+{
+    SHR_FUNC_INIT_VARS(unit);
+    DNX_ERR_RECOVERY_NOT_NEEDED(unit);
+
+    /** Verification of input parameters */
+    SHR_INVOKE_VERIFY_DNXC(dnx_instru_sflow_sample_interface_traverse_verify
+                           (unit, sample_interface_traverse_info, cb, user_data));
+
+    if (_SHR_IS_FLAG_SET(sample_interface_traverse_info->flags, BCM_INSTRU_SFLOW_SAMPLE_INTERFACE_INPUT))
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_input_traverse
+                        (unit, sample_interface_traverse_info, cb, user_data));
+    }
+    else
+    {
+        SHR_IF_ERR_EXIT(dnx_instru_sflow_sample_interface_output_traverse
+                        (unit, sample_interface_traverse_info, cb, user_data));
+    }
+
+exit:
+    SHR_FUNC_EXIT;
+}

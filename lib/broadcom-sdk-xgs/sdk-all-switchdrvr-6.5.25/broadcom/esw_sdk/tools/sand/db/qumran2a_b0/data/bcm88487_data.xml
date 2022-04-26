@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<device_data>
+    <module name="device">
+        <sub_module name="general">
+            <features>
+            </features>
+
+            <defines>
+            </defines >
+
+            <numerics>
+                <numeric name="device_id" value="0x8487"></numeric>
+                <numeric name="core_clock_khz" value="450000"></numeric>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+    </module>
+
+    <module name="nif">
+
+        <sub_module name="flexe">
+            <features>
+                <feature name="is_supported" value="0"></feature>
+            </features>
+
+            <defines>
+                <define name="feu_nof" value="0"></define>
+            </defines>
+
+            <numerics>
+                <numeric name="flexe_mode" value="DNX_FLEXE_MODE_DISABLED">
+                    <property name="flexe_device_mode" method="direct_map">
+                        <map name="DISABLED"></map>
+                    </property>
+                </numeric>
+            </numerics>
+        </sub_module>
+
+
+        <sub_module name="ilkn">
+
+            <numerics>
+                <numeric name="max_nof_elk_ifs" value="0"></numeric>
+            </numerics>
+
+            <tables>
+
+                <table name="ilkn_cores">
+                    <entries>
+                        <entry ilkn_core_id="0" is_elk_supported="0" is_data_supported="1"></entry>
+                        <entry ilkn_core_id="1" is_elk_supported="0" is_data_supported="1"></entry>
+                    </entries>
+                </table>
+
+            </tables>
+        </sub_module>
+
+    </module>
+
+     <module name="mdb">
+        <sub_module name="dh">
+            <features>
+                <feature name="macro_A_75_nof_clusters_enable" value="1"></feature>
+            </features>
+
+            <defines>
+            </defines >
+
+            <numerics>
+            </numerics>
+
+            <tables>
+            </tables>
+        </sub_module>
+     </module>
+
+    <module name="egr_queuing">
+        <sub_module name="common_max_val">
+            <features>
+            </features>
+
+            <defines>
+                <define name="slow_port_speed" value="7500"></define>
+            </defines >
+
+
+            <numerics>
+            </numerics>
+
+        </sub_module>
+    </module>
+
+</device_data>

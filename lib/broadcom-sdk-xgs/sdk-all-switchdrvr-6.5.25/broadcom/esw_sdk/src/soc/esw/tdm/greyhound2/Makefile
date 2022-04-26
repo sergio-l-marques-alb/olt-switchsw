@@ -1,0 +1,16 @@
+# $Id: Makefile Exp $
+#
+# $Copyright: (c) 2021 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+# Makefile for Greyhound2 SOC driver Library
+#
+
+LOCALDIR = src/soc/esw/tdm/greyhound2/
+
+include ${SDK}/make/Make.config
+
+lib = libsoc_tdm_gh2
+
+include ${SDK}/make/Make.lib
+include ${SDK}/make/Make.depend
+

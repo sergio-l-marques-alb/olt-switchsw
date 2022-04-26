@@ -1,0 +1,1794 @@
+/** \file oam_init.c
+ * $Id$
+ *
+ * OAM init procedures for DNX.
+ *
+ */
+/*
+ * $Copyright: (c) 2021 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+
+#ifdef BSL_LOG_MODULE
+#error "BSL_LOG_MODULE redefined"
+#endif
+#define BSL_LOG_MODULE BSL_LS_BCMDNX_OAM
+
+ /*
+  * Include files.
+  * {
+  */
+#include <shared/shrextend/shrextend_debug.h>
+#include <soc/dnx/dbal/dbal.h>
+#include <soc/dnxc/drv_dnxc_utils.h>
+#include <src/bcm/dnx/oam/oam_counter.h>
+#include <src/bcm/dnx/oam/oam_internal.h>
+#include <src/bcm/dnx/oam/oam_oamp.h>
+#include <include/soc/dnx/swstate/auto_generated/access/oam_access.h>
+#include <include/soc/dnx/dnx_data/auto_generated/dnx_data_headers.h>
+#include <include/soc/dnx/dnx_data/auto_generated/dnx_data_l3.h>
+#include <include/soc/dnx/dnx_data/auto_generated/dnx_data_oam.h>
+#include <include/soc/dnx/dnx_data/auto_generated/dnx_data_pll.h>
+#include <bcm_int/dnx/field/field_entry.h>
+#include <bcm_int/dnx/algo/swstate/auto_generated/access/algo_oam_access.h>
+#include <bcm_int/dnx/algo/port/algo_port_mgmt.h>
+#include <bcm_int/dnx/algo/port/algo_port_utils.h>
+#include <bcm_int/dnx/switch/switch.h>
+#ifdef BCM_DNX2_SUPPORT
+#include <src/bcm/dnx/oam/oamp_v1/oam_oamp_v1.h>
+#endif
+#ifdef DNX_EMULATION_1_CORE
+#include <soc/sand/sand_aux_access.h>
+#endif
+
+/*
+ * }
+ */
+
+/*
+ * DEFINEs
+ * {
+ */
+
+/** Definitions used in initializing MP-TYPE tables */
+
+/* 
+ * Size of the elements of the table's key, in bits 
+ * See tools/autocoder/dbal/dnx/fields/fields_oam_definition.xml 
+ */
+#define MIP_ABOVE_MDL_NUM_BITS 1
+#define PACKET_IS_BFD_NUM_BITS 1
+#define NOF_MEP_BELOW_MDL_NUM_BITS 3
+#define MDL_MP_TYPE_NUM_BITS 2
+#define NOF_MEP_ABOVE_MDL_NUM_BITS 3
+
+/** Invalid accelerated profile id */
+#define DNX_INVALID_PROFILE_ID -1
+
+/** Used to simplify the MEP active match/passive match logic */
+
+/*
+ * This LIF has an active MEP on the MDL specified in the
+ * packet
+ */
+#define ACTIVE_INDEX 0
+
+/*
+ * This LIF has an passive MEP on the MDL specified in the
+ * packet
+ */
+#define PASSIVE_INDEX 1
+
+/*
+ * Since "high" "middle" and "low" map to counter 1, 2 and 3, 
+ * counter 3 will only be used if there are at least 3 MEPs 
+ * in the LIF.  If there are only 2 MEPs, the matches will be 
+ * mapped to "high" and "middle."  For a "low" match, the MEP 
+ * should have no MEPs with a lower level and at least two with 
+ * a higher level. 
+ */
+#define MIN_MEPS_ABOVE_FOR_MATCH_LOW 2
+
+/*
+ * Needed for the loop below: both the ingress and the
+ * egress tables are initialized 
+ */
+#define INGRESS_AND_EGRESS 2
+
+/** End of definitions used in initializing MP-TYPE tables */
+
+/** Time of Day Formats */
+#define IS_1588  0
+#define IS_NTP   1
+
+/*
+ * Entry of initialization table for oam opcode mapping
+ */
+typedef struct
+{
+    int oam_opcode;
+    dbal_enum_value_field_oam_internal_opcode_e internal_opcode;
+} oam_opcode_mapping_table_table_entry_t;
+
+/**
+ * This struct is used to add entries to the 
+ * egress_oam_process_map dbal table, which 
+ * maps to the ETPPC_OAM_PROCESS_MAP register. 
+ * Each entry has two key elements and one value 
+ * element - the third key element is not in use. 
+ */
+typedef struct
+{
+    /** per port oam profile: inject (0) or trap (1) */
+    int oam_port_profile;
+
+    /** Type of MEP: down-MEP (0) or up-MEP (1)? */
+    int key_mep_type;
+
+    /** Subtype of MEP - see enum for possible values */
+    dbal_enum_value_field_oam_sub_type_e key_subtype;
+
+    /** Action code - see enum for possible values */
+    dbal_enum_value_field_oam_process_action_e value_process_action;
+} oam_process_map_table_entry_t;
+
+/** Number of entries for default oam opcode map */
+#define NOF_OAM_OPCODE_DEFAULT_MAPPED_ENTRIES 15
+
+/** Init values */
+/*
+ * When injecting PTCH with opaque value 7, set the inject bit in the classifier
+ * (key to OAM action tables).  The number 7 is a hardware constant.
+ */
+#define OAM_PACKET_INJECTED_BITMAP_INIT_VAL     0x80
+
+/*
+ * When injecting PPH with forwarding strength set(as value 1), set the inject bit in the egress classifier
+ * (key to OAM action tables).
+ */
+#define OAM_EGRESS_PACKET_INJECTED_BITMAP_INIT_VAL     0x80
+
+/**
+ * The INGRESS_PP_PORT dbal table contains properties for 
+ * ports.  Each entry in the table maps to a port and 
+ * one of the cores The ENABLE_PP_INJECT field allows
+ * injection for that particular port.  For the OAM 
+ * feature, this field is set to 1 in all entries, so 
+ * injection will be possible in all ports. 
+ */
+#define OAM_INJECT_PP_PORT_INIT_VAL                1
+
+/** 
+ *  Value for next protocol field - This value is a bitmap used
+ *  by the hardware to choose Eth OAM processing based on the
+ *  parser value of the header (14 for Eth OAM). The value is
+ *  placed in the field "nextprotocol."\n dbal table:
+ *  OAM_GENERAL_CONFIGURATION\n field:
+ *  ETHERNET_NEXT_PROTOCOL_OAM\n physical register:
+ *  IPPB_OAM_ETHERNET_CFG\n physical field:
+ *  ETHERNET_NEXT_PROTOCOL_OAM
+ */
+#define OAM_ETHERNET_CFG_INIT_VAL                0x4000
+
+/** 
+ *  For invalid LIF headers, return OAM_LIF = 0\n
+ *  dbal table: OAM_GENERAL_CONFIGURATION\n
+ *  field: OAM_LIF_INVALID_HEADER\n
+ *  physical register: IPPB_OAM_ETHERNET_CFG\n
+ *  physical field: OAM_LIF_INVALID_HEADER
+ */
+#define OAM_LIF_INVALID_HEADER_INIT_VAL           0
+
+/** 
+ *  Enable for all cases by default\n
+ *  dbal table: OAM_GENERAL_CONFIGURATION\n
+ *  field: OAM_MPLS_TP_OR_BFD_ENABLE_MAP\n
+ *  physical register: IPPB_OAM_IDENTIFICATION_ENABLE\n
+ *  physical field: OAM_MPLS_TP_OR_BFD_ENABLE_MAP
+ */
+#define OAM_MPLS_TP_OR_BFD_ENABLE_MAP_INIT_VAL 0xFF
+
+/** 
+ *  Enable validity check for BFD and MPLS/PWE\n
+ *  dbal table: OAM_GENERAL_CONFIGURATION\n
+ *  field: OAM_BFD_VALIDITY_CHECK\n
+ *  physical register: IPPB_OAM_IDENTIFICATION_ENABLE\n
+ *  physical field: OAM_BFD_VALIDITY_CHECK
+ */
+#define OAM_BFD_VALIDITY_CHECK_INIT_VAL           1
+
+/** 
+ *  Disable one-hop BFD when TTL=255\n
+ *  dbal table: OAM_GENERAL_CONFIGURATION\n
+ *  field: OAM_NO_BFD_AUTHENTICATION\n
+ *  physical register: IPPB_OAM_IDENTIFICATION_ENABLE\n
+ *  physical field: OAM_NO_BFD_AUTHENTICATION
+ */
+#define OAM_NO_BFD_AUTHENTICATION_INIT_VAL        0
+
+/** 
+ *  Set maximum allowed oam_offset\n
+ *  dbal table: OAM_GENERAL_CONFIGURATION\n
+ *  field: MAX_OAM_OFFSET\n
+ *  physical register: IPPD_LBP_OFFSETS_CONFIG\n
+ *  physical field: MAX_OAM_OFFSET
+ */
+#define MAX_OAM_OFFSET_INIT_VAL        0x100
+
+/** 
+ *  If MPLS-TP, force opcode=0\n
+ *  dbal table: OAM_GENERAL_CONFIGURATION\n
+ *  field: OAM_MPLS_TP_FORCE_OPCODE\n
+ *  physical register: IPPB_OAM_IDENTIFICATION_ENABLE\n
+ *  physical field: OAM_MPLS_TP_FORCE_OPCODE
+ */
+#define OAM_MPLS_TP_FORCE_OPCODE_INIT_VAL         0
+
+/** 
+ *  If not OAM LIF, return this value (-1, like in Jericho 1)\n
+ *  dbal table: OAM_GENERAL_CONFIGURATION\n
+ *  field: OAM_INVALID_LIF\n
+ *  physical register: ETPPC_CFG_INVALID_OAM_LIF\n
+ *  physical field: CFG_INVALID_OAM_LIF
+ */
+#define OAM_INVALID_LIF_INIT_VAL             0xFFFF
+
+
+/** Number of entries we wish to write */
+#define NUM_PROCESS_ENTRIES_TO_INIT 12
+
+/* 
+ *  Definitions for initializing the egress OAM processing
+ *  map - end
+ */
+
+/** Number of OAM packet subtypes that require the addition of
+ *  OAM-TS. */
+#define NUM_OAM_TS_REQ_SUB_TYPES 13
+#define NUM_OAM_TS_REQ_SUB_TYPES_V2 6
+
+/*
+ * ID for OAM TCAM Identification APP DB 0
+ */
+#define OAM_TCAM_IDENTIFICATION_APPDB_0_ID  0
+
+/*
+ * ID for OAM TCAM Identification APP DB 1
+ */
+#define OAM_TCAM_IDENTIFICATION_APPDB_1_ID  1
+
+/** Flow type: inject or trap. For per port oam profile */
+#define OAM_PORT_PROFILE_TYPE_INJECT                0
+#define OAM_PORT_PROFILE_TYPE_TRAP                  1
+
+/*
+ * }
+ */
+
+/*
+ * MACROs
+ * {
+ */
+/*
+ * }
+ */
+
+ /*
+  * Global and Static
+  */
+
+/*
+ * Active MEP / Passive MEP tables 
+ * When the LIF has a MEP at the MDL of the packet 
+ * being processed, that MEP can either be active 
+ * or passive.  As a result, a counter needs to be 
+ * accessed.  "Match high", "Match middle" and 
+ * "match low" dictate accessing counter 1, 2 or 3, 
+ * respectively.  The action taken depends on whether 
+ * the MEP is active or passive. 
+ */
+
+/** Used when the match high actions are chosen */
+const uint8 match_high[] = {
+    DBAL_ENUM_FVAL_MP_TYPE_ACTIVE_MATCH_HIGH,
+    DBAL_ENUM_FVAL_MP_TYPE_PASSIVE_MATCH_HIGH
+};
+
+/** Used when the match low actions are chosen */
+const uint8 match_low[] = {
+    DBAL_ENUM_FVAL_MP_TYPE_ACTIVE_MATCH_LOW,
+    DBAL_ENUM_FVAL_MP_TYPE_PASSIVE_MATCH_LOW
+};
+
+/** Used when the match middle actions are chosen */
+const uint8 match_middle[] = {
+    DBAL_ENUM_FVAL_MP_TYPE_ACTIVE_MATCH_MIDDLE,
+    DBAL_ENUM_FVAL_MP_TYPE_PASSIVE_MATCH_MIDDLE
+};
+
+/** Used when the match no_counter actions are chosen */
+const uint8 match_no_counter[] = {
+    DBAL_ENUM_FVAL_MP_TYPE_ACTIVE_MATCH_NO_COUNTER,
+    DBAL_ENUM_FVAL_MP_TYPE_PASSIVE_MATCH_NO_COUNTER
+};
+
+
+/* *INDENT-OFF* */
+/**
+ *   Array that hold default oam opcode map configuration and used on init stage
+ */
+static const oam_opcode_mapping_table_table_entry_t oam_opcode_map[NOF_OAM_OPCODE_DEFAULT_MAPPED_ENTRIES] = {
+        /** OAM Opcode       |  Internal OAM Opcode mapping                        */
+        {DBAL_DEFINE_OAM_OPCODE_BFD_OR_OAM_DATA,  DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_BFD},
+        {DBAL_DEFINE_OAM_OPCODE_CCM,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_CCM},
+        {DBAL_DEFINE_OAM_OPCODE_LBR,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LBR},
+        {DBAL_DEFINE_OAM_OPCODE_LBM,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LBM},
+        {DBAL_DEFINE_OAM_OPCODE_LTR,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LTR},
+        {DBAL_DEFINE_OAM_OPCODE_LTM,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LTM},
+        {DBAL_DEFINE_OAM_OPCODE_AIS,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_AIS},
+        {DBAL_DEFINE_OAM_OPCODE_LINEAR_APS,       DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LINEAR_APS},
+        {DBAL_DEFINE_OAM_OPCODE_LMR,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LMR},
+        {DBAL_DEFINE_OAM_OPCODE_LMM,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LMM},
+        {DBAL_DEFINE_OAM_OPCODE_1DM,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_1DM},
+        {DBAL_DEFINE_OAM_OPCODE_DMR,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_DMR},
+        {DBAL_DEFINE_OAM_OPCODE_DMM,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_DMM},
+        {DBAL_DEFINE_OAM_OPCODE_SLR,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_SLR},
+        {DBAL_DEFINE_OAM_OPCODE_SLM,              DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_SLM}
+};
+
+/**
+ * Array of entries to write to the egress_oam_process_map
+ * dbal table.  This array will be used in a for loop to 
+ * configure the virtual dbal table OAM_PROCESS_MAP, and through 
+ * it, the register ETPPC_OAM_PROCESS_MAP 
+ * Note OAM_PORT_PROFILE_TYPE_TRAP is for inserting TOD second between system header and network header
+ */
+const oam_process_map_table_entry_t process_map_entries[NUM_PROCESS_ENTRIES_TO_INIT] = 
+{
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_UP_MEP,   DBAL_ENUM_FVAL_OAM_SUB_TYPE_LOSS_MEASUREMENT,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_STAMP_COUNTER                   },
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_DOWN_MEP, DBAL_ENUM_FVAL_OAM_SUB_TYPE_LOSS_MEASUREMENT,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_READ_COUNTER_AND_STAMP          },
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_UP_MEP,   DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_NTP,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_INGRESS_STAMP_NTP               },
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_DOWN_MEP, DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_NTP,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_EGRESS_STAMP_NTP                },
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_UP_MEP,   DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_1588,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_INGRESS_STAMP_1588              },
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_DOWN_MEP, DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_1588,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_EGRESS_STAMP_1588               },
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_DOWN_MEP, DBAL_ENUM_FVAL_OAM_SUB_TYPE_TWAMP_REFLECTOR_1ST,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_INGRESS_STAMP_NTP               },
+    { OAM_PORT_PROFILE_TYPE_INJECT, DBAL_ENUM_FVAL_OAM_DIRECTION_DOWN_MEP, DBAL_ENUM_FVAL_OAM_SUB_TYPE_TWAMP_REFLECTOR_2ND,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_EGRESS_STAMP_NTP                },
+    { OAM_PORT_PROFILE_TYPE_TRAP, DBAL_ENUM_FVAL_OAM_DIRECTION_UP_MEP,   DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_NTP,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_EGRESS_STAMP_NTP                },
+    { OAM_PORT_PROFILE_TYPE_TRAP, DBAL_ENUM_FVAL_OAM_DIRECTION_DOWN_MEP, DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_NTP,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_EGRESS_STAMP_NTP               },
+    { OAM_PORT_PROFILE_TYPE_TRAP, DBAL_ENUM_FVAL_OAM_DIRECTION_UP_MEP,   DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_1588,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_EGRESS_STAMP_1588               },
+    { OAM_PORT_PROFILE_TYPE_TRAP, DBAL_ENUM_FVAL_OAM_DIRECTION_DOWN_MEP, DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_1588,
+      DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_EGRESS_STAMP_1588              }
+};
+
+/** OAM packet subtypes that require the addition of OAM-TS. */
+const uint8 OAM_TS_REQ_SUB_TYPES[NUM_OAM_TS_REQ_SUB_TYPES] = {
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_LOSS_MEASUREMENT,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_1588,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_NTP,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_TWAMP_REFLECTOR_1ST,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_TWAMP_REFLECTOR_2ND,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_RFC8321,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_IPV6_RFC8321_ON_FLOW_ID,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_SFLOW_SEQUENCE_RESET,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_LOOPBACK,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_CCM,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_OAM_PASSIVE_ERROR,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_OAM_LEVEL_ERROR,
+    DBAL_ENUM_FVAL_OAM_SUB_TYPE_IPFIX_TX_COMMAND
+};
+
+
+/* *INDENT-ON* */
+/*
+ * }
+ */
+
+/*
+ * See h file for description
+ */
+shr_error_e
+dnx_oam_port_profile_set(
+    int unit)
+{
+    uint32 entry_handle_id;
+    bcm_port_t port_i;
+    bcm_pbmp_t pp_ports;
+    int is_lag;
+    int header_type = BCM_SWITCH_PORT_HEADER_TYPE_NONE;
+    dnx_algo_gpm_gport_phy_info_t gport_info;
+    dnx_algo_port_info_s port_info;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EGRESS_PP_PORT, &entry_handle_id));
+
+    SHR_IF_ERR_EXIT(dnx_algo_port_logicals_get(unit, BCM_CORE_ALL, DNX_ALGO_PORT_LOGICALS_TYPE_PP, 0, &pp_ports));
+    BCM_PBMP_ITER(pp_ports, port_i)
+    {
+        SHR_IF_ERR_EXIT(dnx_algo_gpm_gport_phy_info_get
+                        (unit, port_i, DNX_ALGO_GPM_GPORT_TO_PHY_OP_PP_PORT_IS_MANDATORY, &gport_info));
+
+        /** Get the port type */
+        SHR_IF_ERR_EXIT(dnx_algo_port_info_get(unit, gport_info.local_port, &port_info));
+        SHR_IF_ERR_EXIT(dnx_algo_port_in_lag(unit, gport_info.local_port, &is_lag));
+        if (!DNX_ALGO_PORT_TYPE_IS_EGR_PP(unit, port_info, is_lag))
+        {
+            continue;
+        }
+
+        /*
+         * Set first CPU port with header type out = CPU
+         */
+        SHR_IF_ERR_EXIT(dnx_switch_header_type_get(unit, port_i, DNX_SWITCH_PORT_HEADER_TYPE_INDEX_OUT, &header_type));
+        if (header_type == BCM_SWITCH_PORT_HEADER_TYPE_CPU)
+        {
+            dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_PP_PORT,
+                                       gport_info.internal_port_pp_info.pp_port[0]);
+            dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_CORE_ID,
+                                       gport_info.internal_port_pp_info.core_id[0]);
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_PORT_PROFILE, INST_SINGLE, 1);
+            SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+        }
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * This function return counter stamp offset(TxFCf) in OAM packets according oam opcode(internal and external)
+ * Stamp offsets:
+ * LMM, DMM, 1DM: 4
+ * SLM, LMR: 12
+ * SLR: 16
+ * DMR: 20
+ * CCM with piggy-back: 58
+ * Other opcodes do not stamp - setting default offset to '0'.
+ */
+static int
+dnx_oam_opcode_counter_offset(
+    int opcode,
+    dbal_enum_value_field_oam_internal_opcode_e internal_opcode)
+{
+    int offset;
+    switch (internal_opcode)
+    {
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LMM:
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_1DM:
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_DMM:
+        {
+            offset = 4;
+            break;
+        }
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_LMR:
+        {
+            offset = 12;
+            break;
+        }
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_SLM:
+        {
+            offset = 12;
+            break;
+        }
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_SLR:
+        {
+            offset = 16;
+            break;
+        }
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_DMR:
+        {
+            offset = 20;
+            break;
+        }
+        case DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_CCM:
+        {
+            offset = 58;
+            break;
+        }
+        default:
+        {
+            offset = 0;
+            break;
+        }
+    }
+
+    return offset;
+}
+
+/** Check if there exist MPLS MEPs currently */
+static shr_error_e
+dnx_oam_mpls_tp_mep_is_exist(
+    int unit,
+    uint8 *is_exist)
+{
+    int is_ep_end;
+    uint32 entry_handle_id;
+    bcm_oam_endpoint_type_t ep_type;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    *is_exist = FALSE;
+
+    /** Get table handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_ENDPOINT_INFO_SW, &entry_handle_id));
+    /** Create iterator   */
+    SHR_IF_ERR_EXIT(dbal_iterator_init(unit, entry_handle_id, DBAL_ITER_MODE_ALL));
+    /** Read first entry   */
+    SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_ep_end));
+
+    while (!is_ep_end)
+    {
+        /** Get endpoint type  */
+        SHR_IF_ERR_EXIT(dbal_entry_handle_value_field32_get
+                        (unit, entry_handle_id, DBAL_FIELD_OAM_ENDPOINT_SW_STATE_TYPE, INST_SINGLE, &ep_type));
+
+        if (ep_type == bcmOAMEndpointTypeBhhSection ||
+            ep_type == bcmOAMEndpointTypeBHHMPLS || ep_type == bcmOAMEndpointTypeBHHPwe)
+        {
+            *is_exist = TRUE;
+            break;
+        }
+
+        /** Read next entry   */
+        SHR_IF_ERR_EXIT(dbal_iterator_get_next(unit, entry_handle_id, &is_ep_end));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/*
+ * See h file for description
+ */
+shr_error_e
+dnx_oam_opcode_map_set(
+    int unit,
+    int opcode,
+    dbal_enum_value_field_oam_internal_opcode_e internal_opcode)
+{
+    uint32 entry_handle_id;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Get table handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_INGRESS_ETHERNET_OAM_OPCODE_MAP, &entry_handle_id));
+
+    /** setting key fields */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_OPCODE, opcode);
+
+    /** Set the entry result */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_INTERNAL_OPCODE, INST_SINGLE, internal_opcode);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_COUNTER_STAMP_OFFSET, INST_SINGLE,
+                                 dnx_oam_opcode_counter_offset(opcode, internal_opcode));
+
+    /** Commit table values */
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    /** re-using handle with egress table */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_CLEAR(unit, DBAL_TABLE_EGRESS_ETHERNET_OAM_OPCODE_MAP, entry_handle_id));
+
+    /** setting key fields */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_OPCODE, opcode);
+
+    /** Set the entry result */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_INTERNAL_OPCODE, INST_SINGLE, internal_opcode);
+
+    /** Commit table values */
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+/**
+ * \brief
+ *   Set default configuration for opcode map memories on:
+ *             ingress(DBAL_TABLE_INGRESS_ETHERNET_OAM_OPCODE_MAP table) &
+ *             egress(DBAL_TABLE_EGRESS_ETHERNET_OAM_OPCODE_MAP table)
+ */
+static shr_error_e
+dnx_oam_opcode_map_init_set(
+    int unit)
+{
+    uint32 entry_handle_id;
+    uint32 index;
+    int rv = _SHR_E_NONE;
+    const oam_opcode_mapping_table_table_entry_t *tmp_oam_opcode_map;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Initialize all ingress oam opcode map entries with following values:
+     *  internal opcode - other
+     *  offset - '0'
+     */
+
+    /** Get table handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_INGRESS_ETHERNET_OAM_OPCODE_MAP, &entry_handle_id));
+
+    /** Set Range Key Fields */
+    dbal_entry_key_field32_range_set(unit, entry_handle_id, DBAL_FIELD_OAM_OPCODE, DBAL_RANGE_ALL, DBAL_RANGE_ALL);
+
+    /** Set the entry result */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_INTERNAL_OPCODE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_OTHER);
+
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_COUNTER_STAMP_OFFSET, INST_SINGLE, 0);
+
+    /** Commit table values */
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    /** re-using handle with egress table */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_CLEAR(unit, DBAL_TABLE_EGRESS_ETHERNET_OAM_OPCODE_MAP, entry_handle_id));
+
+    /** Initialize all ingress oam opcode map entries with following values:
+     *  internal opcode - other
+     */
+
+    /** Set Range Key Fields */
+    dbal_entry_key_field32_range_set(unit, entry_handle_id, DBAL_FIELD_OAM_OPCODE, DBAL_RANGE_ALL, DBAL_RANGE_ALL);
+
+    /** Set the entry result */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_INTERNAL_OPCODE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_OAM_INTERNAL_OPCODE_ETH_OTHER);
+
+    /** Commit table values */
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    /** Loop for initializing oam map code mapping with default values */
+    tmp_oam_opcode_map = oam_opcode_map;
+    for (index = 0; index < NOF_OAM_OPCODE_DEFAULT_MAPPED_ENTRIES; index++, tmp_oam_opcode_map++)
+    {
+        rv = dnx_oam_opcode_map_set(unit, tmp_oam_opcode_map->oam_opcode, tmp_oam_opcode_map->internal_opcode);
+        SHR_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/** Add tcam entry to ignore MDL for one opcode */
+static shr_error_e
+dnx_oam_mpls_tp_mdl_ignore_tcam_entry_add(
+    int unit,
+    int opcode,
+    dbal_enum_value_field_oam_internal_opcode_e internal_opcode)
+{
+    uint32 entry_handle_id;
+    uint32 pkt_data[10] = { 0x0 };
+    uint32 pkt_data_mask[10] = { 0x0 };
+    uint32 zero_padding[3] = { 0x0 };
+    int opcode_position = 284;
+    int opcode_width = 8;
+    uint32 bits_mask;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Set opcode and mask in forward header */
+    bits_mask = (1 << (32 - opcode_position % 32)) - 1;
+    pkt_data[opcode_position / 32] = (opcode & bits_mask) << (opcode_position % 32);
+    pkt_data_mask[opcode_position / 32] = bits_mask << (opcode_position % 32);
+    if (32 - opcode_position % 32 < opcode_width)
+    {
+        bits_mask = (1 << (opcode_width - (32 - opcode_position % 32))) - 1;
+        pkt_data[opcode_position / 32 + 1] = (opcode >> (32 - opcode_position % 32)) & bits_mask;
+        pkt_data_mask[opcode_position / 32 + 1] = bits_mask;
+    }
+
+    /** Get table handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_TCAM_IDENTIFICATION_DB, &entry_handle_id));
+
+    SHR_IF_ERR_EXIT(dbal_entry_attribute_set(unit, entry_handle_id, DBAL_ENTRY_ATTR_PRIORITY, 3));
+
+    /** setting key fields */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_LAYER_TYPE_CURRENT_LAYER_MINUS_1,
+                               DBAL_ENUM_FVAL_LAYER_TYPES_MPLS_UNTERM);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_LAYER_TYPE_CURRENT_LAYER,
+                               DBAL_ENUM_FVAL_LAYER_TYPES_Y_1731);
+    dbal_entry_key_field32_masked_set(unit, entry_handle_id, DBAL_FIELD_IN_LIF_PROFILE, 0x0, 0x0);
+    dbal_entry_key_field32_masked_set(unit, entry_handle_id, DBAL_FIELD_NOF_VALID_OAM_LIFS, 0x0, 0x0);
+    dbal_entry_key_field_arr32_masked_set(unit, entry_handle_id, DBAL_FIELD_PKT_DATA_AT_FWD_HEADER,
+                                          pkt_data, pkt_data_mask);
+
+    /** setting result fields */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_TCAM_RESULT_TYPE, INST_SINGLE, 0x0);
+    dbal_entry_value_field_arr32_set(unit, entry_handle_id, DBAL_FIELD_ZERO_PADDING_TCAM_IDENT, INST_SINGLE,
+                                     zero_padding);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_PACKET_IS_OAM, INST_SINGLE, 0x1);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_MD_LEVEL, INST_SINGLE, 0x7);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_OPCODE, INST_SINGLE, internal_opcode);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_OFFSET, INST_SINGLE, 0x0);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_STAMP_OFFSET, INST_SINGLE,
+                                 dnx_oam_opcode_counter_offset(opcode, internal_opcode));
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_PCP, INST_SINGLE, 0x0);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_MY_CFM_MAC, INST_SINGLE, 0x0);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_LIF_TCAM_INSTRUCTION, INST_SINGLE, 0x0);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_IS_BFD, INST_SINGLE, 0x0);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_YOUR_DISCR, INST_SINGLE, 0x0);
+
+    /** Commit table values */
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/** Delete tcam entry for one opcode */
+static shr_error_e
+dnx_oam_mpls_tp_mdl_ignore_tcam_entry_delete(
+    int unit,
+    int opcode,
+    dbal_enum_value_field_oam_internal_opcode_e internal_opcode)
+{
+    uint32 entry_handle_id;
+    uint32 entry_access_id;
+    uint32 pkt_data[10] = { 0x0 };
+    uint32 pkt_data_mask[10] = { 0x0 };
+    int opcode_position = 284;
+    int opcode_width = 8;
+    uint32 bits_mask;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Set opcode and mask in forward header */
+    bits_mask = (1 << (32 - opcode_position % 32)) - 1;
+    pkt_data[opcode_position / 32] = (opcode & bits_mask) << (opcode_position % 32);
+    pkt_data_mask[opcode_position / 32] = bits_mask << (opcode_position % 32);
+    if (32 - opcode_position % 32 < opcode_width)
+    {
+        bits_mask = (1 << (opcode_width - (32 - opcode_position % 32))) - 1;
+        pkt_data[opcode_position / 32 + 1] = (opcode >> (32 - opcode_position % 32)) & bits_mask;
+        pkt_data_mask[opcode_position / 32 + 1] = bits_mask;
+    }
+
+    /** Get table handle */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_TCAM_IDENTIFICATION_DB, &entry_handle_id));
+
+    /** setting key fields */
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_LAYER_TYPE_CURRENT_LAYER_MINUS_1,
+                               DBAL_ENUM_FVAL_LAYER_TYPES_MPLS_UNTERM);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_LAYER_TYPE_CURRENT_LAYER,
+                               DBAL_ENUM_FVAL_LAYER_TYPES_Y_1731);
+    dbal_entry_key_field32_masked_set(unit, entry_handle_id, DBAL_FIELD_IN_LIF_PROFILE, 0x0, 0x0);
+    dbal_entry_key_field32_masked_set(unit, entry_handle_id, DBAL_FIELD_NOF_VALID_OAM_LIFS, 0x0, 0x0);
+
+    dbal_entry_key_field_arr32_masked_set(unit, entry_handle_id, DBAL_FIELD_PKT_DATA_AT_FWD_HEADER,
+                                          pkt_data, pkt_data_mask);
+
+    /** Get TCAM access id */
+    SHR_IF_ERR_EXIT(dbal_entry_access_id_by_key_get(unit, entry_handle_id, &entry_access_id, DBAL_COMMIT));
+    SHR_IF_ERR_EXIT(dbal_entry_handle_access_id_set(unit, entry_handle_id, entry_access_id));
+
+    /** Commit entry clear */
+    SHR_IF_ERR_EXIT(dbal_entry_clear(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/*
+ * See h file for description
+ */
+shr_error_e
+dnx_oam_mpls_tp_mdl_ignore_set(
+    int unit,
+    uint32 control_value)
+{
+    int index = 0;
+    uint8 is_exist = 0;
+    uint32 current_value = 0;
+    const oam_opcode_mapping_table_table_entry_t *tmp_oam_opcode_map = oam_opcode_map;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(dnx_oam_mpls_tp_mep_is_exist(unit, &is_exist));
+    if (is_exist)
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM, "ignoring mpls-tp OAM MDL can not be set when MPLS MEP exists");
+    }
+
+    SHR_IF_ERR_EXIT(algo_oam_db.mpls_tp_mdl_ignore.get(unit, &current_value));
+    if (control_value > 0 && current_value > 0)
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM, "ignoring mpls-tp OAM MDL is already enabled");
+    }
+    if (control_value == 0 && current_value == 0)
+    {
+        SHR_ERR_EXIT(_SHR_E_PARAM, "ignoring mpls-tp OAM MDL is already disbled");
+    }
+
+    if (control_value)
+    {
+        /** Loop for adding TCAM entry per OAM opcode */
+        for (index = 0; index < NOF_OAM_OPCODE_DEFAULT_MAPPED_ENTRIES; index++, tmp_oam_opcode_map++)
+        {
+            SHR_IF_ERR_EXIT(dnx_oam_mpls_tp_mdl_ignore_tcam_entry_add(unit, tmp_oam_opcode_map->oam_opcode,
+                                                                      tmp_oam_opcode_map->internal_opcode));
+        }
+    }
+    else
+    {
+        /** Loop for deleting TCAM entry per OAM opcode */
+        for (index = 0; index < NOF_OAM_OPCODE_DEFAULT_MAPPED_ENTRIES; index++, tmp_oam_opcode_map++)
+        {
+            SHR_IF_ERR_EXIT(dnx_oam_mpls_tp_mdl_ignore_tcam_entry_delete(unit, tmp_oam_opcode_map->oam_opcode,
+                                                                         tmp_oam_opcode_map->internal_opcode));
+        }
+    }
+
+    SHR_IF_ERR_EXIT(algo_oam_db.mpls_tp_mdl_ignore.set(unit, control_value));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/*
+ * See h file for description
+ */
+shr_error_e
+dnx_oam_mpls_tp_mdl_ignore_get(
+    int unit,
+    uint32 *control_value)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    SHR_IF_ERR_EXIT(algo_oam_db.mpls_tp_mdl_ignore.get(unit, control_value));
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - This function calculates the MP-type for a 
+ *           received OAM packet with the characteristics
+ *           specified in the parameters listed below.
+ * 
+ * \param [in] mip_above_mdl - 1 if the OAM LIF receiving the 
+ *        packet has a MIP at an MD level higher than the one
+ *        listed in the packet; 0 otherwise
+ * \param [in] packet_is_bfd - 1 if the packet is a BFD packet; 
+ *        0 otherwise
+ * \param [in] nof_mep_below_mdl - Indicates how many MEPs in 
+ *        the OAM LIF receiving the packet have a higher MDL
+ *        than the one listed in the packet.  Possible values:
+ *        0-7 (7 if the packet MDL is 0 and there are MEPs at
+ *        each level 1-7)
+ * \param [in] mdl_mp_type - What does the OAM LIF have at the 
+ *        MDL specified in the packet?\n
+ *        0: Nothing\n
+ *        1: a MIP\n
+ *        2: an active MEP\n
+ *        3: a passive MEP 
+ * \param [in] nof_mep_above_mdl - Indicates how many MEPs in 
+ *        the OAM LIF receiving the packet have a lower MDL
+ *        than the one listed in the packet.  Possible values:
+ *        0-7 (7 if the packet MDL is 7 and there are MEPs at
+ *        each level 0-6)
+ *   
+ * \return
+ *   int 
+ *   
+ * \remark
+ * This function performs the logical determination of the MP-type 
+ * from the elements of the key:\n 
+ * if the "packet_is_bfd" bit is on => MP_TYPE = BFD\n
+ * otherwise, if the "mip_match" bit is on => MP_TYPE = 
+ * MIP_MATCH\n 
+ * otherwise, if this LIF has a MIP above the packet's MDL, but 
+ * no MEPs above the MDL or at the MDL (no MEP match) =>\n 
+ *      if there are no MEPs below the MDL (i.e. no MEPs for
+ *      this LIF, just one MIP) => MP_TYPE = ABOVE_UPPER_MEP\n
+ *      otherwise (one MIP above MDL, some MEPs below) =>
+ *      MP_TYPE = BETWEEN_MIP_AND_MEP\n
+ * otherwise, if there is no MEP at the packet's MDL =>\n 
+ *      if there are no MEPs above the packet's MDL =>
+ *      MP_TYPE = ABOVE_UPPER_MEP\n
+ *      otherwise, if there are no MEPs below the packet's MDL =>
+ *      MP_TYPE = BELOW_LOWER_MEP\n
+ *      otherwise, if there are more MEPs above the MDL than below =>
+ *      MP_TYPE = BETWEEN_MIDDLE_AND_LOW\n
+ *      otherwise MP_TYPE = BETWEEN_HIGH_AND_MIDDLE\n
+ * otherwise (i.e., if there is a MEP match) =>\n 
+ *      if there are no MEPs below this packet's MDL and at least
+ *      two above it => MP_TYPE = ACTIVE_MATCH_LOW /
+ *      PASSIVE_MATCH_LOW, according to whether the matched MEP is
+ *      active or passive.\n
+ *      otherwise if there are no MEPs above this packet's MDL =>
+ *      MP_TYPE = ACTIVE_MATCH_HIGH / PASSIVE_MATCH_HIGH\n
+ *      otherwise MP_TYPE = ACTIVE_MATCH_MIDDLE / PASSIVE_MATCH_MIDDLE
+ */
+
+static int
+dnx_oam_calculate_mp_type_from_key(
+    int mip_above_mdl,
+    int packet_is_bfd,
+    int nof_mep_below_mdl,
+    int mdl_mp_type,
+    int nof_mep_above_mdl)
+{
+    /** Determine MP type according to the elements of the key  */
+    uint8 active_or_passive;
+    if (packet_is_bfd)
+    {
+        if ((mip_above_mdl) && (nof_mep_above_mdl == DNX_OAM_MAX_MDL) && (nof_mep_below_mdl == DNX_OAM_MAX_MDL))
+        {
+            /*
+             * Special case for non oam packet (no oam_packet entry in mp_type table):
+             * nof_below_mdl==7 , nof_above_mdl==7, bfd==1, mip_above_mdl==1 
+             */
+            return DBAL_ENUM_FVAL_MP_TYPE_ABOVE_UPPER_MEP;
+        }
+        /** BFD entry */
+        return DBAL_ENUM_FVAL_MP_TYPE_BFD;
+    }
+    else
+    {
+        /** OAM entry */
+        if (mdl_mp_type == DBAL_ENUM_FVAL_MDL_MP_TYPE_MIP)
+        {
+            /** MIP */
+            return DBAL_ENUM_FVAL_MP_TYPE_MIP_MATCH;
+        }
+        else
+        {
+            /** Not a MIP   */
+            if (mip_above_mdl && (nof_mep_above_mdl == 0) && (mdl_mp_type == DBAL_ENUM_FVAL_MDL_MP_TYPE_NO_MEP))
+            {
+                /** No matches for this MDL, only a MIP above, no MEPs above */
+                if (nof_mep_below_mdl == 0)
+                {
+                    /** This LIF only has the MIP, no MEPs */
+                    return DBAL_ENUM_FVAL_MP_TYPE_BELOW_MIP;
+                }
+                else
+                {
+                    /** There are MEPs below this MDL */
+                    return DBAL_ENUM_FVAL_MP_TYPE_BETWEEN_MIP_AND_MEP;
+                }
+            }
+            else
+            {
+                /** mip_above_mdl is irrelevant */
+                if (mdl_mp_type == DBAL_ENUM_FVAL_MDL_MP_TYPE_NO_MEP)
+                {
+                    /** Nothing found in this MDL */
+                    if (nof_mep_above_mdl == 0)
+                    {
+                        /** No MEPs above specified MDL in LIF  */
+                        return DBAL_ENUM_FVAL_MP_TYPE_ABOVE_UPPER_MEP;
+                    }
+                    else
+                    {
+                        if (nof_mep_below_mdl == 0)
+                        {
+                            /** No MEPs below MOL, at least one MEP above */
+                            return DBAL_ENUM_FVAL_MP_TYPE_BELOW_LOWER_MEP;
+                        }
+                        else
+                        {
+
+                            /** Some MEPs above and below */
+                            if (nof_mep_above_mdl == 1)
+                            {
+                                /*
+                                 * if only one mep above, the packet's level must be between high and middle 
+                                 */
+                                return DBAL_ENUM_FVAL_MP_TYPE_BETWEEN_HIGH_AND_MIDDLE;
+                            }
+                            else
+                            {
+                                if (nof_mep_below_mdl == 1)
+                                {
+                                    /*
+                                     * if only one mep below, and more than 1 above, the packet's level must be between 
+                                     * middle and low 
+                                     */
+                                    return DBAL_ENUM_FVAL_MP_TYPE_BETWEEN_MIDDLE_AND_LOW;
+                                }
+                                else
+                                {
+                                    /*
+                                     * there are at least 2 meps below so they have counters assigned. Therefore
+                                     * incoming packet is between the high and middle meps with counters 
+                                     */
+                                    return DBAL_ENUM_FVAL_MP_TYPE_BETWEEN_HIGH_AND_MIDDLE;
+                                }
+                            }
+
+                        }
+                    }
+                }
+                else
+                {
+                    /** MEP match: active or passive */
+                    active_or_passive = (mdl_mp_type == DBAL_ENUM_FVAL_MDL_MP_TYPE_ACTIVE_MEP) ?
+                        ACTIVE_INDEX : PASSIVE_INDEX;
+                    if ((nof_mep_below_mdl == 0) && (nof_mep_above_mdl >= MIN_MEPS_ABOVE_FOR_MATCH_LOW))
+                    {
+                        /** At least two MEPs above MDL, none below */
+                        return match_low[active_or_passive];
+                    }
+                    else
+                    {
+                        if (nof_mep_above_mdl == 0)
+                        {
+                            /** No MEPs above MDL */
+                            return match_high[active_or_passive];
+                        }
+                        else
+                        {
+                            /*
+                             * There is 1 MEP below, or, There are only two MEPs, and the packet is the lower level 
+                             */
+                            if ((nof_mep_below_mdl == 1) || ((nof_mep_below_mdl == 0) && (nof_mep_above_mdl == 1)))
+                            {
+                                return match_middle[active_or_passive];
+                            }
+                            else
+                            {
+                                /** More than 1 mep below and more than 2 MEPs => MATCH_NO_COUNTER*/
+                                return match_no_counter[active_or_passive];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * \brief - This function initializes the ingress and egress 
+ *          MP TYPE tables.
+ * 
+ * \param [in] unit - Number of hardware unit used.
+ *   
+ * \return
+ *   shr_error_e
+ *   
+ * \remark - The target tables are IPPB_OAM_MP_TYPE_MAP (for\n\ 
+ *         the ingress) and ETPPC_OAM_MP_TYPE_MAP (for the\n\
+ *         egress.) The hardware uses the value extracted\n\
+ *         from one of these tables to perform the\n\
+ *         appropriate action on the packet currently being\n\
+ *         processed.
+ * \see
+ *   * This function is part of the OAM initialization process,
+ *     and is called from dnx_oam_init.
+ */
+static shr_error_e
+dnx_oam_mp_type_table_init(
+    int unit)
+{
+    int mip_above_mdl, packet_is_bfd, nof_mep_below_mdl;
+    int table_index, mdl_mp_type, nof_mep_above_mdl, mp_type;
+    uint32 entry_handle_id[2];
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Write to both ingress and egress tables */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_INGRESS_OAM_MP_TYPE_MAP, &entry_handle_id[0]));
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EGRESS_OAM_MP_TYPE_MAP, &entry_handle_id[1]));
+
+    /** Loop over every entry in the table   */
+    for (mip_above_mdl = 0; mip_above_mdl < SAL_BIT(MIP_ABOVE_MDL_NUM_BITS); mip_above_mdl++)
+    {
+        for (packet_is_bfd = 0; packet_is_bfd < SAL_BIT(PACKET_IS_BFD_NUM_BITS); packet_is_bfd++)
+        {
+            for (nof_mep_below_mdl = 0; nof_mep_below_mdl < SAL_BIT(NOF_MEP_BELOW_MDL_NUM_BITS); nof_mep_below_mdl++)
+            {
+                for (mdl_mp_type = 0; mdl_mp_type < SAL_BIT(MDL_MP_TYPE_NUM_BITS); mdl_mp_type++)
+                {
+                    for (nof_mep_above_mdl = 0; nof_mep_above_mdl < SAL_BIT(NOF_MEP_ABOVE_MDL_NUM_BITS);
+                         nof_mep_above_mdl++)
+                    {
+                        /** Calculate all 5 key elements for this entry */
+                        mp_type = dnx_oam_calculate_mp_type_from_key(mip_above_mdl, packet_is_bfd, nof_mep_below_mdl,
+                                                                     mdl_mp_type, nof_mep_above_mdl);
+
+                        /** Write the MP type determined above to the tables */
+                        for (table_index = 0; table_index < INGRESS_AND_EGRESS; table_index++)
+                        {
+                            /** Enter key segments  */
+                            dbal_entry_key_field32_set(unit, entry_handle_id[table_index],
+                                                       DBAL_FIELD_MIP_ABOVE_MDL, mip_above_mdl);
+                            dbal_entry_key_field32_set(unit, entry_handle_id[table_index],
+                                                       DBAL_FIELD_PACKET_IS_BFD, packet_is_bfd);
+                            dbal_entry_key_field32_set(unit, entry_handle_id[table_index],
+                                                       DBAL_FIELD_NOF_MEP_BELOW_MDL, nof_mep_below_mdl);
+                            dbal_entry_key_field32_set(unit, entry_handle_id[table_index],
+                                                       DBAL_FIELD_MDL_MP_TYPE, mdl_mp_type);
+                            dbal_entry_key_field32_set(unit, entry_handle_id[table_index],
+                                                       DBAL_FIELD_NOF_MEP_ABOVE_MDL, nof_mep_above_mdl);
+
+                            /** Enter value */
+                            dbal_entry_value_field32_set(unit, entry_handle_id[table_index],
+                                                         DBAL_FIELD_MP_TYPE, INST_SINGLE, mp_type);
+
+                            /** Access table */
+                            SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id[table_index], DBAL_COMMIT));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief -
+ * Set oam sub type, which is used in pem 
+ *
+ * \param [in] unit -
+ *     Relevant unit.
+ * \return
+ *   \retval Non-zero (!= _SHR_E_NONE) in case of an error
+ *   \retval Zero (= _SHR_E_NONE) in case of NO ERROR
+ */
+shr_error_e
+dnx_oam_sub_type_init(
+    int unit)
+{
+    uint32 entry_handle_id;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /** Taking a handle of PEMLA_OAM table  */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_PEMLA_OAM, &entry_handle_id));
+
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_CFG_OAM_SUB_TYPE_DM_1588_INDICATION, INST_SINGLE, 1);
+        /** Preforming the action */
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief -
+ * Set UDH size, which is used in pem 
+ *
+ * \param [in] unit -
+ *     Relevant unit.
+ * \return
+ *   \retval Non-zero (!= _SHR_E_NONE) in case of an error
+ *   \retval Zero (= _SHR_E_NONE) in case of NO ERROR
+ */
+shr_error_e
+dnx_oam_udh_size_init(
+    int unit)
+{
+    uint32 entry_handle_id;
+    int system_headers_mode;
+    uint32 udh_size = 0;
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    system_headers_mode = dnx_data_headers.system_headers.system_headers_mode_get(unit);
+
+    if (system_headers_mode == dnx_data_headers.system_headers.system_headers_mode_jericho_get(unit))
+    {
+        udh_size = BITS2BYTES(dnx_data_field.udh.field_class_id_size_0_get(unit));
+        udh_size += BITS2BYTES(dnx_data_field.udh.field_class_id_size_1_get(unit));
+        udh_size += BITS2BYTES(dnx_data_field.udh.field_class_id_size_2_get(unit));
+        udh_size += BITS2BYTES(dnx_data_field.udh.field_class_id_size_3_get(unit));
+
+        /** Taking a handle of PEMLA_OAM table  */
+        SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_PEMLA_OAM, &entry_handle_id));
+
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_CFG_UDH_SIZE_JR1, INST_SINGLE, udh_size);
+        /** Preforming the action */
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+#ifdef BCM_DNX2_SUPPORT
+/**
+ * \brief - This function initializes memory that define
+ *        sub_type properties.
+ *
+ * \param [in] unit - Number of hardware unit used.
+ *
+ * \return
+ *   shr_error_e
+ *
+ * \remark
+ * Registers and memories are initialized
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_oam_sub_type_properties_init(
+    int unit)
+{
+    uint32 entry_handle_id;
+    int index;
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /**
+     *  Initialize the "BUILD_OAM_TS_HEADER" register, through the
+     *  DBAL virtual table OAM_TS_HEADER_PER_SUBTYPE
+     */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_TS_HEADER_PER_SUBTYPE, &entry_handle_id));
+
+    /** First clear map */
+    dbal_entry_key_field32_range_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY, DBAL_RANGE_ALL, DBAL_RANGE_ALL);
+
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_BUILD_OAM_TS_HEADER, INST_SINGLE, 0);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    /** Now set for DM, LM and SLM */
+    for (index = 0; index < NUM_OAM_TS_REQ_SUB_TYPES; index++)
+    {
+        dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY, OAM_TS_REQ_SUB_TYPES[index]);
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_BUILD_OAM_TS_HEADER, INST_SINGLE, 1);
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+    }
+
+    /**
+     *    Initialize mapping between OAM subtype and data type(on Ingress side) to be
+     *    stamped on OAM Application Extension(oam_ts_data) header (0 - counter-value, 1 - TOD-1588,
+     *    2 - NTP, 3 - none)
+     */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_INGRESS_OAM_SUB_TYPE_TO_DATA_TYPE_MAP, &entry_handle_id));
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_1588);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_TOD_1588);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_NTP);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_TOD_NTP);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY, DBAL_ENUM_FVAL_OAM_SUB_TYPE_RFC8321);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_COUNTER_VALUE);
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_SFLOW_SEQUENCE_RESET);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_COUNTER_VALUE);
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_IPFIX_TX_COMMAND);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_COUNTER_VALUE);
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY, DBAL_ENUM_FVAL_OAM_SUB_TYPE_LOOPBACK);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_NONE);
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY, DBAL_ENUM_FVAL_OAM_SUB_TYPE_CCM);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_NONE);
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_OAM_PASSIVE_ERROR);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_NONE);
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUBTYPE_KEY,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_OAM_LEVEL_ERROR);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_INGRESS_OAM_DATA_TYPE_NONE);
+
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    /**
+     *    Initialize mapping between OAM subtype and data type(on Egress side) to be
+     *    stamped on OAM Application Extension(oam_ts_data) header
+     *    ( 0 - TOD-1588,1 - NTP, 2 - counter-value, 3 - none)
+     */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EGRESS_OAM_SUB_TYPE_TO_DATA_TYPE_MAP, &entry_handle_id));
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUB_TYPE,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_1588);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_EGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_EGRESS_OAM_DATA_TYPE_TOD_1588);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUB_TYPE,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_DELAY_MEASUREMENT_NTP);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_EGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_EGRESS_OAM_DATA_TYPE_TOD_NTP);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUB_TYPE,
+                               DBAL_ENUM_FVAL_OAM_SUB_TYPE_LOSS_MEASUREMENT);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_EGRESS_OAM_DATA_TYPE, INST_SINGLE,
+                                 DBAL_ENUM_FVAL_EGRESS_OAM_DATA_TYPE_COUNTER_VALUE);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+#endif
+
+
+/**
+ * \brief - This function initializes a few registers and 
+ *        memories that are necessary for OAM functionality.
+ *        These registers are mostly used for OAM
+ *        classification, both in the ingress (for down-MEPs)
+ *        and the egress (for up-MEPs).  See remark for more
+ *        details.
+ * 
+ * \param [in] unit - Number of hardware unit used.
+ *   
+ * \return
+ *   shr_error_e
+ *   
+ * \remark
+ *   Registers and memories are initialized
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_oam_init_general_configuration(
+    int unit)
+{
+    uint32 entry_handle_id;
+    int index;
+    uint32 nof_rifs = 4096;
+    uint32 val_arr[2];
+
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /**
+     *    In table INGRESS_PP_PORT, set ENABLE_PP_INJECT as 1
+     *    in all entries - so DBAL_RANGE_ALL is used for in the
+     *    PP_PORT key field (signifying all ports) and in the
+     *    CORE_ID field (signifying all cores.)
+     */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_INGRESS_PP_PORT, &entry_handle_id));
+    dbal_entry_key_field32_range_set(unit, entry_handle_id, DBAL_FIELD_PP_PORT, DBAL_RANGE_ALL, DBAL_RANGE_ALL);
+    dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_CORE_ID, DBAL_CORE_ALL);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_PP_INJECT_ENABLE,
+                                 INST_SINGLE, OAM_INJECT_PP_PORT_INIT_VAL);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    /**
+     *  Initialize Values in scattered registers - mapped as one
+     *  in dbal
+     */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_GENERAL_CONFIGURATION, &entry_handle_id));
+    /** 
+     *  Initialize OAM_INJECT_BITMAP registers.  They allow
+     *  OAM packet injection in general - as opposed to per port,
+     *  per core
+     */
+    /** Ingress */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_INGRESS_PACKET_INJECTED_BITMAP,
+                                 INST_SINGLE, OAM_PACKET_INJECTED_BITMAP_INIT_VAL);
+    /** Egress */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_EGRESS_PACKET_INJECTED_BITMAP,
+                                 INST_SINGLE, OAM_EGRESS_PACKET_INJECTED_BITMAP_INIT_VAL);
+
+    /**PPH FWD strength to inject indication:currently set as 2 */
+    /** Basically there are three mappings here: First the PPH/FTMH fields to fwd_action_strength (handled by dnx_rx_trap_etpp_strength_map_init),
+     *   fwd_action_strenght to oam-injection through EGRESS_MAP_STRENGTH_TO_OAM_INJECTION and finally oam-injection for that strength to an enable bit.
+     */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_EGRESS_MAP_STRENGTH_TO_OAM_INJECTION,
+                                 INST_SINGLE, OAM_EGRESS_PACKET_INJECTED_BITMAP_INIT_VAL);
+    /** 
+     *  Initialize ETHERNET_NEXT_PROTOCOL_OAM field.  This is used
+     *  by the pipeline as a value for the field "nextprotocol" in
+     *  ethernet OAM packets.
+     */
+    val_arr[0] = OAM_ETHERNET_CFG_INIT_VAL;
+    dbal_entry_value_field_arr32_set(unit, entry_handle_id, DBAL_FIELD_ETHERNET_NEXT_PROTOCOL_OAM, INST_SINGLE,
+                                     val_arr);
+    /** 
+     *  Initialize OAM_LIF_INVALID_HEADER field.  If an OAM packet
+     *  has an invalid header, the ingress classifier uses this
+     *  value as the LIF for further processing.
+     */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_LIF_INVALID_HEADER,
+                                 INST_SINGLE, OAM_LIF_INVALID_HEADER_INIT_VAL);
+
+    /** 
+     *  Initialize OAM_BFD_VALIDITY_CHECK field.  This field, if
+     *  set, enables validity checks for MPLS-TP or BFD over PWE.
+     */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_BFD_VALIDITY_CHECK,
+                                 INST_SINGLE, OAM_BFD_VALIDITY_CHECK_INIT_VAL);
+
+    /** 
+     *  Initialize OAM_NO_BFD_AUTHENTICATION field.  This field, if
+     *  set, enables one-hop BFD when TTL is 255
+     */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_NO_BFD_AUTHENTICATION,
+                                 INST_SINGLE, OAM_NO_BFD_AUTHENTICATION_INIT_VAL);
+
+    /** 
+     *  Initialize OAM_MPLS_TP_FORCE_OPCODE field.  When an OAM
+     *  packet is encapsulated with OAM-TP, this value is forced as
+     *  the opcode that should be used.
+     */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_MPLS_TP_FORCE_OPCODE,
+                                 INST_SINGLE, OAM_MPLS_TP_FORCE_OPCODE_INIT_VAL);
+
+    if (dnx_data_oam.general.feature_get(unit, dnx_data_oam_general_max_oam_offset_support))
+    {
+        /** 
+         *  Initialize MAX_OAM_OFFSET field.  When an OAM
+         *  packet is received in the LBP oam_stamp_offset is compared to this value.
+         */
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_MAX_OAM_OFFSET,
+                                     INST_SINGLE, MAX_OAM_OFFSET_INIT_VAL);
+        /*
+         * Disable this drop altogether
+         * --> otherwise when using PMF OAM action packets will get drooped.
+         */
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_ENABLE_MAX_OAM_OFFSET_DROP, INST_SINGLE, 0);
+    }
+
+    /** 
+     *  Initialize OAM_INVALID_LIF field.  If an OAM packet
+     *  has an invalid header, the egress classifier uses this
+     *  value as the LIF for further processing.
+     */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_INVALID_LIF, INST_SINGLE,
+                                 OAM_INVALID_LIF_INIT_VAL);
+
+    {
+        if (dnx_data_oam.general.oam_mpls_tp_or_bfd_enable_map_exists_get(unit))
+        {
+        /**
+         *  Initialize OAM_MPLS_TP_OR_BFD_ENABLE_MAP field.  This field
+         *  maps enable bits to service types.  For each service type (8
+         *  total) a value of 1 enables identification of OAM or BFD
+         *  packets, and 0 disables identification.
+         */
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_MPLS_TP_OR_BFD_ENABLE_MAP,
+                                         INST_SINGLE, OAM_MPLS_TP_OR_BFD_ENABLE_MAP_INIT_VAL);
+        }
+    }
+
+    /** Initialize the "IPPB_OAM_ID_RIF_THRESHOLD" register */
+    
+    {
+        nof_rifs = dnx_data_l3.rif.nof_rifs_get(unit);
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_RIF_ID_THRESHOLD, INST_SINGLE, nof_rifs - 1);
+    }
+
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    {
+        /** Initialize ETPPC_OAM_PROCESS_MAP tables */
+        SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_EGRESS_OAM_PROCESS_MAP, &entry_handle_id));
+
+        /** First clear map */
+        dbal_entry_key_field32_range_set(unit, entry_handle_id, DBAL_FIELD_PORT_PROFILE, DBAL_RANGE_ALL,
+                                         DBAL_RANGE_ALL);
+        dbal_entry_key_field32_range_set(unit, entry_handle_id, DBAL_FIELD_OAM_MEP_TYPE, DBAL_RANGE_ALL,
+                                         DBAL_RANGE_ALL);
+        dbal_entry_key_field32_range_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUB_TYPE, DBAL_RANGE_ALL,
+                                         DBAL_RANGE_ALL);
+
+        /** Set everything to 0 */
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_PROCESS_ACTION,
+                                     INST_SINGLE, DBAL_ENUM_FVAL_OAM_PROCESS_ACTION_NONE);
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+        /** Configure appropriate actions */
+        /**
+         * Only the entries where port profile is 0 are currently in
+         * use.  Theoretically, configuring both port profile 0 and port
+         * profile 1 would allow the user to switch instantly between
+         * two complete sets of OAM process actions - but again, this
+         * has never been used in past products.
+         */
+        for (index = 0; index < NUM_PROCESS_ENTRIES_TO_INIT; index++)
+        {
+            /** Add entries as defined by const arrays */
+            dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_PORT_PROFILE,
+                                       process_map_entries[index].oam_port_profile);
+            dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_MEP_TYPE,
+                                       process_map_entries[index].key_mep_type);
+            dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUB_TYPE,
+                                       process_map_entries[index].key_subtype);
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_PROCESS_ACTION,
+                                         INST_SINGLE, process_map_entries[index].value_process_action);
+            SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+        }
+
+        /*
+         * Enable OAM_LM_PER_SUB_TYPE_DISABLE field for LM - Enable counter read
+         * Note: Dual ended CCM also uses OAM_SUB_TYPE_LOSS_MEASUREMENT
+         */
+        SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_LM_READ_PER_SUB_TYPE_DISABLE, &entry_handle_id));
+        dbal_entry_key_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_SUB_TYPE,
+                                   DBAL_ENUM_FVAL_OAM_SUB_TYPE_LOSS_MEASUREMENT);
+        if (dnx_data_oam.general.oam_lm_read_per_sub_disable_field_exists_get(unit))
+        {
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_LM_READ_INDEX_DISABLE, INST_SINGLE, 0);
+        }
+        if (dnx_data_oam.general.oam_lm_read_per_sub_enable_field_exists_get(unit))
+        {
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAM_LM_READ_INDEX_ENABLE, INST_SINGLE, 1);
+        }
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+        /*
+         * Set APPDB for oam tcam identification
+         */
+        SHR_IF_ERR_EXIT(DBAL_HANDLE_CLEAR(unit, DBAL_TABLE_OAM_TCAM_IDENTIFICATION_APPDB, entry_handle_id));
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_IDENTIFICATION_APPDB_0, INST_SINGLE,
+                                     OAM_TCAM_IDENTIFICATION_APPDB_0_ID);
+        if (dnx_data_oam.general.oam_identification_appdb_1_field_exists_get(unit))
+        {
+            dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_IDENTIFICATION_APPDB_1, INST_SINGLE,
+                                         OAM_TCAM_IDENTIFICATION_APPDB_1_ID);
+        }
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+    }
+
+    {
+#ifdef BCM_DNX2_SUPPORT
+        SHR_IF_ERR_EXIT(dnx_oam_sub_type_properties_init(unit));
+#endif
+    }
+
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - This function initializes registers that are 
+ *        necessary for OAM ToD . These registers are mostly
+ *        used for OAM DM functionality.
+ *        Both NTP and IEEE 1588 formats initialized. 
+ * 
+ * \param [in] unit - Number of hardware unit used.
+ *   
+ * \return
+ *   shr_error_e
+ *   
+ * \remark
+ * Registers and memories are initialized
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_oam_init_tod(
+    int unit)
+{
+    uint32 entry_handle_id;
+    int tod_config_in_eci;
+    int tod_config_in_ns;
+
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    /*
+     * Init NTP
+     */
+
+    tod_config_in_eci = dnx_data_oam.general.oam_tod_config_in_eci_get(unit);
+    if (tod_config_in_eci)
+    {
+
+        /*
+         * 1588 Configurations 
+         */
+        SHR_IF_ERR_EXIT(dnx_oam_tod_set(unit, IS_1588, 0x1ffff0013576543));
+
+        /*
+         * NTP Configurations 
+         */
+        SHR_IF_ERR_EXIT(dnx_oam_tod_set(unit, IS_NTP, 0x1ffff0013576543));
+
+        /*
+         * General ToD Configuration
+         */
+    }
+
+    /** Reset for configuring */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_TOD_GENERAL_CONFIGURATION, &entry_handle_id));
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_ECI_NSE_RESET, INST_SINGLE, 1);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_CLEAR(unit, DBAL_TABLE_OAM_TOD_GENERAL_CONFIGURATION, entry_handle_id));
+    /** Set ECI and OAMP CMIC ToD mode to both NTP and 1588 */
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_ECI_TOD_MODE, INST_SINGLE, 3);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_OAMP_CMIC_TOD_MODE, INST_SINGLE, 3);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    /** Set ToD */
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_CLEAR(unit, DBAL_TABLE_OAM_TOD_GENERAL_CONFIGURATION, entry_handle_id));
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_ECI_NSE_RESET, INST_SINGLE, 0);
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    SHR_IF_ERR_EXIT(DBAL_HANDLE_CLEAR(unit, DBAL_TABLE_OAM_TOD_GENERAL_CONFIGURATION, entry_handle_id));
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_TODW_SELECT_IEEE_1588_TIMER, INST_SINGLE, 1);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_TODW_SELECT_NTP_TIMER, INST_SINGLE, 1);
+    dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_ECI_NSE_NCO_FREQ_CONTROL, INST_SINGLE,
+                                 dnx_data_oam.general.oam_nse_nco_freq_control_get(unit));
+    SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+
+    tod_config_in_ns = dnx_data_oam.general.oam_tod_config_in_ns_get(unit);
+    if ((tod_config_in_ns) && (dnx_data_pll.general.feature_get(unit, dnx_data_pll_general_ts_freq_lock) != 0))
+    {
+        SHR_IF_ERR_EXIT(DBAL_HANDLE_ALLOC(unit, DBAL_TABLE_OAM_1588_TOD_CONFIGURATION_NS, &entry_handle_id));
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NS_IEEE1588_TIME_FREQ_CONTROL_LOWER, INST_SINGLE,
+                                     0);
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NS_IEEE1588_TIME_FREQ_CONTROL_UPPER, INST_SINGLE,
+                                     0x2000);
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NS_IEEE1588_TIME_CONTROL_LOAD_ENABLE,
+                                     INST_SINGLE, 0x21);
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NS_IEEE1588_TIME_CONTROL_LOAD_TYPE, INST_SINGLE,
+                                     0);
+        dbal_entry_value_field32_set(unit, entry_handle_id, DBAL_FIELD_NS_IEEE1588_TIME_CONTROL_COUNTER_ENABLE,
+                                     INST_SINGLE, 1);
+        SHR_IF_ERR_EXIT(dbal_entry_commit(unit, entry_handle_id, DBAL_COMMIT));
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * \brief - Map all oam injected over mpls to reserved acc egr profile. 
+ * 
+ * \param [in] unit - Number of hardware unit used.
+ *   
+ * \return
+ *   shr_error_e
+ *   
+ * \remark
+ *   * None
+ * \see
+ *   * None
+ */
+static shr_error_e
+dnx_oam_init_acc_egr_profile(
+    int unit)
+{
+    shr_error_e rv;
+    int oam_lif = 0;
+    int mdl = 0;
+    int mep_id = 0;
+    int reserved_acc_egr_profile_id = dnx_data_oam.general.oam_egr_acc_action_profile_id_for_inject_mpls_get(unit);
+
+    SHR_FUNC_INIT_VARS(unit);
+    DBAL_FUNC_INIT_VARS(unit);
+
+    if (reserved_acc_egr_profile_id != DNX_INVALID_PROFILE_ID)
+    {
+        rv = dnx_oam_acc_mep_add(unit, _SHR_CORE_ALL, 0, oam_lif, mdl, mep_id, reserved_acc_egr_profile_id);
+        SHR_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    DBAL_FUNC_FREE_VARS;
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * See oam_init.h
+ */
+shr_error_e
+dnx_oam_init(
+    int unit)
+{
+    int rv = _SHR_E_NONE;
+
+    SHR_FUNC_INIT_VARS(unit);
+
+    /** init key select ingress & egress tables */
+    rv = dnx_oam_key_select_ingress_init(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+    rv = dnx_oam_key_select_egress_init(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+    /** set default configuration for oam opcode mapping */
+    rv = dnx_oam_opcode_map_init_set(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+    /** init counter mechanism */
+    rv = dnx_oam_counters_init(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+    /** init reserved acc egr profile */
+    rv = dnx_oam_init_acc_egr_profile(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+    /** Initialize MP-TYPE table */
+    SHR_IF_ERR_EXIT(dnx_oam_mp_type_table_init(unit));
+
+    /** Initialize various OAM relevant settings */
+    rv = dnx_oam_init_general_configuration(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+    {
+        /** Initialize oam_sub_type table */
+        SHR_IF_ERR_EXIT(dnx_oam_sub_type_init(unit));
+
+        /** Initialize udh size table */
+        SHR_IF_ERR_EXIT(dnx_oam_udh_size_init(unit));
+    }
+
+    rv = dnx_oam_sw_db_init(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+    {
+        /** Initialize ToD */
+        
+        rv = dnx_oam_init_tod(unit);
+        SHR_IF_ERR_EXIT(rv);
+    }
+
+    /** Initialize OAMP block */
+    rv = dnx_oam_oamp_init(unit);
+    SHR_IF_ERR_EXIT(rv);
+
+exit:
+    SHR_FUNC_EXIT;
+}
+
+/**
+ * See oam_init.h
+ */
+shr_error_e
+dnx_oam_deinit(
+    int unit)
+{
+    SHR_FUNC_INIT_VARS(unit);
+
+    /** deinit the SW DB of OAM EPs linked to each OAM group */
+    SHR_IF_ERR_EXIT(dnx_oam_sw_db_deinit(unit));
+
+    /** deinit OAMP setting done */
+    SHR_IF_ERR_EXIT(dnx_oam_oamp_deinit(unit));
+
+exit:
+    SHR_FUNC_EXIT;
+}
