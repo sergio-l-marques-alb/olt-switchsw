@@ -6,7 +6,7 @@ app_name=switchdrvr
 app_path=/usr/local/sbin/$app_name
 cli=/usr/local/sbin/fp.cli
 proc_txt=/usr/local/log/fastpath/proc.txt
-SWDRV_CRASH=0x00060301 # code for reboot cause (OLTSWITCH-1537)
+SWDRV_CRASH=00060301h # code for reboot cause (OLTSWITCH-1537)
 
 insert_modules()
 {
