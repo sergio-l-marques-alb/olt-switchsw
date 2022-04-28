@@ -1,0 +1,13 @@
+./cxo2t4-4_x.make
+./cxo2t2-4_x.make
+./cxo2t0-4_x.make
+./make/Makefile.linux-cxo2t4-e500mc-3_x
+./make/Makefile.linux-cxo2t2-arm64-3_x
+./make/Makefile.linux-cxo2t0-arm64-3_x
+./systems/linux/kernel/cxo2t4-4_x/Makefile
+./systems/linux/kernel/cxo2t2-4_x/Makefile
+./systems/linux/kernel/cxo2t0-4_x/Makefile
+./systems/linux/user/cxo2t4-4_x/Makefile
+./systems/linux/user/cxo2t2-4_x/Makefile
+./systems/linux/user/cxo2t0-4_x/Makefile
+
