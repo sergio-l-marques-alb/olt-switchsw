@@ -692,6 +692,9 @@ _edk_mpool_alloc(int dev_id, size_t size)
 #ifdef REMAP_DMA_NONCACHED
     _dma_vbase = ioremap(dma_pbase, size);
 #endif
+    if (dma_debug >= 1)
+      gprintk("%s (himem=1 ?): _dma_vbase:%p pbase:%lx  allocated:%lx\n",
+              __FUNCTION__, _dma_vbase, pbase, (unsigned long)size);
     _edk_dma_pool[dev_id].cpu_pbase = cpu_pbase;
     _edk_dma_pool[dev_id].dma_pbase = dma_pbase;
     _edk_dma_pool[dev_id].dma_vbase = dma_vbase;
