@@ -280,6 +280,7 @@ typedef uint64 phys_addr_t;
 #ifdef PHYS_ADDRS_ARE_64BITS
 #include <sys/mman.h>
 #ifdef SAL_BDE_USE_MMAP64
+extern void * mmap64 (void *addr, size_t len, int prot, int flags, int fd, unsigned long long offset);
 #define MMAP    mmap64
 #else
 #define MMAP    mmap
