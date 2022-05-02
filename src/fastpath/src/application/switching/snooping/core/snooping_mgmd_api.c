@@ -197,8 +197,19 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8 port_type_igmp;
   L7_uint8 rc;
-
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /*On TC16SXG XGS ports must be use the service MC ID of XGS*/
+  if ((PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port)     == L7_TRUE) &&
+      (ptin_evc_is_intf_leaf(serviceId, ptin_port) == L7_FALSE))
+  {
+    if (serviceId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
+    {
+        serviceId = serviceId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+    }
+  }
+#endif
 
   if (SUCCESS != ptin_evc_port_type_get(serviceId, ptin_port, &port_type))
   {

@@ -116,6 +116,14 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
     ptin_timer_stop(35);
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    /* On TC16SXG on MC services, the MGMD only knows the GPON MC EVC*/
+    if (serviceId > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
+    {
+        serviceId = serviceId - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+    }
+#endif
+
   //Create a new MGMD packet event port id+1 due to MGMD does not support port Id 0
   ptin_timer_start(36,"ptin_mgmd_event_packet_create");
   if(L7_SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
@@ -1585,9 +1593,6 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
     }
 
     
-
-
-    //ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
     return L7_SUCCESS;
   }
 

@@ -3351,7 +3351,8 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode)
  */
 static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 ptin_port, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
 {
-  L7_uint16      mcastRootVlan;  
+  /* Service id from MGMD is the MC service . The service IPMC is the service where the packet are replicated*/
+  L7_uint16      mcastRootVlan, serviceIdIpmc = serviceId;  
   L7_BOOL        isL3Entry;
   char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
@@ -3359,26 +3360,25 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 ptin_p
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
-  
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /*On TC16SXG XGS ports must be use the service MC ID of XGS to retrieve the internal vlan 
+    where the packet will be replicated*/
+  if ((PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port)     == L7_TRUE) &&
+      (ptin_evc_is_intf_leaf(serviceId, ptin_port) == L7_FALSE))
+  {
+    if (serviceId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
+    {
+        /* Service Id where the traffic will be replicated*/
+        serviceIdIpmc = serviceId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+    }
+  }
+#endif  
   PT_LOG_DEBUG(LOG_CTX_IGMP, "Received request to open a new port on the switch [serviceId:%u ptin_port:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", 
                serviceId, ptin_port, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");
 
-  #if 0
-  L7_BOOL        adminMode = L7_DISABLE;
-  if (L7_SUCCESS != snoopAdminModeGet(&adminMode, L7_AF_INET))
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Get Admin Mode");
-    return;
-  }
-
-  if (adminMode != L7_ENABLE)
-  {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Open Request adminMode:%u",adminMode);
-    return;
-  }
-  #endif
-
+  /*On TC16SXG on MC services from XGS port get always the VLAN of GPON EVC (EVC with root port). 
+    This is the Service ID and VLAN where the traffic comes*/
   if( L7_SUCCESS != (rc=ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan)))
   {
     if( rc != L7_NOT_EXIST)
@@ -3395,8 +3395,8 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 ptin_p
   }
 
 #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, ptin_port))
+  /* Check with the port is in the IPTV EVC*/
+  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceIdIpmc, ptin_port))
   {
    if (ptin_debug_igmp_snooping)
      PT_LOG_ERR(LOG_CTX_IGMP, "Intfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]",
@@ -3411,7 +3411,7 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 ptin_p
   isL3Entry = L7_FALSE;
   #endif
   ptin_timer_start(88,"snoopGroupIntfAdd");
-  if(L7_SUCCESS != snoopGroupIntfAdd(serviceId, mcastRootVlan, groupAddr, sourceAddr, ptin_port, isStatic, isProtection, isL3Entry))
+  if(L7_SUCCESS != snoopGroupIntfAdd(serviceIdIpmc, mcastRootVlan, groupAddr, sourceAddr, ptin_port, isStatic, isProtection, isL3Entry))
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to open port on switch for mcastRootVlan:%u [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]",
@@ -3433,7 +3433,8 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 ptin_p
  */
 static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 ptin_port, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection)
 {
-  L7_uint16      mcastRootVlan;
+  /* Service id from MGMD is the MC service . The service IPMC is the service where the packet are replicated*/
+  L7_uint16      mcastRootVlan, serviceIdIpmc = serviceId;
   L7_BOOL        isL3Entry;
   char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
@@ -3441,27 +3442,24 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 ptin_
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  /*On TC16SXG XGS ports must be use the service MC ID of XGS to retrieve the internal vlan 
+    where the packet will be replicated*/
+  if ((PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port)     == L7_TRUE) &&
+      (ptin_evc_is_intf_leaf(serviceId, ptin_port) == L7_FALSE))
+  {
+    if (serviceId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
+    {
+        /* Service Id where the traffic will be replicated*/
+        serviceIdIpmc = serviceId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+    }
+  }
+#endif
   PT_LOG_DEBUG(LOG_CTX_IGMP, "Received request to close an existing port on the switch [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, ptin_port, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");
 
-  #if 0//We need to allow this operation
-  L7_BOOL        adminMode = L7_DISABLE;
-  if (L7_SUCCESS != snoopAdminModeGet(&adminMode, L7_AF_INET))
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Get Admin Mode");
-    return;
-  }
-
-  if (adminMode != L7_ENABLE)
-  {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close Request adminMode:%u",adminMode);
-    return;
-  }
-  #endif    
-
 #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, ptin_port))
+  /* Check with the port is in the IPTV EVC*/
+  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceIdIpmc, ptin_port))
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP, "IntIfnum is not leaf [serviceId:%u ptin_port:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, ptin_port, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
@@ -3469,6 +3467,7 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 ptin_
   }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
+  /*On TC16SXG on MC services from XGS port get always the VLAN of GPON EVC (EVC with root port)*/
   if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
     if (ptin_debug_igmp_snooping)
@@ -3482,7 +3481,7 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 ptin_
   isL3Entry = L7_FALSE;
   #endif
   ptin_timer_start(89,"snoopGroupIntfRemove");
-  if(L7_SUCCESS != snoopGroupptinPortRemove(serviceId, mcastRootVlan, groupAddr, sourceAddr, ptin_port, isProtection, isL3Entry))
+  if(L7_SUCCESS != snoopGroupptinPortRemove(serviceIdIpmc, mcastRootVlan, groupAddr, sourceAddr, ptin_port, isProtection, isL3Entry))
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to close port on switch for mcastRootVlan:%u [serviceId:%u ptin_port:%u groupAddr:%s sourceAddr:%s isProtection:%s]", mcastRootVlan, serviceId, ptin_port, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      

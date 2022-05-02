@@ -7170,6 +7170,7 @@ L7_RC_t ptin_igmp_rootptinPort_getList(L7_uint16 intVlan, ptin_port_bmp_t *ptinP
     return L7_FAILURE;
   }
 
+
   /* interface list pointer must not be null */
   if (ptinPortList==L7_NULLPTR || noOfInterfaces==L7_NULLPTR)
   {
@@ -19933,6 +19934,12 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
     /*Save the Service Id*/
     serviceIdAux = multicastServiceId[ptinPort][onuId][internalServiceId].serviceId;
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    if (serviceIdAux > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
+    {
+        serviceIdAux = serviceIdAux - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+    }
+#endif
     /* Find Channel Entry */
     rc = ptin_igmp_channel_get (serviceIdAux, groupAddr, sourceAddr,  &channelEntry );
 
@@ -19965,10 +19972,10 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
       continue;
     }
 
-    *serviceId = serviceIdAux;
+    *serviceId = multicastServiceId[ptinPort][onuId][internalServiceId].serviceId;
     /*Exit Here Multicast Service Found*/
     if (ptin_debug_igmp_snooping)
-      PT_LOG_TRACE(LOG_CTX_IGMP, "Entry Does Exist [ptinPort:%u deviceClientId:%u groupClientId:%u onuId:%u groupAddr:%s sourceAddr:%s serviceId:%u (internalServiceId:%u)]",
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Entry Exist [ptinPort:%u deviceClientId:%u groupClientId:%u onuId:%u groupAddr:%s sourceAddr:%s serviceId:%u (internalServiceId:%u)]",
                 ptinPort, deviceClientId, groupClientId, onuId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), *serviceId, internalServiceId);
 
     return L7_SUCCESS;    
