@@ -1,0 +1,35 @@
+diff -rpN -u6 sdk-all-6.5.20/make/Make.config sdk-all-6.5.20_mod/make/Make.config
+--- sdk-all-6.5.20/make/Make.config	2020-07-15 12:39:34.000000000 +0100
++++ sdk-all-6.5.20_mod/make/Make.config	2020-09-11 18:01:37.682733937 +0100
+@@ -1899,15 +1899,15 @@ DEBUG_SYMBOLS=TRUE
+ endif
+ # }
+ endif
+ 
+ ifeq ($(DEBUG_SYMBOLS),TRUE)
+ # {
+-CFLAGS += -g
+-CXXFLAGS += -g
+-CPPFLAGS += -g
++CFLAGS += -g1
++CXXFLAGS += -g1
++CPPFLAGS += -g1
+ ifdef LTSW_CHIPS
+ # {
+ LTSW_ADD_CFLAGS += -g
+ # }
+ endif
+ # }
+diff -rpN -u6 sdk-all-6.5.20/make/Makefile.unix-user sdk-all-6.5.20_mod/make/Makefile.unix-user
+--- sdk-all-6.5.20/make/Makefile.unix-user	2020-07-15 12:39:35.000000000 +0100
++++ sdk-all-6.5.20_mod/make/Makefile.unix-user	2020-09-11 18:01:37.673734028 +0100
+@@ -158,8 +158,8 @@ LDFLAGS += -Wl,-rpath-link,${LIB_OVERRID
+ endif
+ #
+ # Optionally use the linker --relax flag to enable linking larger
+ # images on the GTO platform
+ #
+ ifneq (,${LINKER_RELAX})
+-LDFLAGS += -Wl,--relax
++LDFLAGS += -Wl,--relax,--gc-sections,--no-keep-memory
+ endif
