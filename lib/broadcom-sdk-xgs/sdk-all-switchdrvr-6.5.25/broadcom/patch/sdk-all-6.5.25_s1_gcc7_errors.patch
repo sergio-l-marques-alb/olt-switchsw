@@ -1,0 +1,40 @@
+diff -rpN -u6 sdk-all-6.5.20/include/soc/dpp/drv.h sdk-all-6.5.20_mod/include/soc/dpp/drv.h
+--- sdk-all-6.5.20/include/soc/dpp/drv.h	2020-07-15 12:37:29.000000000 +0100
++++ sdk-all-6.5.20_mod/include/soc/dpp/drv.h	2020-09-11 18:01:38.407726547 +0100
+@@ -450,15 +450,15 @@
+                     (SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit) ? 1 : SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores) : \
+                     ((core_id) + 1));\
+         index++)
+ 
+ /* validate core in range */
+ #define SOC_DPP_CORE_VALIDATE(unit, core, allow_all) \
+-        if((core >= SOC_DPP_DEFS_GET(unit, nof_cores) || (core < 0)) && \
+-           (!allow_all || core != _SHR_CORE_ALL)) { \
+-                SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM,(_BSL_BCM_MSG("Invalid Core %d"), core)); \
++        if((core >= SOC_DPP_DEFS_GET(unit, nof_cores) || ((core) < 0)) && \
++           (!allow_all || (core) != _SHR_CORE_ALL)) { \
++                SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM,(_BSL_BCM_MSG("Invalid Core %d"), (core))); \
+         }
+ 
+ /* converts modid to base modid */
+ #define SOC_DPP_IS_MODID_AND_BASE_MODID_ON_SAME_FAP(unit, modid, base_modid) \
+            ((base_modid <= modid) && (base_modid + SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores > modid))
+ 
+diff -rpN -u6 sdk-all-6.5.20/src/soc/common/reg.c sdk-all-6.5.20_mod/src/soc/common/reg.c
+--- sdk-all-6.5.20/src/soc/common/reg.c
++++ sdk-all-6.5.20_mod/src/soc/common/reg.c
+@@ -4440,13 +4440,13 @@ soc_reg_addr(int unit, soc_reg_t reg, in
+     uint32            base;   /* base address from reg_info */
+     int               block = -1;  /* block number */
+     int               pindex = -1; /* register port/cos field */
+     int               gransh; /* index granularity shift */
+     soc_block_types_t regblktype;
+     soc_block_t       portblktype;
+-    int               phy_port;
++    int               phy_port = -1;
+     int               instance_mask = 0;
+     int               instance = -1;
+     
+ 
+ #ifdef BCM_TOMAHAWK3_SUPPORT
+     soc_reg_t reg_excep_list[]={MMU_CRB_DEVICE_PORT_TO_MMU_PORT_MAPPINGr,
