@@ -1061,6 +1061,31 @@ L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint ptin_port)
   return L7_TRUE;
 }
 
+
+/**
+ * Determines if a particular Port/LAG is in use
+ *  
+ * @param evc_ext_id  
+ * @param ptin_port 
+ * 
+ * @return L7_BOOL L7_TRUE/L7_FALSE
+ */
+L7_BOOL ptin_evc_is_port_in_use(L7_uint32 evc_id, L7_uint ptin_port)
+{  
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
+    return L7_FALSE;
+
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+    return L7_FALSE;
+
+  if (evcs[evc_id].in_use == L7_FALSE)
+    return L7_FALSE;
+
+  if (evcs[evc_id].intf[ptin_port].in_use == L7_FALSE)
+    return L7_FALSE;
+
+  return L7_TRUE;
+}
 /**
  * Get port type on EVC Id
  *  
@@ -1917,7 +1942,13 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+      /* On TC16SXG P2P have different xlate operations,
+        due to the port virtualization and ASPEN limitations*/
+      ivid = pclientFlow->uni_ivid;
+#else
       ivid = 0;
+#endif
     }
   }
 
@@ -4530,6 +4561,17 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
     return L7_FAILURE;
   }
 
+  if (ptin_intf_portGem2virtualVid(leaf_intf, evcBridge->intf.vid, &evcBridge->intf.vid)!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+               evcBridge->intf.vid);
+    return L7_FAILURE;
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.OVlan = %u", evcBridge->intf.vid);
+  }
+
   /* Check if client entry already exists */
   ptin_evc_find_client(evcBridge->inn_vlan, &evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
   if (pclient != NULL)
@@ -4569,7 +4611,13 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   else
   {
     /* Remove inner vlan @ egress */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    /* On TC16SXG P2P have different xlate operations,
+      due to the port virtualization and ASPEN limitations*/
+    rc = switching_elan_leaf_add(&intf_vlan, evcs[evc_id].rvlan, L7_FALSE, -1);
+#else
     rc = switching_elan_leaf_add(&intf_vlan, evcs[evc_id].rvlan, L7_TRUE, -1);
+#endif 
   }
   if (rc != L7_SUCCESS)
   {
@@ -4599,7 +4647,13 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   pclient->int_ovid   = evcs[evc_id].intf[leaf_intf].int_vlan;
   pclient->int_ivid   = evcBridge->inn_vlan;
   pclient->uni_ovid   = evcBridge->intf.vid;
+#if ( PTIN_BOARD == PTIN_BOARD_TC16SXG )
+  /* On TC16SXG P2P have different xlate operations,
+      due to the port virtualization and ASPEN limitations*/
+  pclient->uni_ivid   = evcBridge->inn_vlan;
+#else
   pclient->uni_ivid   = 0;
+#endif
   pclient->action_outer_vlan = intf_vlan.action_outer;
   pclient->action_inner_vlan = intf_vlan.action_inner;
   pclient->client_vid = evcBridge->inn_vlan;
@@ -11807,7 +11861,13 @@ static L7_RC_t switching_elan_leaf_add(ptin_HwEthMef10Intf_t *intf_vlan,
     else
     {
       /* Inverted logic: comparison is related to ingress, but the applied action is related to egress */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+      /* On TC16SXG P2P have different xlate operations,
+      due to the port virtualization and ASPEN limitations*/
+      intf_vlan_set.action_inner = (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_REPLACE : intf_vlan->action_inner;
+#else
       intf_vlan_set.action_inner = (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_DELETE : intf_vlan->action_inner;
+#endif
     }
 
     rc = ptin_xlate_egress_add(&intf_vlan_set,

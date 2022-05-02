@@ -155,6 +155,8 @@
 # define PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD         1     /*Support L3 Multicast Forwarding*/
 # define PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES     4096  /*Max Number of L3 Multicast Entries*/
 # define PTIN_SYSTEM_IGMP_GROUP_LIST_MAX_ENTRIES       16384 /*Max Number of Group List Entries*/
+# define PTIN_SYSTEM_IGMP_EVC_MC_OFFSET                600   /* on TC16SXG due to virtualization exists one EVC for GPON MC and other for XGS. 
+                                                                they have a offset of 600. The constant is use because channels on AVL have only one entry*/
                                                       
 # define PTIN_SYSTEM_N_DHCP_INSTANCES                  32     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES                 32     /* Maximum nr of PPPoE instances */
