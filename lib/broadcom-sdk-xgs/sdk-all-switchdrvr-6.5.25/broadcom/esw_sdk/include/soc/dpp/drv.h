@@ -453,9 +453,9 @@
 
 /* validate core in range */
 #define SOC_DPP_CORE_VALIDATE(unit, core, allow_all) \
-        if((core >= SOC_DPP_DEFS_GET(unit, nof_cores) || (core < 0)) && \
-           (!allow_all || core != _SHR_CORE_ALL)) { \
-                SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM,(_BSL_BCM_MSG("Invalid Core %d"), core)); \
+        if((core >= SOC_DPP_DEFS_GET(unit, nof_cores) || ((core) < 0)) && \
+           (!allow_all || (core) != _SHR_CORE_ALL)) { \
+                SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM,(_BSL_BCM_MSG("Invalid Core %d"), (core))); \
         }
 
 /* converts modid to base modid */
