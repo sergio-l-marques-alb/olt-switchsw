@@ -1,0 +1,2200 @@
+Index: include/bcm_int/esw/triumph2.h
+===================================================================
+--- include/bcm_int/esw/triumph2.h	(revision 7743)
++++ include/bcm_int/esw/triumph2.h	(working copy)
+@@ -71,12 +71,17 @@ extern int bcm_tr2_ipmc_repl_delete(int
+ extern int bcm_tr2_ipmc_repl_delete_all(int unit, int index,
+                                 bcm_port_t port);
+ extern int bcm_tr2_ipmc_egress_intf_add(int unit, int index, bcm_port_t port,
+                                 bcm_l3_intf_t *l3_intf);
+ extern int bcm_tr2_ipmc_egress_intf_delete(int unit, int index, bcm_port_t port,
+                                    bcm_l3_intf_t *l3_intf);
++#ifdef LVL7_FIXUP
++extern int bcm_tr2_ipmc_repl_set(int unit, int mc_index, bcm_port_t port,
++                                bcm_vlan_vector_t vlan_vec);
++#endif
++
+ extern int bcm_tr2_ipmc_egress_intf_set(int unit, int mc_index,
+                                        bcm_port_t port, int if_count,
+                                        bcm_if_t *if_array, int check_port);
+ extern int bcm_tr2_ipmc_egress_intf_get(int unit, int mc_index,
+                                        bcm_port_t port,
+                                        int if_max, bcm_if_t *if_array,
+Index: include/soc/defs.h
+===================================================================
+--- include/soc/defs.h	(revision 7743)
++++ include/soc/defs.h	(working copy)
+@@ -226,14 +226,16 @@
+ #define BCM_APOLLO_SUPPORT
+ #define BCM_TRX_SUPPORT
+ #define BCM_MPLS_SUPPORT
+ #define BCM_IPFIX_SUPPORT
+ #endif
+ 
+-#if defined(BCM_56685_A0) || defined(BCM_56685_B0)
++/* PTin added: new switch 56689 (Valkyrie2) */
++#if defined(BCM_56685_A0) || defined(BCM_56685_B0) || defined(BCM_56689_A0) || defined(BCM_56689_B0)
+ #define BCM_56685
++#define BCM_56689   /* PTin added: new switch 56689 (Valkyrie2) */
+ #define BCM_56634
+ #define BCM_56624
+ #define BCM_56304
+ #define BCM_56800
+ #define BCM_FIREBOLT_SUPPORT
+ #define BCM_BRADLEY_SUPPORT
+@@ -241,12 +243,13 @@
+ #define BCM_TRIUMPH2_SUPPORT
+ #define BCM_VALKYRIE2_SUPPORT
+ #define BCM_TRX_SUPPORT
+ #define BCM_MPLS_SUPPORT
+ #define BCM_IPFIX_SUPPORT
+ #endif
++/* PTin end */
+ 
+ #if defined(BCM_56334_A0) || defined(BCM_56334_B0)
+ #define BCM_56334
+ #define BCM_56624
+ #define BCM_56304
+ #define BCM_56800
+@@ -308,14 +311,16 @@
+ #define BCM_TRIDENT_SUPPORT
+ #define BCM_MPLS_SUPPORT
+ #define BCM_XGS3_FABRIC_SUPPORT
+ #define BCM_EXTND_SBUS_SUPPORT
+ #endif
+ 
+-#if defined(BCM_56640_A0) || defined(BCM_56640_B0)
++/* PTin modified: new switch 5664x (Triumph3) */
++#if defined(BCM_56640_A0) || defined(BCM_56640_B0) || defined(BCM_56643_A0) || defined(BCM_56643_B0)
+ #define BCM_56640
++#define BCM_56643     /* PTin modified: new switch 5664x (Triumph3) */
+ #define BCM_56840
+ #define BCM_56634
+ #define BCM_56624
+ #define BCM_56304
+ #define BCM_56800
+ #define BCM_FIREBOLT_SUPPORT
+Index: src/appl/diag/esw/counter.c
+===================================================================
+--- src/appl/diag/esw/counter.c	(revision 7743)
++++ src/appl/diag/esw/counter.c	(working copy)
+@@ -90,23 +90,23 @@ counter_val_set(int unit, soc_port_t por
+                   COMPILER_64_LO(val)));
+     } else if (ctr_reg >= SOC_COUNTER_NON_DMA_START &&
+                ctr_reg < SOC_COUNTER_NON_DMA_END) {
+         non_dma =
+             &SOC_CONTROL(unit)->counter_non_dma[ctr_reg -
+                                                 SOC_COUNTER_NON_DMA_START];
+-        LOG_INFO(BSL_LS_APPL_COUNTER,
++        LOG_VERBOSE(BSL_LS_APPL_COUNTER,
+                  (BSL_META_U(unit,
+                              "cval_set: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
+                   non_dma->cname,
+                   ar_idx, port, ind,
+                   COMPILER_64_HI(val),
+                   COMPILER_64_LO(val)));
+     } else if (ctr_reg >= NUM_SOC_REG) {
+         return;
+     } else {
+-        LOG_INFO(BSL_LS_APPL_COUNTER,
++        LOG_VERBOSE(BSL_LS_APPL_COUNTER,
+                  (BSL_META_U(unit,
+                              "cval_set: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
+                   SOC_REG_NAME(unit, ctr_reg),
+                   ar_idx, port, ind,
+                   COMPILER_64_HI(val),
+                   COMPILER_64_LO(val)));
+@@ -192,21 +192,21 @@ counter_val_get(int unit, soc_port_t por
+ 
+         } else if (ctr_reg >= SOC_COUNTER_NON_DMA_START &&
+                    ctr_reg < SOC_COUNTER_NON_DMA_END) {
+             non_dma =
+                 &SOC_CONTROL(unit)->counter_non_dma[ctr_reg -
+                                                SOC_COUNTER_NON_DMA_START];
+-            LOG_INFO(BSL_LS_APPL_COUNTER,
++            LOG_VERBOSE(BSL_LS_APPL_COUNTER,
+                      (BSL_META_U(unit,
+                                  "cval_get: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
+                       non_dma->cname,
+                       ar_idx, port, ind,
+                       COMPILER_64_HI(*val),
+                       COMPILER_64_LO(*val)));
+         } else {
+-            LOG_INFO(BSL_LS_APPL_COUNTER,
++            LOG_VERBOSE(BSL_LS_APPL_COUNTER,
+                      (BSL_META_U(unit,
+                                  "cval_get: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
+                       SOC_REG_NAME(unit, ctr_reg),
+                       ar_idx, port, ind,
+                       COMPILER_64_HI(*val),
+                       COMPILER_64_LO(*val)));
+Index: src/appl/diag/esw/hash.c
+===================================================================
+--- src/appl/diag/esw/hash.c	(revision 7743)
++++ src/appl/diag/esw/hash.c	(working copy)
+@@ -38,14 +38,18 @@
+ #define   ETHERTYPE_ELIGIBILITY_MAP_TABLE_SIZE_MAX  16 /* maximum ELIGIBILITY ethertype size */
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #if defined(BCM_TRIDENT_SUPPORT) || defined(BCM_ENDURO_SUPPORT) || \
+     defined(BCM_GREYHOUND2_SUPPORT)
+ /* Packet info flags for HashDestination. */
+ #define BCM_HD_FLAGS_STR \
+     "SRC_GPORT", \
+Index: src/bcm/common/link.c
+===================================================================
+--- src/bcm/common/link.c	(revision 7743)
++++ src/bcm/common/link.c	(working copy)
+@@ -287,12 +287,13 @@ _bcm_linkscan_pbm_init(int unit)
+  */
+ STATIC int
+ _bcm_link_fault_get(int unit, int port, int *remote_fault, int *local_fault)
+ {
+     int rv;
+     uint32 flags;
++    int value;
+ 
+     if (!_bcm_link_fault_is_available(unit, port)) {
+         return BCM_E_UNAVAIL;
+     }
+ 
+     /* get the indications */
+@@ -318,12 +319,26 @@ _bcm_link_fault_get(int unit, int port,
+ 
+     /* get the indications */
+     rv = bcm_port_fault_get(unit, port, &flags);
+     if (BCM_FAILURE(rv)) {
+         return rv;
+     }
++    
++    /* PTin added: link fault */
++#if 1
++     /* PTin added: clear not necessary flags */
++     if (bcm_port_control_get(unit, port, bcmPortControlLinkFaultLocal, &value) != BCM_E_NONE || value ==0)
++     {
++       flags &= ~((uint32) BCM_PORT_FAULT_LOCAL);
++     }
++     if (bcm_port_control_get(unit, port, bcmPortControlLinkFaultRemote, &value) != BCM_E_NONE || value == 0)
++     {
++       flags &= ~((uint32)BCM_PORT_FAULT_REMOTE);
++     }
++#endif
++
+     if (flags & BCM_PORT_FAULT_REMOTE) {
+         *remote_fault = TRUE;
+         /* clear the remote indications */
+         rv = bcm_port_control_set(unit,
+                               port,
+                               bcmPortControlLinkFaultRemote, 0);
+Index: src/bcm/esw/enduro/hashing.c
+===================================================================
+--- src/bcm/esw/enduro/hashing.c	(revision 7743)
++++ src/bcm/esw/enduro/hashing.c	(working copy)
+@@ -38,14 +38,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define RTAG7_L2_ONLY         0x0
+ #define RTAG7_UNKNOWN_HIGIG   0x1
+ #define RTAG7_MPLS            0x2
+ #define RTAG7_MIM             0x3
+ #define RTAG7_IPV4            0x4
+Index: src/bcm/esw/enduro/vlan.c
+===================================================================
+--- src/bcm/esw/enduro/vlan.c	(revision 7743)
++++ src/bcm/esw/enduro/vlan.c	(working copy)
+@@ -805,12 +805,17 @@ _bcm_enduro_vlan_vp_match_add(int unit,
+     /* For double tagged packets */
+     if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_PRESERVE) {
+         action.dt_outer = bcmVlanActionReplace;
+         action.dt_outer_prio = bcmVlanActionReplace;
+         action.dt_inner = bcmVlanActionNone;
+         action.dt_inner_prio = bcmVlanActionNone;
++    } else if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_REPLACE) {
++        action.dt_outer = bcmVlanActionReplace;
++        action.dt_outer_prio = bcmVlanActionReplace;
++        action.dt_inner = bcmVlanActionReplace;
++        action.dt_inner_prio = bcmVlanActionNone;
+     } else {
+         /* Strip inner VLAN */
+         action.dt_outer = bcmVlanActionReplace;
+         action.dt_outer_prio = bcmVlanActionReplace;
+         action.dt_inner = bcmVlanActionDelete;
+         action.dt_inner_prio = bcmVlanActionDelete;
+Index: src/bcm/esw/field.c
+===================================================================
+--- src/bcm/esw/field.c	(revision 7743)
++++ src/bcm/esw/field.c	(working copy)
+@@ -3156,12 +3156,37 @@ bcm_esw_field_group_status_get(int unit,
+ 
+     if (BCM_FAILURE(rv)) {
+         FP_UNLOCK(unit);
+         return (rv);
+     }
+ 
++#ifdef LVL7_FIXUP
++    if (fg->flags & _FP_GROUP_SPAN_SINGLE_SLICE)
++    {
++      fg->group_status.slice_width_physical = 1;
++    }
++    else if (fg->flags & _FP_GROUP_SPAN_DOUBLE_SLICE)
++    {
++      fg->group_status.slice_width_physical = 2;
++    }
++    else 
++    {
++      fg->group_status.slice_width_physical = 4;
++    }
++
++    if (fg->flags & _FP_GROUP_INTRASLICE_DOUBLEWIDE)
++    {
++      fg->group_status.intraslice_mode_enable = 1;
++    }
++    else
++    {
++      fg->group_status.intraslice_mode_enable = 0;
++    }
++#endif
++
++
+     *status = fg->group_status;
+     FP_UNLOCK(unit);
+     return (rv);
+ }
+ 
+ 
+Index: src/bcm/esw/field_common.c
+===================================================================
+--- src/bcm/esw/field_common.c	(revision 7743)
++++ src/bcm/esw/field_common.c	(working copy)
+@@ -40739,12 +40739,15 @@ _bcm_field_group_status_calc(int unit, _
+         ratio = 1;
+     }
+ 
+     while (fs != NULL)
+     {
+         status->entries_total += fs->entry_count/ratio;
++#ifdef LVL7_FIXUP
++        status->natural_depth = fs->entry_count/ratio;
++#endif
+         fs = fs->next;
+     }
+ 
+     status->entries_free = 0;
+     fs = &fg->slices[0];
+ 
+Index: src/bcm/esw/firebolt/vlan.c
+===================================================================
+--- src/bcm/esw/firebolt/vlan.c	(revision 7743)
++++ src/bcm/esw/firebolt/vlan.c	(working copy)
+@@ -6400,12 +6400,24 @@ _bcm_xgs3_vlan_control_vlan_set(int unit
+         if (valid_fields & BCM_VLAN_CONTROL_VLAN_UNKNOWN_UNICAST_GROUP_MASK) {
+             if (_BCM_MULTICAST_IS_VLAN(control->unknown_unicast_group)) {
+                 _bcm_xgs3_vlan_mcast_idx_set(unit, &vt, UUC_IDXf,
+                     _BCM_MULTICAST_ID_GET(control->unknown_unicast_group));
+             }
+         }
++        
++        if (_BCM_MULTICAST_IS_VLAN(control->broadcast_group) || 
++            _BCM_MULTICAST_IS_VLAN(control->unknown_unicast_group) ||
++            _BCM_MULTICAST_IS_VLAN(control->unknown_unicast_group)) {
++            if (SOC_MEM_FIELD_VALID(unit, VLAN_TABm, VIRTUAL_PORT_ENf)) {
++                soc_mem_field32_set(unit, VLAN_TABm, &vt, VIRTUAL_PORT_ENf, 1);
++            }
++        } else {
++            if (SOC_MEM_FIELD_VALID(unit, VLAN_TABm, VIRTUAL_PORT_ENf)) {
++                soc_mem_field32_set(unit, VLAN_TABm, &vt, VIRTUAL_PORT_ENf, 0);
++            }
++        }
+    }
+ #endif /* (BCM_TRIUMPH2_SUPPORT && INCLUDE_L3 */
+ 
+ #if defined(BCM_TRIDENT_SUPPORT) && defined(INCLUDE_L3)
+     if (soc_feature(unit, soc_feature_trill)) {
+         if (SOC_MEM_FIELD_VALID(unit, VLAN_TABm,
+Index: src/bcm/esw/greyhound2/hashing.c
+===================================================================
+--- src/bcm/esw/greyhound2/hashing.c	(revision 7743)
++++ src/bcm/esw/greyhound2/hashing.c	(working copy)
+@@ -38,14 +38,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define RTAG7_L2_ONLY         0x0
+ #define RTAG7_UNKNOWN_HIGIG   0x1
+ #define RTAG7_MPLS            0x2
+ #define RTAG7_MIM             0x3
+ #define RTAG7_IPV4            0x4
+Index: src/bcm/esw/katana2/hashing.c
+===================================================================
+--- src/bcm/esw/katana2/hashing.c	(revision 7743)
++++ src/bcm/esw/katana2/hashing.c	(working copy)
+@@ -39,14 +39,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MPLS 0x8847 /* MPLS ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define RTAG7_L2_ONLY         0x0
+ #define RTAG7_UNKNOWN_HIGIG   0x1
+ #define RTAG7_MPLS            0x2
+ #define RTAG7_MIM             0x3
+ #define RTAG7_IPV4            0x4
+Index: src/bcm/esw/link.c
+===================================================================
+--- src/bcm/esw/link.c	(revision 7743)
++++ src/bcm/esw/link.c	(working copy)
+@@ -1310,12 +1310,14 @@ _bcm_esw_link_fault_get(int unit, int po
+     soc_persist_t *sop = SOC_PERSIST(unit);
+     ls_cntl_t *lc = link_control[unit];
+     bcm_port_ability_t  port_ability;
+     int ln_rmt_fault = 0;
+     int ln_lcl_fault = 0;
+     int en = 0;
++    _bcm_port_info_t *port_info;
++    int value;
+ 
+     /* Don't check fault on disabled port. */
+     BCM_IF_ERROR_RETURN(bcm_esw_port_enable_get(unit, port, &en));
+     if (en == 0) {
+         *fault = FALSE;
+         return BCM_E_NONE;
+@@ -1410,14 +1412,27 @@ _bcm_esw_link_fault_get(int unit, int po
+             lcl_fault_field = LOCALFAULTSTATf;
+             reg = MAC_RXLSSSTATr;
+         }
+ 
+         SOC_IF_ERROR_RETURN
+             (soc_reg_get(unit, reg, port, 0, &lss));
+-        rmt_fault = soc_reg64_field32_get(unit, reg, lss, rmt_fault_field);
+-        lcl_fault = soc_reg64_field32_get(unit, reg, lss, lcl_fault_field);
++
++        lcl_fault = rmt_fault = 0;
++        _bcm_port_info_access(unit, port, &port_info);
++        if (MAC_CONTROL_GET(port_info->p_mac, unit, port,
++                            SOC_MAC_CONTROL_FAULT_REMOTE_ENABLE, &value) == BCM_E_NONE
++            && value == 1)
++        {
++            rmt_fault = soc_reg64_field32_get(unit, reg, lss, rmt_fault_field);
++        }
++        if (MAC_CONTROL_GET(port_info->p_mac, unit, port,
++                            SOC_MAC_CONTROL_FAULT_LOCAL_ENABLE, &value) == BCM_E_NONE
++            && value == 1)
++        {
++            lcl_fault = soc_reg64_field32_get(unit, reg, lss, lcl_fault_field);
++        }
+ 
+         if (rmt_fault || lcl_fault) {
+             *fault = TRUE;
+         }
+ 
+         if (clr_reg != INVALIDr) {
+Index: src/bcm/esw/multicast.c
+===================================================================
+--- src/bcm/esw/multicast.c	(revision 7743)
++++ src/bcm/esw/multicast.c	(working copy)
+@@ -81,12 +81,14 @@
+ #include <bcm_int/esw/stack.h>
+ #include <bcm_int/esw/trunk.h>
+ #include <bcm_int/api_xlate_port.h>
+ #include <bcm_int/esw/triumph3.h>
+ #include<bcm_int/esw/saber2.h> 
+ 
++#include "logger.h"
++
+ #define _BCM_MULTICAST_MTU_TABLE_OFFSET(unit) \
+         ((SOC_IS_HURRICANEX(unit) || SOC_IS_GREYHOUND(unit) || \
+           SOC_IS_METROLITE(unit) || SOC_IS_GREYHOUND2(unit)) ? \
+           (SOC_IS_FIRELIGHT(unit) ? 128 : 512) : \
+           SOC_IS_FIREBOLT6(unit) ? 16384 : \
+           SOC_IS_HURRICANE4(unit) ? 2048 : \
+@@ -3841,15 +3843,23 @@ _bcm_esw_multicast_l3_destroy(int unit,
+                 _bcm_esw_ipmc_egress_intf_destroy_in_trunk_repl_mode(
+                      unit, mc_index, ether_higig_pbmp, is_l3));
+         } else
+ #endif /* BCM_TOMAHAWK_SUPPORT || BCM_TRIDENT2PLUS_SUPPORT */
+         {
+             BCM_PBMP_ITER(ether_higig_pbmp, port_iter) {
++            /* PTin modified: Virtual ports - avoid errors due to CPU port */
++            #if 0
+                 BCM_IF_ERROR_RETURN(
+                      _bcm_esw_ipmc_egress_intf_set(unit, mc_index, port_iter, 0,
+                                                    NULL, is_l3, FALSE));
++            #else
++                if (_bcm_esw_ipmc_egress_intf_set(unit, mc_index, port_iter, 0, NULL, is_l3, FALSE) != BCM_E_NONE)
++                {
++                  PT_LOG_WARN(LOG_CTX_SDK,"Error with _bcm_esw_ipmc_egress_intf_set: unit=%d, mc_index=%d, port=%d", unit, mc_index, port_iter);
++                }
++            #endif
+             }
+         }
+ 
+         /* Clear the IPMC related tables */
+         BCM_PBMP_CLEAR(l2_pbmp);
+         BCM_PBMP_CLEAR(l3_pbmp);
+Index: src/bcm/esw/port.c
+===================================================================
+--- src/bcm/esw/port.c	(revision 7743)
++++ src/bcm/esw/port.c	(working copy)
+@@ -8355,12 +8355,16 @@ bcm_esw_port_untagged_vlan_get(int unit,
+ STATIC int
+ _bcm_port_mmu_update(int unit, bcm_port_t port, int link)
+ {
+     int pause_tx, pause_rx, q_limit_enable, cos;
+     uint32 psl_rval, opc_rval, oqc_rval;
+ 
++#ifdef LVL7_FIXUP
++    if (SOC_IS_SCORPION(unit)) return BCM_E_NONE;
++#endif
++
+     if (!SOC_IS_HBX(unit)) {
+         return (BCM_E_UNAVAIL);
+     }
+ 
+     if (link < 0) {
+         SOC_IF_ERROR_RETURN
+@@ -8443,12 +8447,15 @@ _bcm_port_untagged_vlan_set(int unit, bc
+ 		} else
+ #endif
+ 		{
+              BCM_IF_ERROR_RETURN
+                  (_bcm_trx_vlan_port_default_action_get(unit, port, &action));
+         }
++        #ifdef LVL7_FIXUP
++        action.it_inner_prio = bcmVlanActionNone;
++        #endif
+         action.new_outer_vlan = vid;
+         action.priority = PORT(unit, local_port).p_ut_prio;
+ #if defined(BCM_TOMAHAWK_SUPPORT)
+         if (soc_feature(unit, soc_feature_decouple_protocol_vlan)){
+             BCM_IF_ERROR_RETURN(_bcm_trx_vlan_action_verify(unit, &action));
+             BCM_IF_ERROR_RETURN
+Index: src/bcm/esw/stat.c
+===================================================================
+--- src/bcm/esw/stat.c	(revision 7743)
++++ src/bcm/esw/stat.c	(working copy)
+@@ -1261,13 +1261,25 @@ bcm_esw_stat_init(int unit)
+                     (WRITE_GPORT_CNTMAXSIZEr(unit, port,
+                                              _bcm_stat_ovr_threshold[unit][port]));
+             } else if (IS_IL_PORT(unit, port)) {
+                 if (!SOC_PBMP_MEMBER(si->il.disabled_bitmap, port)) {
+                 }
+             } else {
++#ifdef LVL7_FIXUP
++                /* Set the Stack port Max size to 0x3fff */
++                if (IS_HG_PORT(unit,port))
++                {
++                  COMPILER_64_SET(rval, 0, 0x3fff);
++                }
++                else
++                {
++                  COMPILER_64_SET(rval, 0, _bcm_stat_ovr_threshold[unit][port]);
++                }
++#else
+                 COMPILER_64_SET(rval, 0, _bcm_stat_ovr_threshold[unit][port]);
++#endif
+                 SOC_IF_ERROR_RETURN(WRITE_MAC_CNTMAXSZr(unit, port, rval));
+             }
+ 
+             /*
+              * Devices that use 10G MAC + Trimac/Unimac
+              */
+Index: src/bcm/esw/switch.c
+===================================================================
+--- src/bcm/esw/switch.c	(revision 7743)
++++ src/bcm/esw/switch.c	(working copy)
+@@ -5613,12 +5613,21 @@ _bcm_xgs3_igmp_action_set(int unit,
+             case bcmSwitchIgmpPktToCpu:
+                 fields[0] = IGMP_PKT_TO_CPUf;
+                 break;
+             case bcmSwitchIgmpPktDrop:
+                 fields[0] = IGMP_PKT_DROPf;
+                 break;
++#ifdef LVL7_FIXUP
++            /* See #77807 for details */
++            case bcmSwitchMldPktToCpu:
++                fields[0] = MLD_PKT_TO_CPUf;
++                break;
++            case bcmSwitchMldPktDrop:
++                fields[0] = MLD_PKT_DROPf;
++                break;
++#endif
+             case bcmSwitchV4ResvdMcPktToCpu:
+                 fields[0] = IPV4_RESVD_MC_PKT_TO_CPUf;
+                 break;
+             case bcmSwitchV4ResvdMcPktDrop:
+                 fields[0] = IPV4_RESVD_MC_PKT_DROPf;
+                 break;
+@@ -5819,12 +5828,23 @@ _bcm_xgs3_igmp_action_get(int unit,
+                 act_value = 1;
+                 break;
+             case bcmSwitchIgmpPktDrop:
+                 field = IGMP_PKT_DROPf;
+                 act_value = 1;
+                 break;
++#ifdef LVL7_FIXUP
++            /* See #77807 for details */
++            case bcmSwitchMldPktToCpu: 	 
++                field = MLD_PKT_TO_CPUf; 	 
++                act_value = 1; 	 
++                break; 	 
++            case bcmSwitchMldPktDrop: 	 
++                field = MLD_PKT_DROPf; 	 
++                act_value = 1; 	 
++                break;
++#endif
+             case bcmSwitchV4ResvdMcPktToCpu:
+                 field = IPV4_RESVD_MC_PKT_TO_CPUf;
+                 act_value = 1;
+                 break;
+             case bcmSwitchV4ResvdMcPktDrop:
+                 field = IPV4_RESVD_MC_PKT_DROPf;
+Index: src/bcm/esw/trident/cosq.c
+===================================================================
+--- src/bcm/esw/trident/cosq.c	(revision 7743)
++++ src/bcm/esw/trident/cosq.c	(working copy)
+@@ -4789,13 +4789,21 @@ bcm_td_cosq_mapping_set(int unit, bcm_po
+         continue;
+     }
+     /* If no gport, map the int prio symmetrically for ucast and
+     * mcast 
+     * There are only 5 MC QUEUES [0,4] attached to a port
+     */
+-    mc_cosq = (cosq > mc_cosq_max) ? mc_cosq_max : cosq;
++/* PTin modified: */
++    //mc_cosq = (cosq > mc_cosq_max) ? mc_cosq_max : cosq;
++    {
++     int numq=8;
++    
++     bcm_td_cosq_config_get(unit,&numq);
++     mc_cosq = cosq * (mc_cosq_max+1) / numq;
++    }	
++/* PTin end */
+     BCM_IF_ERROR_RETURN(_bcm_td_cosq_mapping_set(unit, local_port,
+         priority,
+         BCM_COSQ_GPORT_UCAST_QUEUE_GROUP | BCM_COSQ_GPORT_MCAST_QUEUE_GROUP,
+         -1, (cosq << 16 | (mc_cosq & 0xffff))));
+     }
+     return BCM_E_NONE;
+Index: src/bcm/esw/trident/hashing.c
+===================================================================
+--- src/bcm/esw/trident/hashing.c	(revision 7743)
++++ src/bcm/esw/trident/hashing.c	(working copy)
+@@ -38,14 +38,24 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++/* PTin modified: SDK 6.3.0 */
++#ifdef LVL7_FIXUP
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
++#else
++#define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define RTAG7_L2_ONLY         0x0
+ #define RTAG7_UNKNOWN_HIGIG   0x1
+ #define RTAG7_MPLS            0x2
+ #define RTAG7_MIM             0x3
+ #define RTAG7_IPV4            0x4
+Index: src/bcm/esw/trident2/hashing.c
+===================================================================
+--- src/bcm/esw/trident2/hashing.c	(revision 7743)
++++ src/bcm/esw/trident2/hashing.c	(working copy)
+@@ -38,14 +38,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define RTAG7_RH_MODE_ECMP    0
+ #define RTAG7_RH_MODE_LAG     1
+ #define RTAG7_RH_MODE_HGT     2
+ 
+ #define RTAG7_L2_ONLY         0x0
+Index: src/bcm/esw/triumph2/cosq.c
+===================================================================
+--- src/bcm/esw/triumph2/cosq.c	(revision 7743)
++++ src/bcm/esw/triumph2/cosq.c	(working copy)
+@@ -878,12 +878,34 @@ _bcm_tr2_cosq_bucket_set(int unit, bcm_p
+      * To set the new Bandwidth settings, the procedure adopted is
+      * a. reset MAXBUCKETCONFIG, MINBUCKETCONFIG, MAXBUCKET,MINBUCKET
+      * b. update MAXBUCKETCONFIG and MINBUCKETCONFIG with new values passed
+      * c. if MISCCONFIG.METERING_CLK_EN not set before, enable it.
+      */
+ 
++#ifdef LVL7_FIXUP
++    uint64 maskval_64;
++
++    meter_flags = flags;
++
++    /* first clear bit corresponding for que then optionally set it to enable packet mode */
++    BCM_IF_ERROR_RETURN(READ_SHAPING_MODEr(unit, port, &regval_64));
++    maskval_64 = COMPILER_64_INIT(0, 1);
++    COMPILER_64_SHL(maskval_64, cosq);
++    COMPILER_64_NOT(maskval_64);
++    COMPILER_64_AND(regval_64, maskval_64);
++
++    /* set SHAPING_MODE bit if required. */
++    if ((max_quantum !=0) && 
++        (_BCM_XGS_METER_FLAG_PACKET_MODE == (flags&_BCM_XGS_METER_FLAG_PACKET_MODE))) {
++      COMPILER_64_NOT(maskval_64);
++      COMPILER_64_OR(regval_64, maskval_64);
++    }
++
++    BCM_IF_ERROR_RETURN(WRITE_SHAPING_MODEr(unit, port, regval_64));
++#endif    
++
+     BCM_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &regval));
+     if (soc_reg_field_get(unit, MISCCONFIGr, regval, ITU_MODE_SELf)) {
+         meter_flags |= _BCM_XGS_METER_FLAG_NON_LINEAR;
+     }
+     meter_flags |= _BCM_XGS_METER_FLAG_GRANULARITY;
+ 
+@@ -910,16 +932,25 @@ _bcm_tr2_cosq_bucket_set(int unit, bcm_p
+ 
+     refresh_bitsize =
+         soc_reg_field_length(unit, MINBUCKETCONFIG_64r, MIN_REFRESHf);
+     bucket_bitsize =
+         soc_reg_field_length(unit, MINBUCKETCONFIG_64r, MIN_THDf);
+ 
++#ifdef LVL7_FIXUP
++    /* Hardcode the burst size to accommodate jumbo frames (9216 bytes). The unit
++       for 'burst_quantum' is kbits. So (9216 * 8 / 1000 = 74)*/
++    BCM_IF_ERROR_RETURN
++        (_bcm_xgs_kbits_to_bucket_encoding(min_quantum, kbits_burst_min ? 74 : 0,
++                          meter_flags, refresh_bitsize, bucket_bitsize,
++                          &refresh_rate, &bucketsize, &granularity));
++#else
+     BCM_IF_ERROR_RETURN
+         (_bcm_xgs_kbits_to_bucket_encoding(min_quantum, kbits_burst_min,
+                           meter_flags, refresh_bitsize, bucket_bitsize,
+                           &refresh_rate, &bucketsize, &granularity));
++#endif
+ 
+     COMPILER_64_ZERO(regval_64);
+     soc_reg64_field32_set(unit, MINBUCKETCONFIG_64r, &regval_64,
+                           METER_GRANf, granularity);
+     soc_reg64_field32_set(unit, MINBUCKETCONFIG_64r, &regval_64,
+                           MIN_REFRESHf, refresh_rate);
+@@ -940,12 +971,21 @@ _bcm_tr2_cosq_bucket_set(int unit, bcm_p
+ 
+     COMPILER_64_ZERO(regval_64);
+     soc_reg64_field32_set(unit, MAXBUCKETCONFIG_64r, &regval_64,
+                           METER_GRANf, granularity);
+     soc_reg64_field32_set(unit, MAXBUCKETCONFIG_64r, &regval_64,
+                           MAX_REFRESHf, refresh_rate);
++#ifdef LVL7_FIXUP
++    /* We want as small a burst size as possible... 4 KB in this case. */
++    bucketsize = bucketsize ? 1 : 0;
++    if ((0 != max_quantum) && (0 == bucketsize))
++    {
++      /* Max is specified. bucketsize cannot be zero or else shaping is disabled. */
++      bucketsize = 1;
++    }
++#endif
+     soc_reg64_field32_set(unit, MAXBUCKETCONFIG_64r, &regval_64, MAX_THDf,
+                           bucketsize);
+     BCM_IF_ERROR_RETURN(WRITE_MAXBUCKETCONFIG_64r(unit, port, cosq, regval_64));
+ 
+     if (flags & _BCM_XGS_METER_FLAG_PACKET_MODE) {
+         BCM_IF_ERROR_RETURN(READ_SHAPING_MODEr(unit, port, &regval_64));
+Index: src/bcm/esw/triumph2/vlan.c
+===================================================================
+--- src/bcm/esw/triumph2/vlan.c	(revision 7743)
++++ src/bcm/esw/triumph2/vlan.c	(working copy)
+@@ -1030,12 +1030,17 @@ _tr3_vlan_vp_match_add(int unit, bcm_vla
+ 
+     if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_PRESERVE) {
+         action.dt_outer = bcmVlanActionReplace;
+         action.dt_outer_prio = bcmVlanActionReplace;
+         action.dt_inner = bcmVlanActionNone;
+         action.dt_inner_prio = bcmVlanActionNone;
++    } else if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_REPLACE) {
++        action.dt_outer = bcmVlanActionReplace;
++        action.dt_outer_prio = bcmVlanActionReplace;
++        action.dt_inner = bcmVlanActionReplace;
++        action.dt_inner_prio = bcmVlanActionNone;
+     } else {
+         if (soc_feature(unit, soc_feature_vlan_copy_action)) {
+             action.dt_outer = bcmVlanActionCopy;
+             action.dt_outer_prio = bcmVlanActionCopy;
+         } else {
+             action.dt_outer = bcmVlanActionReplace;
+@@ -1672,12 +1677,17 @@ _tr2_vlan_vp_match_add(int unit, bcm_vla
+ 
+     if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_PRESERVE) {
+         action.dt_outer = bcmVlanActionReplace;
+         action.dt_outer_prio = bcmVlanActionReplace;
+         action.dt_inner = bcmVlanActionNone;
+         action.dt_inner_prio = bcmVlanActionNone;
++    } else if (vlan_vp->flags & BCM_VLAN_PORT_INNER_VLAN_REPLACE) {
++        action.dt_outer = bcmVlanActionReplace;
++        action.dt_outer_prio = bcmVlanActionReplace;
++        action.dt_inner = bcmVlanActionReplace;
++        action.dt_inner_prio = bcmVlanActionNone;
+     } else {
+         if (soc_feature(unit, soc_feature_vlan_copy_action)) {
+             action.dt_outer = bcmVlanActionCopy;
+             action.dt_outer_prio = bcmVlanActionCopy;
+         } else {
+             action.dt_outer = bcmVlanActionReplace;
+Index: src/bcm/esw/triumph2/wlan.c
+===================================================================
+--- src/bcm/esw/triumph2/wlan.c	(revision 7743)
++++ src/bcm/esw/triumph2/wlan.c	(working copy)
+@@ -799,12 +799,16 @@ bcm_tr2_wlan_init(int unit)
+     int i, num_vp, num_tnl, num_intf, rv = BCM_E_NONE;
+     _bcm_tr2_wlan_bookkeeping_t *wlan_info = WLAN_INFO(unit);
+     soc_reg_t reg;
+     uint64 rval64, *rval64s[1];
+     uint32 capwap_frag_profile;
+ 
++#ifdef LVL7_FIXUP
++    (void)bcm_tr2_wlan_port_delete_all(unit); /* jls added */
++#endif
++
+     if (!L3_INFO(unit)->l3_initialized) {
+         LOG_INFO(BSL_LS_BCM_L3,
+                  (BSL_META_U(unit,
+                              "L3 module must be initialized first\n")));
+         return BCM_E_NONE;
+     }
+@@ -1513,13 +1517,17 @@ _bcm_tr2_wlan_l3_intf_add(int unit, _bcm
+                 if_info->l3i_index = i;
+                 return BCM_E_NONE;
+             }
+         }
+     }
+     /* Create an interface */
++#ifdef LVL7_FIXUP
++    BCM_IF_ERROR_RETURN(bcm_xgs3_l3_intf_id_create(unit, if_info));
++#else
+     BCM_IF_ERROR_RETURN(bcm_xgs3_l3_intf_create(unit, if_info));
++#endif
+     _BCM_WLAN_INTF_USED_SET(unit, if_info->l3i_index);
+     return BCM_E_NONE;
+ }
+ 
+ typedef struct _bcm_tr2_ing_nh_info_s {
+     int      port;
+@@ -1586,12 +1594,18 @@ _bcm_tr2_wlan_nh_info_add(int unit, bcm_
+          * allocated but nothing is written to hardware. The "nh_info"
+          * in this case is not used, so just set to all zeros.
+          */
+         bcm_l3_egress_t_init(&nh_info);
+ 
+         nh_flags = _BCM_L3_SHR_MATCH_DISABLE | _BCM_L3_SHR_WRITE_DISABLE;
++#ifdef LVL7_FIXUP
++        if (*nh_index > 0)
++        {
++          nh_flags |= _BCM_L3_SHR_WITH_ID;
++        }
++#endif
+         rv = bcm_xgs3_nh_add(unit, nh_flags, &nh_info, nh_index);
+         BCM_IF_ERROR_RETURN(rv);
+     }
+ 
+     /* Resolve the gport */
+     rv = _bcm_esw_gport_resolve(unit, wlan_port->port, &mod_out, 
+@@ -1645,13 +1659,18 @@ _bcm_tr2_wlan_nh_info_add(int unit, bcm_
+     if (rv < 0) {
+         goto cleanup;
+     }
+ 
+     /* Add an L3 interface entry with L2_SWITCH=1 - ref count if exists */
+     sal_memset(&if_info, 0, sizeof(_bcm_l3_intf_cfg_t));
++#ifdef LVL7_FIXUP
++    if_info.l3i_flags |= BCM_L3_L2ONLY | BCM_L3_SECONDARY | BCM_L3_WITH_ID;
++    if_info.l3i_index = L3_INFO(unit)->l3_intf_table_size - 2;
++#else
+     if_info.l3i_flags |= BCM_L3_L2ONLY | BCM_L3_SECONDARY;
++#endif
+     rv = _bcm_tr2_wlan_l3_intf_add(unit, &if_info);
+     if (BCM_FAILURE(rv)) {
+         goto cleanup;
+     }
+ 
+     /* Populate the fields of WLAN::EGR_l3_NEXT_HOP */
+@@ -1962,13 +1981,17 @@ _bcm_tr2_wlan_match_add(int unit, bcm_wl
+  *      ID. That way we can use a single VP for both directions. This constrains
+  *      the application to use the lower half of the tunnel initiators.
+  */
+ int 
+ bcm_tr2_wlan_port_add(int unit, bcm_wlan_port_t *wlan_port)
+ {
++#ifdef LVL7_FIXUP
++    int drop, mode, is_local = 0, rv = BCM_E_PARAM, nh_index = wlan_port->encap_id;
++#else
+     int drop, mode, is_local = 0, rv = BCM_E_PARAM, nh_index = 0;
++#endif
+     bcm_port_t local_port;
+     bcm_module_t my_modid;
+     int vp, num_vp, lport_ptr = -1;
+     int tpid_enable = 0, tpid_index;
+     wlan_svp_table_entry_t svp;
+     ing_dvp_table_entry_t dvp;
+@@ -2105,16 +2128,26 @@ bcm_tr2_wlan_port_add(int unit, bcm_wlan
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, V6L3_ENABLEf, 0x1);
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, V4IPMC_ENABLEf, 0x1);
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, V6IPMC_ENABLEf, 0x1);
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, IPMC_DO_VLANf, 0x1);
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, FILTER_ENABLEf, 0x1);
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, VFP_ENABLEf, 0x1);
++#ifdef LVL7_FIXUP
++        /* In FASTPATH, all the ports have the same sel_index for slices. Point
++         * the tunnel ports to pick up sel_index of 0. Otherwise IFP matching
++         * does not work on tunnel ports.
++         */
++        soc_LPORT_TABm_field32_set(unit, &lport_profile, 
++                                   FP_PORT_FIELD_SEL_INDEXf, 
++                                   0);
++#else
+         /* Allocate a fixed high index for the PORT_FIELD_SEL */
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, 
+                                    FP_PORT_FIELD_SEL_INDEXf, 
+                                    soc_mem_index_max(unit, FP_PORT_FIELD_SELm));
++#endif
+         /* The vt_key_types must be set to 0x3 or 0x7 for WLAN */
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, VT_KEY_TYPEf,
+                                    TR_VLXLT_HASH_KEY_TYPE_VLAN_MAC);
+         soc_LPORT_TABm_field32_set(unit, &lport_profile, VT_KEY_TYPE_2f,
+                                    TR_VLXLT_HASH_KEY_TYPE_VLAN_MAC); 
+         /* Program MY_MODID for the LPORT entry */
+@@ -2288,13 +2321,15 @@ _bcm_tr2_wlan_port_delete(int unit, int
+                 (void) _bcm_fb2_outer_tpid_entry_delete(unit, i);
+                 break;
+             }
+         }
+     }
+     rv = _bcm_lport_profile_entry_delete(unit, lport_ptr);
++#ifndef LVL7_FIXUP
+     BCM_IF_ERROR_RETURN(rv);
++#endif
+ 
+     /* Clear the SVP and DVP table entries */
+     sal_memset(&svp, 0, sizeof(wlan_svp_table_entry_t));
+     rv = WRITE_WLAN_SVP_TABLEm(unit, MEM_BLOCK_ALL, vp, &svp);
+     BCM_IF_ERROR_RETURN(rv);
+ 
+@@ -2305,13 +2340,15 @@ _bcm_tr2_wlan_port_delete(int unit, int
+     sal_memset(&wlan_dvp, 0, sizeof(egr_wlan_dvp_entry_t));
+     rv = WRITE_EGR_WLAN_DVPm(unit, MEM_BLOCK_ALL, vp, &wlan_dvp);
+     BCM_IF_ERROR_RETURN(rv);
+ 
+     /* Clear the next-hop table entries */
+     rv = _bcm_tr2_wlan_nh_info_delete(unit, nh_index);
++#ifndef LVL7_FIXUP
+     BCM_IF_ERROR_RETURN(rv);
++#endif
+ 
+     /* Update the physical port's SW state */
+     BCM_IF_ERROR_RETURN(
+         _bcm_esw_modid_is_local(unit, WLAN_INFO(unit)->port_info[vp].modid, 
+                                 &is_local));
+     if (is_local && (WLAN_INFO(unit)->port_info[vp].tgid == -1)) {
+@@ -2414,15 +2451,17 @@ bcm_tr2_wlan_port_delete_all(int unit)
+             goto done;
+         }
+         if (soc_WLAN_SVP_TABLEm_field32_get(unit, &svp, VALIDf) != 0) {
+             WLAN_LOCK(unit);
+             rv = _bcm_tr2_wlan_port_delete(unit, vp);
+             WLAN_UNLOCK(unit);
++#ifndef LVL7_FIXUP
+             if (rv < 0) {
+                 goto done;
+             }
++#endif
+         }
+     }
+ done:
+     return rv;
+ }
+ 
+Index: src/bcm/esw/triumph3/hashing.c
+===================================================================
+--- src/bcm/esw/triumph3/hashing.c	(revision 7743)
++++ src/bcm/esw/triumph3/hashing.c	(working copy)
+@@ -38,14 +38,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define RTAG7_L2_ONLY         0x0
+ #define RTAG7_UNKNOWN_HIGIG   0x1
+ #define RTAG7_MPLS            0x2
+ #define RTAG7_MIM             0x3
+ #define RTAG7_IPV4            0x4
+Index: src/bcm/esw/triumph3/oam.c
+===================================================================
+--- src/bcm/esw/triumph3/oam.c	(revision 7743)
++++ src/bcm/esw/triumph3/oam.c	(working copy)
+@@ -4688,12 +4688,16 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oa
+         BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifyEtherType);
+         BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifyDstIp6);
+         if (soc_feature(unit, soc_feature_mim)) {
+             BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifyDstMimGport);
+             BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifySrcMimGport);
+         }
++
++        //PTIn added BRCM Support [CASE#782509] 17th June suggestion to avoid packets reaching the board with translated inner VID to trigger LM OAM counters (just proper outer VID ones)
++        BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifyVlanTranslationHit);
++
+         /* Create fp group */
+         rv = bcm_esw_field_group_create(unit, oc->fp_glp_qs, 
+                                 BCM_FIELD_GROUP_PRIO_ANY, &(oc->fp_glp_group));
+          if (BCM_FAILURE(rv)) {
+             LOG_ERROR(BSL_LS_BCM_OAM,
+                       (BSL_META_U(unit,
+@@ -4785,13 +4789,27 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oa
+             LOG_ERROR(BSL_LS_BCM_OAM,
+                       (BSL_META_U(unit,
+                                   "OAM Error: Qualifying OuterVlanId (rx), "
+                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
+             return (rv);
+         }
+-        
++     
++        /* PTin added: OAM */   
++#if 1
++        //PTIn added BRCM Support [CASE#782509] 17th June suggestion to avoid packets reaching the board with translated inner VID to trigger LM OAM counters (just proper outer VID ones)
++        rv = bcm_esw_field_qualify_VlanTranslationHit(unit, hash_data->fp_entry_rx, 
++                                BCM_FIELD_VXLT_LOOKUP_STATUS_HIT, BCM_FIELD_VXLT_LOOKUP_STATUS_HIT);
++        if (BCM_FAILURE(rv)) {
++            LOG_ERROR(BSL_LS_BCM_OAM,
++                          (BSL_META_U(unit,
++                                      "OAM(unit %d) Error: Qualifying VlanTranslationHit (rx), \
++                                      EP=%d %s.\n"),
++                           unit, hash_data->ep_id, bcm_errmsg(rv)));
++            return (rv);
++        }
++#endif
+         rv = _bcm_esw_gport_resolve(unit, hash_data->gport, &modid, 
+                                     &local_port, &tgid, &local_id);
+         if (BCM_FAILURE(rv)) {
+             LOG_ERROR(BSL_LS_BCM_OAM,
+                       (BSL_META_U(unit,
+                                   "OAM Error: call to _bcm_esw_gport_resolve "
+Index: src/bcm/esw/trx/vlan.c
+===================================================================
+--- src/bcm/esw/trx/vlan.c	(revision 7743)
++++ src/bcm/esw/trx/vlan.c	(working copy)
+@@ -1801,12 +1801,28 @@ _bcm_trx_vlan_action_profile_init(int un
+                                          egr_xlate_entry, USE_VINTF_CTR_IDXf)) {
+                            fs_idx = 0;
+                        }
+                    }
+                    if (0 != fs_idx) { /* Recover flex stat counter */
+                        sal_memset(&event, 0, sizeof(event));
++                       /* PTin modified: Virtual port supported for Helix4 */
++                       if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, ENTRY_TYPEf)) {
++                           soc_EGR_VLAN_XLATEm_field32_set(unit, &event,
++                                                           ENTRY_TYPEf,
++                           soc_EGR_VLAN_XLATEm_field32_get(unit,
++                                                           &egr_xlate_entry, ENTRY_TYPEf));
++                       }
++                       else if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, KEY_TYPEf)) {
++                           soc_EGR_VLAN_XLATEm_field32_set(unit, &event,
++                                                           KEY_TYPEf,
++                                                           soc_EGR_VLAN_XLATEm_field32_get(unit, &egr_xlate_entry, KEY_TYPEf));
++                       }
++                       else {
++                           return BCM_E_CONFIG;
++                       }
++                       /* PTin end */
+                        /* Construct key-only entry, copy to FS handle */
+                         soc_mem_field32_set(unit, egr_mem, &event, ENTRY_TYPEf,
+                                  soc_mem_field32_get(unit, egr_mem,
+                                                      egr_xlate_entry, ENTRY_TYPEf));
+                         soc_mem_field_get(unit, egr_mem,
+                                           (uint32 *) egr_xlate_entry,
+@@ -9899,14 +9915,25 @@ _bcm_trx_vlan_translate_egress_action_de
+             }
+ #if defined(BCM_TRIUMPH2_SUPPORT)
+         if (soc_feature(unit, soc_feature_gport_service_counters) &&
+             (0 != soc_mem_field32_get(unit, mem, vtabp, VINTF_CTR_IDXf))) {
+             sal_memset(&vent, 0, sizeof(vent));
+             /* Construct key-only entry, copy to FS handle */
+-            soc_mem_field32_set(unit, mem, &vent, ENTRY_TYPEf,
+-                soc_mem_field32_get(unit, mem, vtabp, ENTRY_TYPEf));
++            /* PTin modified: Virtual port supported for Helix4 (updated at SDK-ALL-6.5.15) */
++            if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, ENTRY_TYPEf)) {
++              soc_mem_field32_set(unit, mem, &vent, ENTRY_TYPEf,
++                  soc_mem_field32_get(unit, mem, vtabp, ENTRY_TYPEf));
++            }
++            else if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, KEY_TYPEf)) {
++              soc_mem_field32_set(unit, mem, &vent, KEY_TYPEf,
++                  soc_mem_field32_get(unit, mem, vtabp, KEY_TYPEf));
++            }
++            else {
++              return BCM_E_CONFIG;
++            }
++            /* PTin end */
+             soc_mem_field_get(unit, mem, (uint32 *) vtabp,
+                                KEYf, (uint32 *) key);
+             soc_mem_field_set(unit, mem, (uint32 *) &vent,
+                                KEYf, (uint32 *) key);
+ 
+             _BCM_FLEX_STAT_HANDLE_CLEAR(handle);
+Index: src/bcm/esw/vlan.c
+===================================================================
+--- src/bcm/esw/vlan.c	(revision 7743)
++++ src/bcm/esw/vlan.c	(working copy)
+@@ -6900,12 +6900,13 @@ _bcm_esw_vlan_translate_egress_action_ad
+                                           bcm_vlan_action_set_t *action,
+                                           int handle_modport_gport)
+ {   
+     bcm_module_t        modid;
+     bcm_trunk_t         tgid = -1;
+     int                 id = -1; 
++    int orig_port_class = port_class;
+ 
+     CHECK_INIT(unit);
+ #if defined(BCM_TRIDENT2PLUS_SUPPORT) && defined(INCLUDE_L3) 
+     if (soc_feature(unit, soc_feature_vp_sharing)) { 
+         int num_vfi = 0;
+         bcm_vpn_t vpn_min = 0, vpn_max = 0;
+@@ -6994,12 +6995,15 @@ _bcm_esw_vlan_translate_egress_action_ad
+         }
+     }
+ #endif
+ 
+ #ifdef BCM_TRX_SUPPORT
+     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
++        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
++            port_class = orig_port_class;
++        }
+         return _bcm_trx_vlan_translate_egress_action_add(unit, port_class, 
+                                              outer_vlan, inner_vlan, 
+                                              key_type, action);
+     }
+ #endif /* BCM_TRX_SUPPORT */
+ 
+@@ -7028,12 +7032,13 @@ _bcm_esw_vlan_translate_egress_action_ge
+                                           bcm_vlan_action_set_t *action,
+                                           int handle_modport_gport)
+ {
+     bcm_module_t        modid;
+     bcm_trunk_t         tgid = -1;
+     int                 id = -1; 
++    int orig_port_class = port_class;
+ 
+     CHECK_INIT(unit);
+ #if defined(BCM_TRIDENT2PLUS_SUPPORT) && defined(INCLUDE_L3)
+     if (soc_feature(unit, soc_feature_vp_sharing)) { 
+         int num_vfi = 0;
+         bcm_vpn_t vpn_min = 0, vpn_max = 0;
+@@ -7106,12 +7111,15 @@ _bcm_esw_vlan_translate_egress_action_ge
+             return BCM_E_PORT; 
+         }
+     }
+ 
+ #ifdef BCM_TRX_SUPPORT
+     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
++        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
++            port_class = orig_port_class;
++        }
+         return _bcm_trx_vlan_translate_egress_action_get(unit, port_class, 
+                                                         outer_vlan, inner_vlan, 
+                                                         key_type, action);
+     }
+ #endif /* BCM_TRX_SUPPORT */
+ 
+@@ -7138,12 +7146,13 @@ _bcm_esw_vlan_translate_egress_action_de
+                                              bcm_vlan_translate_key_t key_type,
+                                              int handle_modport_gport)
+ {
+     bcm_module_t        modid;
+     bcm_trunk_t         tgid = -1;
+     int                 id = -1; 
++    int orig_port_class = port_class;
+ 
+     CHECK_INIT(unit); 
+ #if defined(BCM_TRIDENT2PLUS_SUPPORT) && defined(INCLUDE_L3) 
+     if (soc_feature(unit, soc_feature_vp_sharing)) { 
+         int num_vfi = 0;
+         bcm_vpn_t vpn_min = 0, vpn_max = 0;
+@@ -7212,12 +7221,15 @@ _bcm_esw_vlan_translate_egress_action_de
+             return BCM_E_PORT; 
+         }
+     }
+ 
+ #ifdef BCM_TRX_SUPPORT
+     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
++        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
++            port_class = orig_port_class;
++        }
+         return _bcm_trx_vlan_translate_egress_action_delete(unit,
+                                                            port_class,
+                                                            outer_vlan,
+                                                            inner_vlan, key_type);
+     }
+ #endif /* BCM_TRX_SUPPORT */
+Index: src/soc/esw/drv.c
+===================================================================
+--- src/soc/esw/drv.c	(revision 7743)
++++ src/soc/esw/drv.c	(working copy)
+@@ -3,11 +3,14 @@
+  * Broadcom Proprietary and Confidential. All rights reserved.$
+  *
+  * StrataSwitch driver
+  */
+ 
++/* PTin added: PCIe */
++#include "logger.h"
++
+ #include <shared/bsl.h>
+ 
+ #include <stddef.h>
+ #include <sal/core/libc.h>
+ #include <shared/alloc.h>
+ #include <sal/core/spl.h>
+@@ -9828,12 +9831,13 @@ soc_do_init(int unit, int reset)
+ #ifdef BCM_IPROC_SUPPORT
+             if (soc_feature(unit, soc_feature_iproc)) {
+                 SOC_IF_ERROR_RETURN(iproc_pcie_cdr_bw_adj(unit, pcie_phy_addr));
+             } else
+ #endif
+             {
++                PT_LOG_INFO(LOG_CTX_SDK, "Going to make PCIe bw adjustment...");
+                 SOC_IF_ERROR_RETURN(cmic_pcie_cdr_bw_adj(unit, pcie_phy_addr));
+             }
+         }
+ 
+         if (change) {
+             /*********************************************************************/
+@@ -10347,12 +10351,27 @@ soc_do_init(int unit, int reset)
+                 mem == MMU_WRED_PORT_THD_1_PACKETm ) {
+                 SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_CACHABLE;
+                 SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_SER_CACHE_RESTORE;
+             }
+         }
+ #endif /* BCM_TRIUMPH_SUPPORT */
++#if defined(BCM_TRIUMPH2_SUPPORT)
++        if (SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit)) {
++            if (mem == MMU_WRED_THD_0_CELLm ||
++                mem == MMU_WRED_THD_1_CELLm ||
++                mem == MMU_WRED_THD_0_PACKETm ||
++                mem == MMU_WRED_THD_1_PACKETm ||
++                mem == MMU_WRED_PORT_THD_0_CELLm ||
++                mem == MMU_WRED_PORT_THD_1_CELLm ||
++                mem == MMU_WRED_PORT_THD_0_PACKETm ||
++                mem == MMU_WRED_PORT_THD_1_PACKETm ) {
++                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_CACHABLE;
++                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_SER_CACHE_RESTORE;
++            }
++        }
++#endif /* BCM_TRIUMPH2_SUPPORT */
+ #ifdef  BCM_VALKYRIE_SUPPORT
+        if (SOC_IS_VALKYRIE(unit)) {
+            if (mem == FP_TCAMm || mem == VFP_TCAMm) {
+                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_CACHABLE;
+                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_SER_CACHE_RESTORE;
+            }
+@@ -19359,12 +19378,14 @@ soc_reset(int unit)
+              * to prevent invalid MSI messages from corrupting host
+              * CPU memory.
+              */
+             msi_en = 0;
+         }
+ 
++        PT_LOG_NOTICE(LOG_CTX_SDK, "MSI enable=%d", msi_en);
++
+         addr = CMIC_CMCx_PCIE_MISCEL_OFFSET(SOC_PCI_CMC(unit));
+         rval = soc_pci_read(unit, addr);
+ 
+         soc_reg_field_set(unit, CMIC_CMC0_PCIE_MISCELr,
+                             &rval, ENABLE_MSIf, msi_en);
+ 
+Index: src/soc/esw/greyhound2.c
+===================================================================
+--- src/soc/esw/greyhound2.c	(revision 7743)
++++ src/soc/esw/greyhound2.c	(working copy)
+@@ -16253,15 +16253,15 @@ _soc_greyhound2_tscx_reg_read(int unit,
+ 
+     port = SOC_INFO(unit).port_p2l_mapping[phy_port];
+ 
+     SOC_IF_ERROR_RETURN
+         (soc_greyhound2_sbus_tsc_block(unit, phy_port, &blk));
+ 
+-    LOG_INFO(BSL_LS_SOC_MII, (BSL_META_U(unit,
+-             "_soc_greyhound2_tscx_reg_read[%d]: %d/%d/%d/%d\n"),
+-             unit, phy_addr, phy_port, port, blk));
++    LOG_DEBUG(BSL_LS_SOC_MII, (BSL_META_U(unit,
++              "_soc_greyhound2_tscx_reg_read[%d]: %d/%d/%d/%d\n"),
++              unit, phy_addr, phy_port, port, blk));
+     TSC_REG_ADDR_TSCID_SET(phy_reg, phy_addr);
+     rv = soc_sbus_tsc_reg_read(unit, port, blk, phy_addr,
+                                phy_reg, phy_data);
+ 
+     return rv;
+ }
+@@ -16286,15 +16286,15 @@ _soc_greyhound2_tscx_reg_write(int unit,
+ 
+     port = SOC_INFO(unit).port_p2l_mapping[phy_port];
+ 
+     SOC_IF_ERROR_RETURN
+         (soc_greyhound2_sbus_tsc_block(unit, phy_port, &blk));
+ 
+-    LOG_INFO(BSL_LS_SOC_MII, (BSL_META_U(unit,
+-             "_soc_greyhound2_tscx_reg_write[%d]: %d/%d/%d/%d\n"),
+-             unit, phy_addr, phy_port, port, blk));
++    LOG_DEBUG(BSL_LS_SOC_MII, (BSL_META_U(unit,
++              "_soc_greyhound2_tscx_reg_write[%d]: %d/%d/%d/%d\n"),
++              unit, phy_addr, phy_port, port, blk));
+     TSC_REG_ADDR_TSCID_SET(phy_reg, phy_addr);
+     rv = soc_sbus_tsc_reg_write(unit, port, blk, phy_addr,
+                                 phy_reg, phy_data);
+ 
+     return rv;
+ }
+Index: src/soc/esw/hash.c
+===================================================================
+--- src/soc/esw/hash.c	(revision 7743)
++++ src/soc/esw/hash.c	(working copy)
+@@ -1533,12 +1533,47 @@ _soc_tr_l2x_dcc_entry_to_key(int unit, u
+         INVALIDf
+     };
+ 
+     return _soc_hash_generic_entry_to_key(unit, entry, key, L2Xm, field_list);
+ }
+ 
++#ifdef LVL7_FIXUP
++static int
++_soc_tr2_l2x_scc_entry_to_key(int unit, uint32 *e, uint8 *key)
++{
++    int ovid, key_type = 1;
++
++    /* Key type 0x1 (SINGLE_CROSS_CONNECT) Key = {OVID} */
++    ovid = soc_L2Xm_field32_get(unit, e, OVIDf);
++
++    /* key[0] has 2 bits of padding of byte alignment */
++    key[0] = ((ovid << 4) & 0xf0) | ((key_type << 2) & 0x0c);
++    key[1] = (ovid >> 4) & 0xff;
++
++    return (64);
++}
++
++static int
++_soc_tr2_l2x_dcc_entry_to_key(int unit, uint32 *e, uint8 *key)
++{
++    int ivid, ovid, key_type = 2;
++
++    /* Key type 0x2 (DOUBLE_CROSS_CONNECT) Key = {OVID, IVOD} */
++    ovid = soc_L2Xm_field32_get(unit, e, OVIDf);
++    ivid = soc_L2Xm_field32_get(unit, e, IVIDf);
++
++    /* key[0] has 2 bits of padding of byte alignment */
++    key[0] = ((key_type << 2)& 0xc) | ((ovid << 4) & 0xf0);
++    key[1] = ((ovid >> 4) & 0xff); 
++    key[2] = (ivid & 0xff);
++    key[3] = ((ivid >> 8) & 0xf);
++
++    return (64);
++}
++#endif
++
+ STATIC int
+ _soc_tr_l2x_vfi_entry_to_key(int unit, uint32 *entry, uint8 *key)
+ {
+     static soc_field_t field_list[] = {
+         KEY_TYPEf,
+         VLAN_IDf,  /* padded from VFIf */
+@@ -1683,15 +1718,33 @@ if (SOC_IS_KATANA(unit)) {
+ #endif /* BCM_GREYHOUND_SUPPORT */
+   {
+     switch (soc_mem_field32_get(unit, L2Xm, entry, KEY_TYPEf)) {
+     case TR_L2_HASH_KEY_TYPE_BRIDGE:
+         return _soc_tr_l2x_bridge_entry_to_key(unit, entry, key);
+     case TR_L2_HASH_KEY_TYPE_SINGLE_CROSS_CONNECT:
++#ifndef LVL7_FIXUP
+         return _soc_tr_l2x_scc_entry_to_key(unit, entry, key);
++#else
++            if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit)/* || SOC_IS_VALKYRIE2(unit)*/) {    /* PTin modified */
++                return _soc_tr2_l2x_scc_entry_to_key(unit, entry, key);
++            }
++            else {
++                return _soc_tr_l2x_scc_entry_to_key(unit, entry, key);
++            }
++#endif
+     case TR_L2_HASH_KEY_TYPE_DOUBLE_CROSS_CONNECT:
++#ifndef LVL7_FIXUP
+         return _soc_tr_l2x_dcc_entry_to_key(unit, entry, key);
++#else
++            if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit)/* || SOC_IS_VALKYRIE2(unit)*/) {    /* PTin modified */
++                return _soc_tr2_l2x_dcc_entry_to_key(unit, entry, key);
++            }
++            else {
++                return _soc_tr_l2x_dcc_entry_to_key(unit, entry, key);
++            }
++#endif
+     case TR_L2_HASH_KEY_TYPE_VFI:
+         return _soc_tr_l2x_vfi_entry_to_key(unit, entry, key);
+ #ifdef BCM_TRIDENT_SUPPORT
+     case TR_L2_HASH_KEY_TYPE_VIF:
+         if (!soc_feature(unit, soc_feature_niv)) {
+             return 0;
+Index: src/soc/esw/katana2.c
+===================================================================
+--- src/soc/esw/katana2.c	(revision 7743)
++++ src/soc/esw/katana2.c	(working copy)
+@@ -10461,6 +10461,11 @@
+                         soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                                 &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf,
+                                 temp_val);
++                        /* PTin added */
++                        #if 0 //def EXT_MEM_Q_SHARED_ALPHA_CELL
++                        soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
++                           &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, EXT_MEM_Q_SHARED_ALPHA_CELL);
++                        #endif
+
+                         /* C415:THDO_QCONFIG_CELL.Q_LIMIT_DYNAMIC_CELL
+                            =IF($C$14, 0, 1) */
+@@ -11490,18 +11490,21 @@ static const float  kt2_baf_profile_inde
+     }
+     
+     /* C202 = CEILING(IF($C$14, 0, IF($C$17, $C$201/$C$99, 0)),1) */
+     if ((_soc_kt2_mmu_params.lossless_mode_d_c == 0) ||
+          _soc_kt2_mmu_params.packing_mode_d_c) { 
+         if (_soc_kt2_mmu_params.extbuf_used_d_c) {
+-            output_port_threshold->min_grntd_res_queue_cells_ext_buff = 
+-                  _soc_kt2_mmu_params.mmu_ext_buf_cell_size == 2880 ?
+-                  12 : /* LCM of all possible cell usage */
++            /* PTin modified */
++            #ifdef EXT_MEM_Q_MIN_CELL
++            output_port_threshold->min_grntd_res_queue_cells_ext_buff = EXT_MEM_Q_MIN_CELL;
++            #else
++            output_port_threshold->min_grntd_res_queue_cells_ext_buff =
+                   ceil_func((output_port_threshold->
+                              min_grntd_res_queue_cells_int_buff),
+                             (general_info->ratio_of_ext_buff_to_int_buff_size));
++            #endif
+         }
+     }
+ 
+     /* C203 = $C$55/$C$100(for lossy:external), $C$55/$C$101(for lossy:internal */
+     if (_soc_kt2_mmu_params.lossless_mode_d_c == 0) { 
+         if (_soc_kt2_mmu_params.extbuf_used_d_c) {
+@@ -13788,12 +13791,15 @@ static const float  kt2_baf_profile_inde
+                         } else {
+                             temp_val = _soc_kt2_mmu_params.mmu_egr_pg_dyn_thd_param;
+                         }
+                         soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm, 
+                                 &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf, 
+                                 temp_val);
++                       /* PTin added */
++                       /*soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
++                           &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, 1);*/
+ 
+                         if ((buf_queue->pool_scale != -1) && 
+                                 mmu_config_enabled) {
+                             soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm, 
+                                     &mmu_thdo_qconfig_cell_entry, Q_LIMIT_DYNAMIC_CELLf, 
+                                     1);
+@@ -13950,6 +13950,11 @@
+                         soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm, 
+                                 &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf, 
+                                 temp_val);
++                        /* PTin added */
++                        #if 0 //def EXT_MEM_Q_SHARED_ALPHA_CELL
++                        soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
++                           &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, EXT_MEM_Q_SHARED_ALPHA_CELL);
++                        #endif
+ 
+                         /* C415:THDO_QCONFIG_CELL.Q_LIMIT_DYNAMIC_CELL
+                            =IF($C$14, 0, 1) */
+Index: src/soc/esw/l2xmsg.c
+===================================================================
+--- src/soc/esw/l2xmsg.c	(revision 7743)
++++ src/soc/esw/l2xmsg.c	(working copy)
+@@ -1819,12 +1819,20 @@ _soc_l2x_thread(void *unit_vp)
+ 
+         sal_sem_take(soc->l2x_notify, interval / chunk_count);
+     }
+ 
+ cleanup_exit:
+ 
++#ifdef LVL7_FIXUP
++    /* 
++     * Allow the thread to be terminated by soc_l2x_stop, but not due to errors 
++     * Reset the box if it fails for any reason
++     */
++    assert(soc->l2x_interval == 0); /* PTin TODO: unknown reason for a single DMA access error during boot-up */
++#endif
++
+     (void)sal_sem_take(soc->l2x_lock, sal_sem_FOREVER);
+ 
+     if (chunk_buf != NULL) {
+         soc_cm_sfree(unit, chunk_buf);
+         l2x_data[unit].chunk_buf = NULL;
+     }
+Index: src/soc/esw/trident.c
+===================================================================
+--- src/soc/esw/trident.c	(revision 7743)
++++ src/soc/esw/trident.c	(working copy)
+@@ -8236,13 +8236,13 @@ _soc_trident_misc_init(int unit)
+      * Set external MDIO freq to 6.19MHz (495MHz) or 5.19MHz (415MHz)
+      * target_freq = core_clock_freq * DIVIDEND / DIVISOR / 2
+      */
+     divisor = soc_property_get(unit, spn_RATE_EXT_MDIO_DIVISOR, 40);
+     dividend = soc_property_get(unit, spn_RATE_EXT_MDIO_DIVIDEND, 1);
+     rval = 0;
+-    soc_reg_field_set(unit, CMIC_RATE_ADJUSTr, &rval, DIVISORf, divisor);
++    soc_reg_field_set(unit, CMIC_RATE_ADJUSTr, &rval, DIVISORf, divisor*2); /* PTin changed: LTX patch */
+     soc_reg_field_set(unit, CMIC_RATE_ADJUSTr, &rval, DIVIDENDf, dividend);
+     /* coverity[result_independent_of_operands] */
+     SOC_IF_ERROR_RETURN(WRITE_CMIC_RATE_ADJUSTr(unit, rval));
+ 
+     /*
+      * Set internal MDIO freq to 16.5MHz (495MHz) or 13.83MHz (415MHz)
+Index: src/soc/esw/triumph2.c
+===================================================================
+--- src/soc/esw/triumph2.c	(revision 7743)
++++ src/soc/esw/triumph2.c	(working copy)
+@@ -2508,15 +2508,23 @@ _soc_triumph2_process_parity_error(int u
+                                   (BSL_META_U(unit,
+                                               "unit %d %s%d entry %d parity error\n"),
+                                    unit, msg, index, entry_idx));
+                     }
+                     break;
+                     case _SOC_PARITY_INFO_TYPE_MMUWRED:
++                    /* CSP#1108422: Start */
++                    #if 0
+                     SOC_IF_ERROR_RETURN(
+                         _soc_triumph2_parity_process_mmuwred(unit, &info[table],
+                                                              block_port, msg));
++                    #else
++                    SOC_IF_ERROR_RETURN(
++                        _soc_triumph2_parity_process_mmuwred(unit, &info[table],
++                                                             block_port, msg));
++                    #endif
++                    /* CSP#1108422: End */
+                     break;
+                     case _SOC_PARITY_INFO_TYPE_MMUMTRO:
+                     SOC_IF_ERROR_RETURN(
+                     _soc_triumph2_parity_process_mmumtro(unit,
+                                                         &info[table], group));
+                     break;
+Index: src/soc/phy/hl65.c
+===================================================================
+--- src/soc/phy/hl65.c	(revision 7743)
++++ src/soc/phy/hl65.c	(working copy)
+@@ -2091,19 +2091,19 @@ phy_hl65_speed_get(int unit, soc_port_t
+                 *speed = 12000;
+                 break;
+             default:
+                 break;
+         }
+ 
+-        LOG_INFO(BSL_LS_SOC_PHY,
+-                 (BSL_META_U(unit,
+-                             "phy_hl65_speed_get: u=%d p=%d GP_STATUS_TOPANSTATUS1 %04x speed= %d\n"),
+-                  unit, port,
+-                  ((xgxs_stat & GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_MASK) >>
+-                  GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_SHIFT), *speed));
+-
++        /* PTin modified: logs */
++        LOG_DEBUG(BSL_LS_SOC_PHY,
++                      (BSL_META_U(unit,
++                                  "phy_hl65_speed_get: u=%d p=%d GP_STATUS_TOPANSTATUS1 %04x speed= %d\n"),
++                       unit, port,
++                       ((xgxs_stat & GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_MASK) >>
++                        GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_SHIFT), *speed));
+     }
+     return SOC_E_NONE;
+ }
+ 
+ /*
+  * Function:    
+Index: src/soc/phy/phy8706.c
+===================================================================
+--- src/soc/phy/phy8706.c	(revision 7743)
++++ src/soc/phy/phy8706.c	(working copy)
+@@ -23,12 +23,14 @@
+ #include <soc/phyreg.h>
+ 
+ #include <soc/phy.h>
+ #include <soc/phy/phyctrl.h>
+ #include <soc/phy/drv.h>
+ 
++///LTX for printf
++#include <stdio.h>
+ 
+ #include "phyident.h"
+ #include "phyreg.h"
+ #include "phynull.h"
+ #include "phyxehg.h"
+ #include "phy8706.h"
+@@ -508,12 +510,15 @@ _8727_rom_load_war(int unit, int port, p
+ 
+ #endif
+ 
+ STATIC int
+ _8726_rom_load(int unit, int port, phy_ctrl_t *pc)
+ {
++	printf("LTX: aborting _8726_rom_load\n");
++    return SOC_E_NONE;
++
+     SOC_IF_ERROR_RETURN
+         (WRITE_PHY8706_PMA_PMD_REG(unit, pc, 0xca85, 0x0001));
+     sal_usleep(1000);
+ 
+     SOC_IF_ERROR_RETURN
+         (WRITE_PHY8706_PMA_PMD_REG(unit, pc, 0xca10, 0x0188));
+@@ -549,13 +554,14 @@ _8747_rom_load(int unit, int port, phy_c
+     for(i = 0; i < 4; i++) { 
+         /* Disable SPI for all ports, return value ignored on purpose */
+         pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc843), 0x000f);
+         pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc840), 0x000C);
+ 
+         /* Set bit SPI Download (15), SER Boot (14) And SPI Port Enable (0) In C848, SPI_PORT_CTRL */
+-        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0xC0F1);
++//        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0xC0F1);
++        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0x80F1);
+     }
+ 
+     /* Place Micro in reset */
+     SOC_IF_ERROR_RETURN
+         (WRITE_PHY8706_PMA_PMD_REG(unit, pc, 0xca10, 0x018f));
+ 
+@@ -850,14 +856,19 @@ phy_8706_init(int unit, soc_port_t port)
+     uint16      tmp;
+ 
+     pc = EXT_PHY_SW_STATE(unit, port);
+     
+     PHY_FLAGS_SET(unit, port,  PHY_FLAGS_FIBER | PHY_FLAGS_C45);
+ 
+-    phy_ext_rom_boot = soc_property_port_get(unit, port, 
+-                                            spn_PHY_EXT_ROM_BOOT, 1);
++    ///LTX
++//    phy_ext_rom_boot = soc_property_port_get(unit, port,
++//                                            spn_PHY_EXT_ROM_BOOT, 1);
++    phy_ext_rom_boot=1;
++
++
++
+     SOC_IF_ERROR_RETURN
+         (READ_PHY8706_PMA_PMD_REG(unit, pc, MII_PHY_ID1_REG, &phyid1));
+ 
+ #ifdef BCM8727_MICROCODE_LOAD_WAR
+     if ((phyid1 != PHY_ID1_8727) || (!phy_ext_rom_boot))
+ #endif
+@@ -1332,12 +1343,22 @@ phy_8706_init(int unit, soc_port_t port)
+ 
+             /* Initialize the next Device */
+             PHYDRV_CALL_NOARG(pc,PHY_INIT);
+         }
+     }
+ 
++    ///LTX
++
++    printf("LTX: Hacking phy_8706_init to enable tx on address 0xc800\n");
++
++    (PHY8706_REG_WRITE(unit, pc,
++                      SOC_PHY_CLAUSE45_ADDR(PHY8706_C45_DEV_PMA_PMD,
++                                            0xC800),
++                      0xFF00));
++
++
+     /* Enable Squelch */
+     SOC_IF_ERROR_RETURN(_phy_8706_squelch_enable(unit, port, TRUE));
+ 
+  
+     return SOC_E_NONE;
+ }
+@@ -2352,12 +2373,13 @@ phy_8706_lb_set(int unit, soc_port_t por
+     /* Disable(Enable) Squelch when we Enable(Disable) loopback */
+     SOC_IF_ERROR_RETURN
+         (_phy_8706_squelch_enable(unit, port, enable ? FALSE : TRUE));
+ 
+     if (PHY_IS_BCM5942(pc)) {
+         SOC_IF_ERROR_RETURN
++//        (_phy_8706_lb_set(unit, port, enable));
+             (_phy_5942_lb_set(unit, port, enable));
+     } else {
+         SOC_IF_ERROR_RETURN
+             (_phy_8706_lb_set(unit, port, enable));
+     }
+ 
+@@ -3146,15 +3168,18 @@ _phy_8706_speed_set(int unit, soc_port_t
+ 
+     /* need to set the internal phy's speed accordingly */
+ 
+     if (NULL != int_pc) {
+         if (PHY_IS_BCM5942(pc)) {
+             SOC_IF_ERROR_RETURN
+-                (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_SFI));
++//            (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
++                (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
++            printf("LTX: internal phy on port %d set to SOC_PORT_IF_XFI\n", port);
+             SOC_IF_ERROR_RETURN
+                 (PHY_AUTO_NEGOTIATE_SET (int_pc->pd, unit, port, 0));
++            printf("LTX: internal phy on port %d set to AUTONEG OFF\n", port);
+         }
+         rv = PHY_SPEED_SET(int_pc->pd, unit, port, speed);
+     }
+ 
+ #if 0
+     if (NXT_PC(pc)) {
+@@ -3170,12 +3195,14 @@ _phy_8706_speed_set(int unit, soc_port_t
+ 
+ STATIC int
+ phy_8706_speed_set(int unit, soc_port_t port, int speed)
+ {
+     phy_ctrl_t  *pc;
+ 
++    printf("LTX: Called phy_8706_speed_set for port %d\n", port);
++
+     pc = EXT_PHY_SW_STATE(unit, port);
+ 
+     SOC_IF_ERROR_RETURN
+         (_phy_8706_speed_set (unit, port, speed));
+     if (NXT_PC(pc)) {
+         PHYDRV_CALL_ARG1(pc,PHY_SPEED_SET,speed);
+Index: src/soc/phy/phyident.c
+===================================================================
+--- src/soc/phy/phyident.c	(revision 7743)
++++ src/soc/phy/phyident.c	(working copy)
+@@ -138,14 +138,19 @@ static int _chk_serdes_65lp(int unit, so
+ static int _chk_unicore(int unit, soc_port_t port,
+                         soc_phy_table_t *my_entry,
+                         uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+ #endif /* INCLUDE_PHY_XGXS6 */
+ 
+ #if defined(INCLUDE_PHY_8706)
++#ifdef LVL7_FIXUP
++ int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
++			   uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
++#else
+ static int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+                      uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
++#endif
+ #endif /* INCLUDE_PHY_8706 */
+ 
+ #if defined(INCLUDE_PHY_8072)
+ static int _chk_8072(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+                      uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+ #endif /* INCLUDE_PHY_8072 */
+@@ -5295,13 +5300,17 @@ _chk_sfp_phy(int unit, soc_port_t port,
+         }
+     }
+     return FALSE;
+ }
+ 
+ #if defined(INCLUDE_PHY_8706)
+-static int
++#ifndef LVL7_FIXUP
++static 
++#endif
++int
++//static int
+ _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+              uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi)
+ {
+     if (my_entry->myNum == _phy_ident_type_get(phy_id0, phy_id1) ||
+         soc_property_port_get(unit, port, spn_PHY_8706, FALSE)) {
+         pi->phy_name = my_entry->phy_name;
+@@ -7178,14 +7187,14 @@ _phy_ident_type_get(uint16 phy_id0, uint
+     uint16              model, rev_map;
+ 
+     oui       = PHY_OUI(phy_id0, phy_id1);
+     model     = PHY_MODEL(phy_id0, phy_id1);
+     rev_map   = 1 << PHY_REV(phy_id0, phy_id1);
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META("phy_id0 = %04x phy_id1 %04x oui = %04x model = %04x rev_map = %04x\n"),
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++              (BSL_META("phy_id0 = %04x phy_id1 %04x oui = %04x model = %04x rev_map = %04x\n"),
+               phy_id0, phy_id1, oui, model, rev_map));
+     for (i = 0; i < COUNTOF(phy_id_map); i++) {
+         pm = &phy_id_map[i];
+         if ((pm->oui == oui) && (pm->model == model)) {
+             if (pm->rev_map & rev_map) {
+                 return pm->phy_num;
+Index: src/soc/phy/serdescombo65.c
+===================================================================
+--- src/soc/phy/serdescombo65.c	(revision 7743)
++++ src/soc/phy/serdescombo65.c	(working copy)
+@@ -1203,13 +1203,17 @@ phy_combo65_medium_config_get(int unit,
+ 
+     switch (medium) {
+     case SOC_PORT_MEDIUM_FIBER:
+         sal_memcpy(cfg, &pc->fiber, sizeof (*cfg));
+         return SOC_E_NONE;
+     default:
++#ifdef LVL7_FIXUP
++        return SOC_E_UNAVAIL;
++#else
+         return SOC_E_PARAM;
++#endif
+     }
+ }
+ 
+ /*
+  * Function:
+  *      phy_combo65_medium_status
+Index: src/soc/phy/tsce.c
+===================================================================
+--- src/soc/phy/tsce.c	(revision 7743)
++++ src/soc/phy/tsce.c	(working copy)
+@@ -2889,16 +2889,16 @@ phy_tsce_ability_local_get(int unit, soc
+         ability->pause     = SOC_PA_PAUSE | SOC_PA_PAUSE_ASYMM;
+         ability->interface = SOC_PA_INTF_XGMII;
+         ability->loopback  = SOC_PA_LB_PHY;
+         ability->flags     = SOC_PA_AUTONEG;
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(pc->unit,
+-                         "phy_tsce_ability_local_get:unit=%d p=%d sp=%08x\n"),
+-              unit, port, ability->speed_full_duplex));
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++              (BSL_META_U(pc->unit,
++                          "phy_tsce_ability_local_get:unit=%d p=%d sp=%08x\n"),
++               unit, port, ability->speed_full_duplex));
+     return (SOC_E_NONE);
+ }
+ 
+ /*
+  * Function:
+  *      phy_tsce_firmware_set
+Index: src/soc/phy/tscf.c
+===================================================================
+--- src/soc/phy/tscf.c	(revision 7743)
++++ src/soc/phy/tscf.c	(working copy)
+@@ -3064,16 +3064,16 @@ phy_tscf_ability_local_get(int unit, soc
+         ability->pause     = SOC_PA_PAUSE | SOC_PA_PAUSE_ASYMM;
+         ability->interface = SOC_PA_INTF_XGMII;
+         ability->loopback  = SOC_PA_LB_PHY;
+         ability->flags     = SOC_PA_AUTONEG;
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(pc->unit,
+-                         "phy_tscf_ability_local_get:unit=%d p=%d sp=%08x\n"),
+-              unit, port, ability->speed_full_duplex));
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++              (BSL_META_U(pc->unit,
++                          "phy_tscf_ability_local_get:unit=%d p=%d sp=%08x\n"),
++               unit, port, ability->speed_full_duplex));
+     return (SOC_E_NONE);
+ }
+ 
+ /*
+  * Function:
+  *      phy_tscf_firmware_set
+Index: src/soc/phy/viper.c
+===================================================================
+--- src/soc/phy/viper.c	(revision 7743)
++++ src/soc/phy/viper.c	(working copy)
+@@ -1536,16 +1536,16 @@ phy_viper_ability_local_get(int unit, so
+         ability->medium    = SOC_PA_MEDIUM_FIBER;
+         ability->loopback  = SOC_PA_LB_PHY;
+         ability->eee       = SOC_PA_ABILITY_NONE;
+         ability->flags     = SOC_PA_ABILITY_NONE;
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(pc->unit,
+-                         "phy_viper_ability_local_get:unit=%d p=%d sp=%08x\n"),
+-              unit, port, ability->speed_full_duplex));
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++              (BSL_META_U(pc->unit,
++                          "phy_viper_ability_local_get:unit=%d p=%d sp=%08x\n"),
++               unit, port, ability->speed_full_duplex));
+     return (SOC_E_NONE);
+ }
+ 
+ 
+ STATIC int
+ phy_viper_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
+Index: src/soc/phy/wc40.c
+===================================================================
+--- src/soc/phy/wc40.c	(revision 7743)
++++ src/soc/phy/wc40.c	(working copy)
+@@ -25,12 +25,14 @@
+ #include <soc/phy/drv.h>
+ 
+ #ifdef BCM_WARM_BOOT_SUPPORT
+ #include <soc/scache.h>
+ #endif
+ 
++#define PTIN_PRBS_ALWAYS_CL49 1
++
+ #include "phyreg.h"
+ #include "phyfege.h"
+ #include "phynull.h"
+ #include "serdesid.h"
+ #include "wc40.h"
+ #include "wc40_extra.h"
+@@ -5575,16 +5579,17 @@ _phy_wc40_interlaken_speed_get(int unit,
+             *speed = 3125;
+             break;
+         default:
+             *speed = 0;
+             break;
+     }
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(unit,
+-                         "_phy_wc40_interlaken_speed_get: u=%d p=%d LANECTRL1r %04x speed= %d\n"),
+-              unit, port,data16, *speed));
++    /* PTin modified: logs */
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++                  (BSL_META_U(unit,
++                              "_phy_wc40_interlaken_speed_get: u=%d p=%d LANECTRL1r %04x speed= %d\n"),
++                   unit, port,data16, *speed));
+     return SOC_E_NONE;
+ }
+ 
+ /*
+  * Function:
+  *      phy_wc40_speed_get
+@@ -6801,13 +6806,13 @@ _phy_wc40_c73_adv_local_get(int unit, so
+         default:
+             pause = 0;
+             break;
+     }
+     ability->pause = pause;
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
++    LOG_VERBOSE(BSL_LS_SOC_PHY,
+              (BSL_META_U(unit,
+                          "_phy_wc40_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
+               unit, port, pause, speeds));
+     return SOC_E_NONE;
+ }
+ 
+@@ -7198,13 +7203,13 @@ phy_wc40_ability_advert_get(int unit, so
+     if (fec & SOC_PA_FEC_CL74) {
+         ability->fec = SOC_PA_FEC_CL74;
+     } else {
+         ability->fec = SOC_PA_FEC_NONE;
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
++    LOG_VERBOSE(BSL_LS_SOC_PHY,
+              (BSL_META_U(unit,
+                          "phy_wc40_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x\n"),
+               unit, port, ability->pause, ability->speed_full_duplex));
+ 
+     return SOC_E_NONE;
+ }
+@@ -7847,16 +7852,17 @@ phy_wc40_ability_local_get(int unit, soc
+         ability->interface = SOC_PA_INTF_XGMII;
+         phy_wc40_medium_get(unit, port, &ability->medium);
+         ability->loopback  = SOC_PA_LB_PHY;
+         ability->flags     = SOC_PA_AUTONEG;
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(unit,
+-                         "phy_wc40_ability_local_get:unit=%d p=%d sp=%08x\n"),
+-              unit, port, ability->speed_full_duplex));
++    /* PTin modified: logs */
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++                  (BSL_META_U(unit,
++                              "phy_wc40_ability_local_get:unit=%d p=%d sp=%08x\n"),
++                   unit, port, ability->speed_full_duplex));
+ 
+     return (SOC_E_NONE);
+ }
+ 
+ 
+ #define PHY_WC40_LANEPRBS_LANE_SHIFT   4
+@@ -8004,23 +8010,27 @@ _phy_wc40_control_prbs_tx_invert_data_ge
+ STATIC int
+ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port, 
+                                           uint32 enable)
+ {
+     uint16      data16;
+     uint16      mask16;
++    #if (!PTIN_PRBS_ALWAYS_CL49)
+     int an;
+     int an_done;
++    #endif
+     soc_port_if_t intf;
+     int prbs_lanes = 0;
+     int lane;
+     phy_ctrl_t *pc = INT_PHY_SW_STATE(unit, port);
+ 
+     /* If mode is autoneg KR/KR4, do it thru CL49 PRBS and configure KR forced mode and disable autoneg
+      * This way the FIR settings negotiated thru CL72 is preserved
+      */
+ 
++    /* PTin modified: PRBS */
++    #if (!PTIN_PRBS_ALWAYS_CL49)
+     if (DEV_CTRL_PTR(pc)->prbs.type != WC40_PRBS_TYPE_CL49) {
+         SOC_IF_ERROR_RETURN
+             (phy_wc40_an_get(unit,port,&an,&an_done));
+ 
+         if (an && an_done) {
+             /* check interface */
+@@ -8028,12 +8038,18 @@ _phy_wc40_control_prbs_enable_set(int un
+                 (phy_wc40_interface_get(unit,port,&intf));
+             if ((intf == SOC_PORT_IF_KR) || (intf == SOC_PORT_IF_KR4) ) {
+                 DEV_CTRL_PTR(pc)->prbs.type = WC40_PRBS_TYPE_CL49;
+             }
+         }
+     }
++    #else
++    /* check interface */
++    SOC_IF_ERROR_RETURN
++        (phy_wc40_interface_get(unit,port,&intf));
++    DEV_CTRL_PTR(pc)->prbs.type = WC40_PRBS_TYPE_CL49;
++    #endif
+ 
+     if (DEV_CTRL_PTR(pc)->prbs.type == WC40_PRBS_TYPE_CL49) {
+         SOC_IF_ERROR_RETURN
+             (phy_wc40_interface_get(unit,port,&intf));
+ 
+         if (!enable) {  /* disable */
+@@ -8046,12 +8062,17 @@ _phy_wc40_control_prbs_enable_set(int un
+                 SOC_IF_ERROR_RETURN
+                     (WRITE_WC40_PCS_IEEE2BLK_PCS_TPCONTROLr(unit, pc, 0x00, 0));
+             }
+             DEV_CTRL_PTR(pc)->prbs.type = 0;
+         } 
+ 
++        /* PTin added: PRBS */
++        #if (PTIN_PRBS_ALWAYS_CL49)
++        if (intf==SOC_PORT_IF_KR4 || intf==SOC_PORT_IF_KR)
++        {
++        #endif
+         if (intf == SOC_PORT_IF_KR4) {
+             SOC_IF_ERROR_RETURN
+                 (MODIFY_WC40_SERDESDIGITAL_MISC1r(unit, pc, 0x00, 
+                       enable? 0x11: 0, 
+                       SERDESDIGITAL_MISC1_FORCE_SPEED_MASK));
+ 
+@@ -8099,12 +8120,23 @@ _phy_wc40_control_prbs_enable_set(int un
+                                   enable? 0: MII_CTRL_AE | MII_CTRL_RAN,
+                                       MII_CTRL_AE | MII_CTRL_RAN));
+ 
+         SOC_IF_ERROR_RETURN
+             (READ_WC40_AN_IEEE0BLK_AN_IEEECONTROL1r(unit, pc, 0x00, 
+                                           &data16));
++
++        /* PTin added: PRBS */
++        #if (PTIN_PRBS_ALWAYS_CL49)
++        }
++        else if (enable)
++        {
++          SOC_IF_ERROR_RETURN
++              (WRITE_WC40_PCS_IEEE2BLK_PCS_TPCONTROLr(unit, pc, 0x00, WC40_PRBS_CL49_POLY31));
++        }
++        #endif
++
+         /* not to enable PRBS here. Once PRBS is enabled, the link will go down.
+          * Autoneg will be restarted by link partner and Tx settings will be lost.
+          * It will be enabled in get function when first time called 
+          */ 
+         return SOC_E_NONE;
+     }
+Index: src/soc/phy/wc40_config.c
+===================================================================
+--- src/soc/phy/wc40_config.c	(revision 7743)
++++ src/soc/phy/wc40_config.c	(working copy)
+@@ -290,23 +290,23 @@ phy_wc40_config_init(phy_ctrl_t *pc)
+     } else {
+         pCfg->fiber_pref = FALSE;
+     }
+     pCfg->fw_dfe = SOC_PHY_DFE_AUTO;
+ 
+     if (PHY_INDEPENDENT_LANE_MODE(unit, port)) {
+-        pCfg->cl73an     = WC40_CL73_AND_CL73BAM; /*WC40_CL73_WO_CL73BAM; */
++        pCfg->cl73an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/     /* PTin modified: WC40 */
+     } else {
+        if (IS_HG_PORT(unit, port)) {
+            pCfg->cl73an     = FALSE;
+        } else {
+-           pCfg->cl73an     = WC40_CL73_AND_CL73BAM;
++           pCfg->cl73an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/  /* PTin modified: WC40 */
+        }
+     }
+    
+     /* Default setting for CL37 */ 
+-    pCfg->cl37an     = WC40_CL37_AND_CL37BAM; 
++    pCfg->cl37an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/         /* PTin modified: WC40 */
+ 
+     if ((PHY_FIBER_MODE(unit, port) && !PHY_EXTERNAL_MODE(unit, port)) ||
+         PHY_PASSTHRU_MODE(unit, port) ||
+         PHY_SGMII_AUTONEG_MODE(unit, port)) {
+         pCfg->pdetect1000x = TRUE;
+     } else {
+Index: src/soc/phy/wc40_extra.h
+===================================================================
+--- src/soc/phy/wc40_extra.h	(revision 7743)
++++ src/soc/phy/wc40_extra.h	(working copy)
+@@ -181,12 +181,13 @@
+ #define WC40_CL73_KR2_CUSTOM_WAR  6
+ #define WC40_CL73_KR2_WAR         5
+ #define WC40_CL73_KR2_CUSTOM   4
+ #define WC40_CL73_KR2          3
+ #define WC40_CL73_WO_CL73BAM   2
+ #define WC40_CL73_AND_CL73BAM  1
++#define WC40_CL73_AUTONEG_MODE WC40_CL73_WO_CL73BAM /* PTin added: WC40 */
+ 
+ #define WC40_CL37_WO_CL37BAM   2
+ #define WC40_CL37_AND_CL37BAM  1
+ 
+ /* KR2 control */
+ #define WC40_SOFT_KR2_STATE_INIT        0
+Index: src/soc/phy/wcmod/src/wcmod.c
+===================================================================
+--- src/soc/phy/wcmod/src/wcmod.c	(revision 7743)
++++ src/soc/phy/wcmod/src/wcmod.c	(working copy)
+@@ -6425,12 +6430,17 @@ phy_wcmod_xgxs16g1l_an_set(int unit, soc
+             (MODIFY_WC40_AN_IEEE0BLK_AN_IEEECONTROL1r(unit, ws, an_enable, 
+                                                       MII_CTRL_AE | MII_CTRL_RAN));
+     }
+                                                                                 
+     pc->fiber.autoneg_enable = an;
+                                                                                 
++    LOG_INFO(BSL_LS_SOC_PHY,
++             (BSL_META_U(pc->unit,
++                         "phy_wcmod_xgxs16g1l_an_set: Successfully set u=%d p=%d an=%d\n"),
++              unit, port, an));
++
+     return SOC_E_NONE;
+ }
+ 
+ STATIC int
+ phy_wcmod_xgxs16g1l_an_get(int unit, soc_port_t port, int *an, int *an_done)
+ {
+@@ -7013,16 +7023,17 @@ phy_wcmod_xgxs16g1l_ability_local_get(in
+         ability->interface = SOC_PA_INTF_XGMII ;
+         ability->medium    = SOC_PA_MEDIUM_FIBER;
+         ability->loopback  = SOC_PA_LB_PHY;
+         ability->flags     = 0 ;    /*SOC_PA_AUTONEG */
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(pc->unit,
+-                         "phy_wc_xgxs16g11_ability_local_get:unit=%d p=%d sp=%08x\n"),
+-              unit, pc->port, ability->speed_full_duplex));
++    /* PTin modified: logs */
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++                  (BSL_META_U(pc->unit,
++                              "phy_wc_xgxs16g11_ability_local_get:unit=%d p=%d sp=%08x\n"),
++                   unit, pc->port, ability->speed_full_duplex));
+ 
+     return (SOC_E_NONE);
+ }
+ 
+ /* end of xenia AN codes */
+ 
+@@ -7642,13 +7653,13 @@ _phy_wcmod_c73_adv_local_get(int unit, s
+         default:
+             pause = 0;
+             break;
+     }
+     ability->pause = pause;
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
++    LOG_VERBOSE(BSL_LS_SOC_PHY,
+              (BSL_META_U(pc->unit,
+                          "_phy_wcmod_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
+               unit, port, pause, speeds));
+ 
+     return SOC_E_NONE;
+ }
+@@ -8060,13 +8071,13 @@ phy_wcmod_ability_advert_get(int unit, s
+     if (fec & SOC_PA_FEC_CL74) {
+         ability->fec = SOC_PA_FEC_CL74;
+     } else {
+         ability->fec = SOC_PA_FEC_NONE;
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
++    LOG_VERBOSE(BSL_LS_SOC_PHY,
+              (BSL_META_U(pc->unit,
+                          "phy_wcmod_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x max_spd=%0d\n"),
+               unit, port, ability->pause, ability->speed_full_duplex, pc->speed_max));
+ 
+ 
+     return SOC_E_NONE;
+@@ -8834,16 +8845,17 @@ phy_wcmod_ability_local_get(int unit, so
+         ability->interface = SOC_PA_INTF_XGMII;
+         phy_wcmod_medium_get(unit, port, &ability->medium);
+         ability->loopback  = SOC_PA_LB_PHY;
+         ability->flags     = SOC_PA_AUTONEG;
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(pc->unit,
+-                         "phy_wcmod_ability_local_get:unit=%d p=%d sp=%08x\n"),
+-              unit, port, ability->speed_full_duplex));
++    /* PTin modified: logs */
++    LOG_DEBUG(BSL_LS_SOC_PHY,
++                  (BSL_META_U(pc->unit,
++                              "phy_wcmod_ability_local_get:unit=%d p=%d sp=%08x\n"),
++                   unit, port, ability->speed_full_duplex));
+ 
+     return (SOC_E_NONE);
+ }
+ 
+ /*
+ Bits lane assignment

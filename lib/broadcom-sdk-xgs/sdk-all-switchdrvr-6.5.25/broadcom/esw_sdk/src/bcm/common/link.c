@@ -439,6 +439,7 @@ _bcm_link_fault_get(int unit, int port, int *remote_fault, int *local_fault)
 {
     int rv;
     uint32 flags;
+    int value;
 
     if (!_bcm_link_fault_is_available(unit, port)) {
         return BCM_E_UNAVAIL;
@@ -449,6 +450,20 @@ _bcm_link_fault_get(int unit, int port, int *remote_fault, int *local_fault)
     if (BCM_FAILURE(rv)) {
         return rv;
     }
+    
+    /* PTin added: link fault */
+#if 1
+     /* PTin added: clear not necessary flags */
+     if (bcm_port_control_get(unit, port, bcmPortControlLinkFaultLocal, &value) != BCM_E_NONE || value ==0)
+     {
+       flags &= ~((uint32) BCM_PORT_FAULT_LOCAL);
+     }
+     if (bcm_port_control_get(unit, port, bcmPortControlLinkFaultRemote, &value) != BCM_E_NONE || value == 0)
+     {
+       flags &= ~((uint32)BCM_PORT_FAULT_REMOTE);
+     }
+#endif
+
     if (flags & BCM_PORT_FAULT_REMOTE) {
         *remote_fault = TRUE;
         /* clear the remote indications */

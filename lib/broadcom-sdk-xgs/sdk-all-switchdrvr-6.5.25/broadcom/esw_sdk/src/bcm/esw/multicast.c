@@ -84,6 +84,8 @@
 #include <bcm_int/esw/triumph3.h>
 #include<bcm_int/esw/saber2.h> 
 
+#include "logger.h"
+
 #define _BCM_MULTICAST_MTU_TABLE_OFFSET(unit) \
         ((SOC_IS_HURRICANEX(unit) || SOC_IS_GREYHOUND(unit) || \
           SOC_IS_METROLITE(unit) || SOC_IS_GREYHOUND2(unit)) ? \
@@ -3411,9 +3413,17 @@ _bcm_esw_multicast_l3_destroy(int unit, bcm_multicast_t group)
 #endif /* BCM_TOMAHAWK_SUPPORT || BCM_TRIDENT2PLUS_SUPPORT */
         {
             BCM_PBMP_ITER(ether_higig_pbmp, port_iter) {
+            /* PTin modified: Virtual ports - avoid errors due to CPU port */
+            #if 0
                 BCM_IF_ERROR_RETURN(
                      _bcm_esw_ipmc_egress_intf_set(unit, mc_index, port_iter, 0,
                                                    NULL, is_l3, FALSE));
+            #else
+                if (_bcm_esw_ipmc_egress_intf_set(unit, mc_index, port_iter, 0, NULL, is_l3, FALSE) != BCM_E_NONE)
+                {
+                  PT_LOG_WARN(LOG_CTX_SDK,"Error with _bcm_esw_ipmc_egress_intf_set: unit=%d, mc_index=%d, port=%d", unit, mc_index, port_iter);
+                }
+            #endif
             }
         }
 
