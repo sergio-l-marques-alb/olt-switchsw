@@ -38,6 +38,11 @@
 #include <bcm_int/esw/trident3.h>
 #endif
 
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 /* Need L3 related information to clean dependent failover state */
 #define L3_INFO(unit)    (&_bcm_l3_bk_info[unit])
 

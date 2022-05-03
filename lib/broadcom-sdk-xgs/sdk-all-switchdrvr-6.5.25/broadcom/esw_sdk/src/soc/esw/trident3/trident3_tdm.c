@@ -20,6 +20,9 @@
 #include <soc/trident3_tdm.h>
 #include <soc/tdm/trident3/tdm_td3_defines.h>
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
 
 /*** START SDK API COMMON CODE ***/
 

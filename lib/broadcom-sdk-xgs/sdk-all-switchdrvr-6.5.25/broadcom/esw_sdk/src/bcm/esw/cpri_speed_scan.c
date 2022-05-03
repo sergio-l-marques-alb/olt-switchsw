@@ -77,7 +77,10 @@ typedef struct spd_scan_control_s {
     speed_scan_handler_info_t* handler_info;  /* Handler to list of callbacks */
 } spd_scan_control_t;
 
+/* PTin removed: GCC8 */
+#if 0
 STATIC spd_scan_control_t *speed_scan_control[SPD_SCAN_NUM_UNITS];
+#endif
 
 /*
  *  WARMBOOT related defines.

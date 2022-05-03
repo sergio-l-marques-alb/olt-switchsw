@@ -1,0 +1,473 @@
+Index: src/bcm/esw/triumph/cosq.c
+===================================================================
+--- src/bcm/esw/triumph/cosq.c	(revision 7765)
++++ src/bcm/esw/triumph/cosq.c	(revision 7766)
+@@ -1086,13 +1086,14 @@ bcm_tr_cosq_port_bandwidth_get(int unit,
+                         kbits_sec_min, kbits_sec_max, &kbits_min_burst,
+                         kbits_sec_burst, flags));
+     return BCM_E_NONE;
+ 
+ }
+ 
+-STATIC int
++/* PTin modified: GCC8 */
++/*STATIC*/ int
+ _bcm_tr_cosq_port_packet_bandwidth_set(int unit, bcm_port_t port,
+                                        bcm_cos_queue_t cosq,
+                                        int pps, int burst)
+ 
+ {
+     uint32 regval, max_config_addr, max_addr;
+Index: src/bcm/esw/switch.c
+===================================================================
+--- src/bcm/esw/switch.c	(revision 7765)
++++ src/bcm/esw/switch.c	(revision 7766)
+@@ -310,12 +310,17 @@
+ #if defined(BCM_APPL_SIGNATURE_SUPPORT)
+ #include <bcm_int/esw/switch_appl_sign.h>
+ #endif
+ #if defined(BCM_TOMAHAWK3_SUPPORT)
+ extern int ecmp_mode_hierarchical;
+ #endif
++/* PTin added: GCC8 */
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ /* chip field */
+ #define FB      SOC_INFO_CHIP_FB
+ #define FB2     SOC_INFO_CHIP_FIREBOLT2
+ #define FH      SOC_INFO_CHIP_FHX
+ #define HXFX    SOC_INFO_CHIP_FX_HX
+ #define BR      SOC_INFO_CHIP_BRADLEY
+Index: src/bcm/esw/flowtracker/ft_diag.c
+===================================================================
+--- src/bcm/esw/flowtracker/ft_diag.c	(revision 7765)
++++ src/bcm/esw/flowtracker/ft_diag.c	(revision 7766)
+@@ -11,12 +11,17 @@
+ #include <bcm_int/esw/flowtracker/ft_group.h>
+ #include <bcm_int/esw/flowtracker/ft_export.h>
+ #include <bcm_int/esw/flowtracker/ft_user.h>
+ 
+ #if defined(BCM_FLOWTRACKER_SUPPORT)
+ 
++/* PTin added: GCC8 */
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ /* Export software state. */
+ extern bcmi_ft_export_state_t *bcmi_ft_export_state[BCM_MAX_NUM_UNITS];
+ 
+ #define TBL_TYPE_SINGLE                 0
+ #define TBL_TYPE_DOUBLE                 1
+ #define TBL_TYPE_AGG0                   2
+Index: src/bcm/esw/tomahawk/hashing.c
+===================================================================
+--- src/bcm/esw/tomahawk/hashing.c	(revision 7765)
++++ src/bcm/esw/tomahawk/hashing.c	(revision 7766)
+@@ -39,14 +39,18 @@ typedef struct bcm_rtag7_base_hash_s {
+ } bcm_rtag7_base_hash_t;
+ 
+ #define   ETHERTYPE_IPV6 0x86dd /* ipv6 ethertype */
+ #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
+ #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
+ 
++#ifndef IP_PROT_TCP
+ #define   IP_PROT_TCP 0x6  /* TCP protocol number */
++#endif
++#ifndef IP_PROT_UDP
+ #define   IP_PROT_UDP 0x11 /* TCP protocol number */
++#endif
+ 
+ #define MODE_REG_HASH     0
+ #define MODE_RES_HASH     1
+ #define MODE_RANDOM       2
+ #define MODE_ROUND_ROBIN  3
+ 
+Index: src/bcm/esw/tomahawk2/tcb.c
+===================================================================
+--- src/bcm/esw/tomahawk2/tcb.c	(revision 7765)
++++ src/bcm/esw/tomahawk2/tcb.c	(revision 7766)
+@@ -20,12 +20,16 @@
+ #include <bcm_int/esw/tomahawk.h>
+ 
+ #if defined (INCLUDE_TCB) && defined (BCM_TCB_SUPPORT)
+ #include <bcm_int/esw/tcb.h>
+ #endif
+ 
++/* PTin added: GCC8 */
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
+ 
+ #define _BCM_TH2_NUM_UCAST_QUEUE_PER_PORT 10
+ 
+ #if defined (INCLUDE_TCB) && defined (BCM_TCB_SUPPORT)
+ 
+ STATIC soc_field_t _bcm_cosq_tcb_threshold_profile_map_fields[] = {
+Index: src/bcm/esw/trident2plus/failover.c
+===================================================================
+--- src/bcm/esw/trident2plus/failover.c	(revision 7765)
++++ src/bcm/esw/trident2plus/failover.c	(revision 7766)
+@@ -35,12 +35,17 @@
+ #include <bcm_int/esw/triumph2.h>
+ #include <bcm_int/esw/l3.h>
+ #ifdef BCM_TRIDENT3_SUPPORT
+ #include <bcm_int/esw/trident3.h>
+ #endif
+ 
++/* PTin added: GCC8 */
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ /* Need L3 related information to clean dependent failover state */
+ #define L3_INFO(unit)    (&_bcm_l3_bk_info[unit])
+ 
+ #define _bcm_td2p_failover_bk_info _bcm_failover_bk_info
+ typedef _bcm_failover_bookkeeping_t _bcm_td2p_failover_bookkeeping_t; 
+ 
+Index: src/bcm/esw/time.c
+===================================================================
+--- src/bcm/esw/time.c	(revision 7765)
++++ src/bcm/esw/time.c	(revision 7766)
+@@ -113,12 +113,17 @@
+ #include <bcm_int/esw/switch.h>
+ 
+ #ifdef BCM_ESMC_EXTDPLL_SUPPORT
+ #include <bcm_int/common/esmc.h>
+ #endif /* BCM_ESMC_EXTDPLL_SUPPORT */
+ 
++/* PTin added: GCC8 */
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ #define BROAD_SYNC_TIME_CAPTURE_TIMEOUT      (10) /* useconds */
+ #define BROAD_SYNC_OUTPUT_TOGGLE_TIME_DELAY  (3)  /* seconds */
+ 
+ #define SYNT_TIME_SECONDS(unit, id) \
+         TIME_INTERFACE_CONFIG(unit, id).time_capture.syntonous.seconds
+ #define SYNT_TIME_NANOSECONDS(unit, id) \
+Index: src/bcm/esw/portctrl.c
+===================================================================
+--- src/bcm/esw/portctrl.c	(revision 7765)
++++ src/bcm/esw/portctrl.c	(revision 7766)
+@@ -79,12 +79,17 @@
+ #ifdef PORTMOD_SUPPORT
+ #include <soc/portmod/portmod.h>
+ #include <soc/portmod/portmod_common.h>
+ #include <soc/portmod/portmod_legacy_phy.h>
+ #include <soc/esw/portctrl_internal.h>
+ 
++/* PTin added: GCC8 */
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ extern uint32_t phymod_dbg_mask;
+ extern uint32_t phymod_dbg_addr;
+ extern uint32_t phymod_dbg_lane;
+ 
+ 
+ /*
+@@ -3731,13 +3736,13 @@ bcmi_esw_portctrl_speed_max(int unit, bc
+ STATIC int
+ _bcm_esw_portctrl_speed_validate(int unit, bcm_gport_t port, int speed)
+ {
+     bcm_port_ability_t port_ability, requested_ability;
+     int mode = -1;
+     int rv;
+-    int max_speed;
++    int max_speed = 0;
+ 
+     /* PM8x50 ports will have their speed config checked in portmod */
+     if (IS_CD_PORT(unit, port)) {
+         if (BCM_ESW_PORT_DRV(unit)!= NULL) {
+             if (BCM_ESW_PORT_DRV(unit)->device_speed_check != NULL) {
+ 
+Index: src/bcm/esw/cpri_speed_scan.c
+===================================================================
+--- src/bcm/esw/cpri_speed_scan.c	(revision 7765)
++++ src/bcm/esw/cpri_speed_scan.c	(revision 7766)
+@@ -74,13 +74,16 @@ typedef struct spd_scan_control_s {
+     bcm_pbmp_t        pbmp_active;   /* Ports that are in scanning state.  */
+     port_scan_param_t port_info[SPD_SCAN_NUM_PORTS];
+     int               linkscan_mode[SPD_SCAN_NUM_PORTS];    
+     speed_scan_handler_info_t* handler_info;  /* Handler to list of callbacks */
+ } spd_scan_control_t;
+ 
++/* PTin removed: GCC8 */
++#if 0
+ STATIC spd_scan_control_t *speed_scan_control[SPD_SCAN_NUM_UNITS];
++#endif
+ 
+ /*
+  *  WARMBOOT related defines.
+  */
+ 
+ #ifdef BCM_WARM_BOOT_SUPPORT
+Index: src/soc/esw/trident2p/portctrl.c
+===================================================================
+--- src/soc/esw/trident2p/portctrl.c	(revision 7765)
++++ src/soc/esw/trident2p/portctrl.c	(revision 7766)
+@@ -16,12 +16,16 @@
+ #include <soc/esw/portctrl_internal.h>
+ #include <soc/td2_td2p.h>
+ #include <shared/bsl.h>
+ #include <soc/phy/phymod_sim.h>
+ #include <soc/portmod/portmod.h>
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ #ifdef BCM_TRIDENT2PLUS_SUPPORT
+ #ifdef PORTMOD_PM4X10TD_SUPPORT
+ #define SOC_TD2P_PM4X10_COUNT         8
+ 
+ #define SOC_TD2P_PM4X10_PORT_1        13
+ #define SOC_TD2P_PM4X10_PORT_2        17
+Index: src/soc/esw/trident2.c
+===================================================================
+--- src/soc/esw/trident2.c	(revision 7765)
++++ src/soc/esw/trident2.c	(revision 7766)
+@@ -40,12 +40,17 @@
+ #include <soc/esw/portctrl.h>
+ 
+ #ifdef PORTMOD_SUPPORT
+ #include <soc/portmod/portmod.h>
+ #endif /* PORTMOD_SUPPORT */
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
++#endif
++
+ #define TRIDENT2_PHY_PORT_MAX 128
+ 
+ /* Globally stored reserved buffer values
+  * for egress rsvd & asf rsvd */
+ static int asf_rsvd_g = 0;
+ static int egr_rsvd_g = 0;
+Index: src/soc/esw/portctrl.c
+===================================================================
+--- src/soc/esw/portctrl.c	(revision 7765)
++++ src/soc/esw/portctrl.c	(revision 7766)
+@@ -32,12 +32,16 @@
+ #include <soc/portmod/portmod_common.h>
+ #include <soc/phy/phymod_port_control.h>
+ #include <soc/portmod/portmod_chain.h>
+ #include <soc/portmod/portmod_legacy_phy.h>
+ #include <soc/phy/phyctrl.h>
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ /* Indicates if the Port Control module has been initalized */
+ static int portctrl_init[SOC_MAX_NUM_DEVICES];
+ 
+ /*
+  * Define:
+  *      PORTCTRL_PORT_TO_PPORT
+Index: src/soc/esw/trident2p.c
+===================================================================
+--- src/soc/esw/trident2p.c	(revision 7765)
++++ src/soc/esw/trident2p.c	(revision 7766)
+@@ -26,12 +26,16 @@
+ #include <soc/trident2.h>
+ #include <soc/td2_td2p.h>
+ #include <soc/tdm/core/tdm_top.h>
+ #include <soc/esw/portctrl.h>
+ #include <soc/scache.h>
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
++#endif
++
+ #define IS_OVERSUB_PORT(unit,port)           \
+         (SOC_PBMP_MEMBER(PBMP_OVERSUB(unit), port))
+ 
+ 
+ #define BCM_TD2P_MAX_BANK_SIZE      128
+ #define BCM_TD2P_SMALL_BANK_SIZE    64
+Index: src/soc/esw/tomahawk.c
+===================================================================
+--- src/soc/esw/tomahawk.c	(revision 7765)
++++ src/soc/esw/tomahawk.c	(revision 7766)
+@@ -49,12 +49,16 @@
+ 
+ #include <soc/drv.h>
+ #ifdef BCM_IPROC_SUPPORT
+ #include <soc/iproc.h>
+ #endif
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
++#endif
+ 
+ #define PORT_BLOCK_BASE_PORT(port) \
+         (1 + ((SOC_INFO(unit).port_l2p_mapping[port] - 1) & ~0x3));
+ 
+ #define _SOC_TH_RECONFIGURE_PORT_TYPE_INFO(ptype) \
+     si->ptype.num = 0; \
+Index: src/soc/esw/trident3/flexport/trident3_ep_flexport.c
+===================================================================
+--- src/soc/esw/trident3/flexport/trident3_ep_flexport.c	(revision 7765)
++++ src/soc/esw/trident3/flexport/trident3_ep_flexport.c	(revision 7766)
+@@ -18,12 +18,15 @@
+ #if defined(BCM_TRIDENT3_SUPPORT)
+ #include <soc/trident3.h>
+ #include <soc/trident3.h>
+ #include <soc/trident3_tdm.h>
+ #include <soc/flexport/trident3/trident3_flexport.h>
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
++#endif
+ 
+ /*** START SDK API COMMON CODE ***/
+ 
+ 
+ /*! @file trident3_ep_flexport.c
+  *  @brief EP (EDB) FlexPort for Tomahawk2.
+Index: src/soc/esw/trident3/flexport/trident3_tdm_flexport.c
+===================================================================
+--- src/soc/esw/trident3/flexport/trident3_tdm_flexport.c	(revision 7765)
++++ src/soc/esw/trident3/flexport/trident3_tdm_flexport.c	(revision 7766)
+@@ -19,13 +19,15 @@
+ #if defined(BCM_TRIDENT3_SUPPORT)
+ #include <soc/trident3.h>
+ #include <soc/trident3.h>
+ #include <soc/trident3_tdm.h>
+ #include <soc/flexport/trident3/trident3_flexport.h>
+ 
+-
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
++#endif
+ 
+ /**
+ @name: soc_trident3_set_tdm_soc_pkg
+ @param: int unit, soc_port_schedule_state_t *port_schedule_state
+         tdm_soc_t *soc_pkg, int new_or_prev
+  * Description:
+Index: src/soc/esw/trident3/trident3_tdm.c
+===================================================================
+--- src/soc/esw/trident3/trident3_tdm.c	(revision 7765)
++++ src/soc/esw/trident3/trident3_tdm.c	(revision 7766)
+@@ -17,12 +17,15 @@
+ 
+ #if defined(BCM_TRIDENT3_SUPPORT)
+ #include <soc/trident3.h>
+ #include <soc/trident3_tdm.h>
+ #include <soc/tdm/trident3/tdm_td3_defines.h>
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
++#endif
+ 
+ /*** START SDK API COMMON CODE ***/
+ 
+ /*! @fn void _soc_td3_tdm_print_port_map(
+         int unit,
+         soc_port_map_type_t *port_map)
+Index: src/soc/esw/trident3.c
+===================================================================
+--- src/soc/esw/trident3.c	(revision 7765)
++++ src/soc/esw/trident3.c	(revision 7766)
+@@ -40,12 +40,16 @@
+ #include <soc/esw/cancun.h>
+ #include <soc/soc_ser_log.h>
+ #include <soc/pstats.h>
+ #include <soc/scache.h>
+ #include <soc/flexport/trident3/trident3_flexport_defines.h>
+ 
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ /*
+  * Set internal MDIO freq to around 10 MHz
+  * Valid range is from 2.5MHz to 20MHz
+  * Hence divisor is set to 25.
+  * HR4/FB6 its set to 20 as per HW design
+  */
+Index: src/soc/common/cmicx_led.c
+===================================================================
+--- src/soc/common/cmicx_led.c	(revision 7765)
++++ src/soc/common/cmicx_led.c	(revision 7766)
+@@ -581,13 +581,13 @@ soc_cmicx_led_enable_get(int unit, int *
+  *      SOC_E_xxx
+  */
+ int
+ soc_cmicx_led_speed(int unit, soc_led_port_speed_t *led_port_speed)
+ {
+     int rv = SOC_E_NONE;
+-    int led_port, led_uc;
++    int led_port=0, led_uc;
+     uint8 val8;
+     CMICX_LED_CONTROL_DATAr_t ctrl;
+ 
+     if(!SOC_CONTROL(unit)->iproc_m0led_init_done) {
+         LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "Led Init not done\n")));
+         return SOC_E_FAIL;
+Index: src/appl/diag/tksdiag.c
+===================================================================
+--- src/appl/diag/tksdiag.c	(revision 7765)
++++ src/appl/diag/tksdiag.c	(revision 7766)
+@@ -61,12 +61,17 @@
+ 
+ 
+ #if defined(BCM_FIELD_SUPPORT) && defined(BCM_FIREBOLT_SUPPORT)
+ #include <soc/drv.h>    /* For MH Opcode-0 priority workaround */
+ #endif
+ 
++/* PTin added: GCC8 */
++#if defined(__GNUC__) && (__GNUC__ >= 8)
++#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
+ void topo_cpu_dump(topo_cpu_t *topo_cpu, char *prefix);
+ 
+ 
+ 
+ /* Parsing a CPU KEY is same as parsing a MAC for now */
+ 
+@@ -701,14 +706,14 @@ _stk_port_update(int unit, bcm_port_t po
+  *     FP subsystem must be initialized.
+  *     This routine should only be executed on (local)
+  *         5650x A0, A1
+  *         5630x A0, B0
+  *         5610x A0
+  */
+-
+-STATIC int
++/* PTin modified: GCC8 */
++/*STATIC*/ int
+ mh_opcode0_priority_select(int unit, 
+                            int group_priority,
+                            bcm_field_group_t *group,
+                            bcm_field_entry_t *entry,
+                            int               *obm_reg_changed)
+ {
+@@ -822,14 +827,14 @@ mh_opcode0_priority_select(int unit,
+  *     mh_opcode0_priority_select was successfully called.  The FP group 
+  *     and entry IDs should have been saved earlier and passed in 
+  *     to this routine.
+  *     
+  *     Given the above, the device type and rev will NOT be validated.
+  */
+-
+-STATIC int
++/* PTin modified: GCC8 */
++/*STATIC*/ int
+ mh_opcode0_priority_clear(int unit, 
+                           bcm_field_group_t group,
+                           bcm_field_entry_t entry,
+                           int obm_reg_changed)
+ {
+     bcm_port_t          port;

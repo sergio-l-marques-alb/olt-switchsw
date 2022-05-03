@@ -29,6 +29,10 @@
 #include <soc/esw/portctrl.h>
 #include <soc/scache.h>
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
+
 #define IS_OVERSUB_PORT(unit,port)           \
         (SOC_PBMP_MEMBER(PBMP_OVERSUB(unit), port))
 

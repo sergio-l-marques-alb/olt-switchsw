@@ -64,6 +64,11 @@
 #include <soc/drv.h>    /* For MH Opcode-0 priority workaround */
 #endif
 
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 void topo_cpu_dump(topo_cpu_t *topo_cpu, char *prefix);
 
 
@@ -704,8 +709,8 @@ _stk_port_update(int unit, bcm_port_t port, uint32 flags, void *cookie)
  *         5630x A0, B0
  *         5610x A0
  */
-
-STATIC int
+/* PTin modified: GCC8 */
+/*STATIC*/ int
 mh_opcode0_priority_select(int unit, 
                            int group_priority,
                            bcm_field_group_t *group,
@@ -825,8 +830,8 @@ mh_opcode0_priority_select(int unit,
  *     
  *     Given the above, the device type and rev will NOT be validated.
  */
-
-STATIC int
+/* PTin modified: GCC8 */
+/*STATIC*/ int
 mh_opcode0_priority_clear(int unit, 
                           bcm_field_group_t group,
                           bcm_field_entry_t entry,

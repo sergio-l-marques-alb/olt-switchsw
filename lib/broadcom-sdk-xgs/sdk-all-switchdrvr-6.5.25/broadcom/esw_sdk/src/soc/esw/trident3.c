@@ -43,6 +43,10 @@
 #include <soc/scache.h>
 #include <soc/flexport/trident3/trident3_flexport_defines.h>
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 /*
  * Set internal MDIO freq to around 10 MHz
  * Valid range is from 2.5MHz to 20MHz

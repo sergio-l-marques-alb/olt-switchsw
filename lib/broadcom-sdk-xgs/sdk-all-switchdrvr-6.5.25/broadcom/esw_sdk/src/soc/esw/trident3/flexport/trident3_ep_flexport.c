@@ -21,6 +21,9 @@
 #include <soc/trident3_tdm.h>
 #include <soc/flexport/trident3/trident3_flexport.h>
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
 
 /*** START SDK API COMMON CODE ***/
 

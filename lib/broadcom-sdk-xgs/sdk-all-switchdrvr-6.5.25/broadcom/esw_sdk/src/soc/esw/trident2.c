@@ -43,6 +43,11 @@
 #include <soc/portmod/portmod.h>
 #endif /* PORTMOD_SUPPORT */
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
+
 #define TRIDENT2_PHY_PORT_MAX 128
 
 /* Globally stored reserved buffer values

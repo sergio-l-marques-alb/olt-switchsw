@@ -35,6 +35,10 @@
 #include <soc/portmod/portmod_legacy_phy.h>
 #include <soc/phy/phyctrl.h>
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 /* Indicates if the Port Control module has been initalized */
 static int portctrl_init[SOC_MAX_NUM_DEVICES];
 
