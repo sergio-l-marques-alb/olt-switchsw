@@ -4767,7 +4767,8 @@ bcm_petra_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LINKSTAT_MASK) {
         rv = bcm_petra_port_link_status_get(unit, port_ndx, &info->linkstatus);
         if (rv != BCM_E_NONE) {
-            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_link_status_get failed: %s"), bcm_errmsg(rv)));
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("(unit %d, port %d) bcm_petra_port_link_status_get failed: %s"),
+                                     unit, port_ndx, bcm_errmsg(rv)));
         }
     }
 

@@ -25,6 +25,10 @@
 #include <sal/core/thread.h>
 #include <sal/core/memlog.h>
 #include <sal/core/libc.h>
+#ifdef LVL7_FIXUP
+#include <soc/cm.h>
+#else
+#endif
 
 #ifdef MEMORY_MEASUREMENT_DIAGNOSTICS
 #include <shared/mem_measure_tool.h>
@@ -967,16 +971,22 @@ sal_dma_alloc(size_t sz, char *s)
     p = mmap(NULL,
              new_sz,
              PROT_READ|PROT_WRITE,
-             MAP_ANONYMOUS|MAP_SHARED|MAP_32BIT,
+             MAP_ANONYMOUS|MAP_SHARED|MAP_32BIT,    /* MAP_32BIT is not valid for AARCH64 architecture */
              -1,
              0);
     if (MAP_FAILED == p) {
         return NULL;
     }
 #else
+#if defined(LVL7_FIXUP) && !defined(PLISIM)
+    if ((p = soc_cm_salloc(0,sz + 12 ,s)) == 0) {
+        return p;
+    }
+#else
     if ((p = malloc(new_sz)) == 0) {
         return p;
     }
+#endif
 #endif
 
     assert(INT_TO_PTR(PTR_TO_INT(p)) == p);
@@ -1069,8 +1079,12 @@ sal_dma_free(void *addr)
     org_sz = (org_sz + (size_t)(pagesz-1)) & ~(pagesz-1);
     munmap(ap, org_sz);
 #else
+#if defined(LVL7_FIXUP) && !defined(PLISIM)
+    soc_cm_sfree(0, ap);
+#else
     /*    coverity[address_free : FALSE]    */
     free(ap);
+#endif
 #endif
 }
 

@@ -14,6 +14,7 @@
 #endif
 
 #if (defined(LINUX) || defined(UNIX))
+  #undef min
   #define min(a,b)    (((a) < (b)) ? (a) : (b))
 
   #include <unistd.h>

@@ -82,6 +82,12 @@ const bcm_mac_t _bcast_mac = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
  *
  ****************************************************************/
 
+#ifdef LVL7_FIXUP
+extern int bcmx_device_attach(int bcm_unit);
+extern int bcmx_device_detach(int bcm_unit);
+extern void tks_st_thread(void *cookie);
+#endif
+
 STATIC INLINE void
 db_entry_show(const cpudb_entry_t *entry)
 {
@@ -349,6 +355,11 @@ char ct_cpudb_usage[] =
 cpudb_ref_t db_refs[MAX_DBS];
 int cur_db;
 int num_db = 0;
+
+#ifdef LVL7_FIXUP
+extern void bcmx_attach_callback(int unit, int attach,
+                         cpudb_entry_t *cpuent, int cpuunit);
+#endif
 
 cmd_result_t
 ct_cpudb(int unit, args_t *args)
@@ -935,12 +946,15 @@ mh_opcode0_priority(int action)
 
 #else 
 
+/* PTin removed: not used */
+#if 0
 STATIC int
 mh_opcode0_priority(int action)
 {
     COMPILER_REFERENCE(action);
     return BCM_E_NONE;
 }
+#endif
 
 #endif  /* BCM_FIELD_SUPPORT && BCM_FIREBOLT_SUPPORT */
 
@@ -952,6 +966,7 @@ static sal_sem_t st_done_sem;
 
 #define TOPO_ATP_FLAGS (ATP_F_NEXT_HOP | ATP_F_REASSEM_BUF)
 
+#ifndef LVL7_FIXUP
 STATIC void
 tks_st_thread(void *cookie)
 {
@@ -1014,6 +1029,7 @@ tks_st_thread(void *cookie)
     sal_sem_give(st_done_sem);
     sal_thread_exit(rv);
 }
+#endif
 
 typedef struct {
     int timeout;

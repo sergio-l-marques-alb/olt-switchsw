@@ -913,6 +913,7 @@ sal_config_refresh(void)
     sal_dirname(fname,dirname);
     already_imported_tables[0] = sal_alloc(sal_strlen(fname)+1 ," alloc bcm file name");
     sal_basename(fname, already_imported_tables[0]);
+    printf("%s(%d) Loading %s/%s variables\r\n", __FUNCTION__, __LINE__, dirname, fname);
     rv =  sal_config_file_process(already_imported_tables[0],&nof_imported_config_files,already_imported_tables, dirname, 0);
 
     for (i=0;i<nof_imported_config_files;i++) {

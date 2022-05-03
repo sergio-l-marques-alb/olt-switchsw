@@ -62,7 +62,9 @@
 /* Common status */
 #define STATUS_WIP              0x01
 #ifndef __KERNEL__
+#undef max
 #define max(a, b) (((a) > (b)) ? (a) : (b))
+#undef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 #define ID_LEN 11
