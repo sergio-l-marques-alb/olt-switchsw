@@ -1376,7 +1376,8 @@ _bcm_esw_linkscan_update_asf(int unit, bcm_port_t port, int linkup,
  *      BCM_E_XXX
  */
 
-STATIC int
+// PTIn modified    STATIC int
+int
 _bcm_esw_link_fault_get(int unit, int port, int *fault)
 {
     uint64 lss;

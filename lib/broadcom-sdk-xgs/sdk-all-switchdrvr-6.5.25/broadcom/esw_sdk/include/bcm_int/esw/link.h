@@ -11,6 +11,9 @@
 
 #define _BCM_LINK_STATUS_NO_CALLBACK  0x1
 
+// PTIn added
+extern int _bcm_esw_link_fault_get(int unit, int port, int *fault);
+
 extern int _bcm_esw_link_get(int unit, bcm_port_t port, int *link);
 extern int _bcm_esw_link_force(int unit, uint32 flags, bcm_port_t port,
                                int force, int link);
