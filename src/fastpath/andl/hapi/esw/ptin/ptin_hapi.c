@@ -369,6 +369,15 @@ L7_RC_t ptin_hapi_switch_init(void)
   }
 #endif
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Usage for SIP and DIP LAG hashing */
+  if (bcm_switch_control_set(0, bcmSwitchHashControl, BCM_HASH_CONTROL_TRUNK_NUC_ENHANCE) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmSwitchHashControl switch_control to 1");
+    rc = L7_FAILURE;
+  }
+#endif
+
   return rc;
 }
 

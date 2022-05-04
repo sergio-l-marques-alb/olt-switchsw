@@ -302,6 +302,12 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
   {
     return L7_FAILURE;
   }
+  
+  rv = bcm_switch_control_set(unit, bcmSwitchHashL2Field1, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
 
   /* For IPv4 packets, choose the five-tuples of IP packet along with
    * source and destination ports
@@ -313,6 +319,12 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
          BCM_HASH_FIELD_SRCPORT | BCM_HASH_FIELD_SRCMOD); 
 
   rv = bcm_switch_control_set(unit, bcmSwitchHashIP4Field0, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP4Field1, arg);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
   {
     return L7_FAILURE;
@@ -332,7 +344,25 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
   {
     return L7_FAILURE;
   }
- 
+
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP6Field1, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP4TcpUdpField0, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP4TcpUdpField1, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
   /* Unknown packet types */
   arg = (BCM_HASH_FIELD_SRCMOD | BCM_HASH_FIELD_SRCPORT) ;
 
