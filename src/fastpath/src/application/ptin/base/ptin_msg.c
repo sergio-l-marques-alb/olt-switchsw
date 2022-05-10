@@ -9668,7 +9668,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 
           /* Get statistics */
-          rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id, &client, &stats);
+          rc = ptin_dhcp_stat_client_get(ENDIAN_SWAP32(dhcp_stats->evc_id), &client, &stats);
 
           if (rc!=L7_SUCCESS)
           {
