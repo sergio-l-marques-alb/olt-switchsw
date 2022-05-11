@@ -140,6 +140,10 @@ ifdef BUILD_PHYMOD
 ADD_TO_CFLAGS += $(SYSROOT)
 endif
 
+ifdef BUILD_PCIEPHY
+ADD_TO_CFLAGS += $(SYSROOT)
+endif
+
 CFLAGS += $(ADD_TO_CFLAGS)
 
 ifdef ESW_CHIPS
@@ -218,6 +222,12 @@ ifdef BUILD_PHYMOD
 	$(info "CFLAGS=$(CFLAGS)")
 	$(info "ADD_TO_CFLAGS=$(ADD_TO_CFLAGS)")
 	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/libs/phymod CFLAGS="$(ADD_TO_CFLAGS)"
+endif
+ifdef BUILD_PCIEPHY
+	@${ECHO} "Building PCIE libraries ...."
+	$(info "CFLAGS=$(CFLAGS)")
+	$(info "ADD_TO_CFLAGS=$(ADD_TO_CFLAGS)")
+	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/libs/pciephy CFLAGS="$(ADD_TO_CFLAGS)"
 endif
 
 # Broadcom Command Monitor
