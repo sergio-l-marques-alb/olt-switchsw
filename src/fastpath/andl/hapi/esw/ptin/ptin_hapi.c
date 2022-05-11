@@ -4044,7 +4044,10 @@ L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_Po
   {
     /* Rx counters */
     soc_counter_get(bcm_unit, bcm_port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,25,0))
+    /* 6.5.20 (and others before) has RDROPr (soc/mcm/allenum.h), but 6.5.25 hasn't */
     soc_counter_get(bcm_unit, bcm_port, RDROPr           , 0, &tmp1);
+#endif
     soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp2);
     rx->etherStatsDropEvents = tmp1 + tmp2;                                         /* Drop Events */
     soc_counter_get(bcm_unit, bcm_port, RBYTr , 0, &rx->etherStatsOctets);
@@ -4125,7 +4128,9 @@ L7_RC_t hapi_ptin_counters_read(ptin_dapi_port_t *dapiPort, ptin_HWEthRFC2819_Po
   {
     /* Rx counters */
     soc_counter_get(bcm_unit, bcm_port, XLMIB_RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,25,0))
     soc_counter_get(bcm_unit, bcm_port, RDROPr           , 0, &tmp1);
+#endif
     soc_counter_get(bcm_unit, bcm_port, DROP_PKT_CNT_INGr, 0, &tmp2);
     rx->etherStatsDropEvents = tmp1 + tmp2;                                         /* Drop Events */
     soc_counter_get(bcm_unit, bcm_port, XLMIB_RBYTr , 0, &rx->etherStatsOctets);
@@ -4340,7 +4345,9 @@ L7_RC_t hapi_ptin_counters_clear(ptin_dapi_port_t *dapiPort)
   {
     /* Rx counters */
     soc_counter_set(bcm_unit, bcm_port, RMTUEr, 0, 0);
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,25,0))
     soc_counter_set(bcm_unit, bcm_port, RDROPr , 0, 0);
+#endif
     soc_counter_set(bcm_unit, bcm_port, DROP_PKT_CNTr , 0, 0);
     soc_counter_set(bcm_unit, bcm_port, RBYTr , 0, 0);
     soc_counter_set(bcm_unit, bcm_port, RPKTr , 0, 0);
