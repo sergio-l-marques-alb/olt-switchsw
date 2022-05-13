@@ -32,6 +32,8 @@
 */
 #if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
 #define sal_alloc(sz,str) osapiMalloc(L7_DRIVER_COMPONENT_ID, sz)
+/* sal_alloc2()'s flag (SAL_ALLOC_F_ZERO) decides whether to call calloc (buffer init) vs malloc, but osapiMalloc already does buffer init, so...*/
+#define sal_alloc2(sz, flags, str) osapiMalloc(L7_DRIVER_COMPONENT_ID, sz)
 #define sal_free(ptr) osapiFree(L7_DRIVER_COMPONENT_ID, ptr)
 
 #else
