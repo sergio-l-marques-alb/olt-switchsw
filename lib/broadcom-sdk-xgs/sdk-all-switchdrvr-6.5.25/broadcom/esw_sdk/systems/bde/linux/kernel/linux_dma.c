@@ -960,7 +960,7 @@ void _dma_per_device_init(int dev_index)
         _dma_vbase = dma_alloc_coherent(dev, _dma_mem_size, &dma_addr, GFP_KERNEL);
         if (!_dma_vbase || !dma_addr) {
             _dma_pool_alloc_state = DMA_POOL_FAILED;
-            gprintk("%s: failed to allocate coherent memory pool of size 0x%lx (_dma_vbase=0x%08lx dma_addr=0x%08lx)\n",
+            gprintk("%s: failed to allocate coherent memory pool of size 0x%x (_dma_vbase=0x%08lx dma_addr=0x%08llx)\n",
                     __FUNCTION__, _dma_mem_size, (unsigned long) _dma_vbase, dma_addr);
             return;
         }
