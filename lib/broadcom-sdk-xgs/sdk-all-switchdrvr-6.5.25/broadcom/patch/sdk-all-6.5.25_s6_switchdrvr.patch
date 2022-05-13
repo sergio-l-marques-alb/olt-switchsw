@@ -2904,4 +2904,23 @@ Index: src/shared/bsl.c
  {
      if (bsl_config.check_hook != NULL) {
          return bsl_config.check_hook(chk);
+Index: systems/linux/kernel/modules/include/lkm.h
+===================================================================
+--- systems/linux/kernel/modules/include/lkm.h  (revision 8460)
++++ systems/linux/kernel/modules/include/lkm.h  (working copy)
+@@ -34,13 +34,15 @@
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39)
+ #include <linux/smp_lock.h>
+ #endif
+ #include <linux/module.h>
 
+ /* Helper defines for multi-version kernel  support */
++#ifndef LKM_2_6
+ #define LKM_2_6
++#endif
+
+ #include <linux/kernel.h>   /* printk() */
+ #include <linux/fs.h>       /* everything... */
+ #include <linux/errno.h>    /* error codes */
+ #include <linux/types.h>    /* size_t */
+ #include <linux/proc_fs.h>
