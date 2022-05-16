@@ -317,6 +317,11 @@
 #if defined(BCM_TOMAHAWK3_SUPPORT)
 extern int ecmp_mode_hierarchical;
 #endif
+/* PTin added: GCC8 */
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 /* chip field */
 #define FB      SOC_INFO_CHIP_FB
 #define FB2     SOC_INFO_CHIP_FIREBOLT2
@@ -5714,6 +5719,15 @@ _bcm_xgs3_igmp_action_set(int unit,
             case bcmSwitchIgmpPktDrop:
                 fields[0] = IGMP_PKT_DROPf;
                 break;
+#ifdef LVL7_FIXUP
+            /* See #77807 for details */
+            case bcmSwitchMldPktToCpu:
+                fields[0] = MLD_PKT_TO_CPUf;
+                break;
+            case bcmSwitchMldPktDrop:
+                fields[0] = MLD_PKT_DROPf;
+                break;
+#endif
             case bcmSwitchV4ResvdMcPktToCpu:
                 fields[0] = IPV4_RESVD_MC_PKT_TO_CPUf;
                 break;
@@ -5920,6 +5934,17 @@ _bcm_xgs3_igmp_action_get(int unit,
                 field = IGMP_PKT_DROPf;
                 act_value = 1;
                 break;
+#ifdef LVL7_FIXUP
+            /* See #77807 for details */
+            case bcmSwitchMldPktToCpu: 	 
+                field = MLD_PKT_TO_CPUf; 	 
+                act_value = 1; 	 
+                break; 	 
+            case bcmSwitchMldPktDrop: 	 
+                field = MLD_PKT_DROPf; 	 
+                act_value = 1; 	 
+                break;
+#endif
             case bcmSwitchV4ResvdMcPktToCpu:
                 field = IPV4_RESVD_MC_PKT_TO_CPUf;
                 act_value = 1;

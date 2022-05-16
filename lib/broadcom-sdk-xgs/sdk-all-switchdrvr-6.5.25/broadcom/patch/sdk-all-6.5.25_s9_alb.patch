@@ -1,0 +1,28 @@
+Index: broadcom/esw_sdk/include/bcm_int/esw/link.h
+===================================================================
+--- broadcom/esw_sdk/include/bcm_int/esw/link.h	(revision 8050)
++++ broadcom/esw_sdk/include/bcm_int/esw/link.h	(working copy)
+@@ -11,6 +11,9 @@
+ 
+ #define _BCM_LINK_STATUS_NO_CALLBACK  0x1
+ 
++// PTIn added
++extern int _bcm_esw_link_fault_get(int unit, int port, int *fault);
++
+ extern int _bcm_esw_link_get(int unit, bcm_port_t port, int *link);
+ extern int _bcm_esw_link_force(int unit, uint32 flags, bcm_port_t port,
+                                int force, int link);
+Index: broadcom/esw_sdk/src/bcm/esw/link.c
+===================================================================
+--- broadcom/esw_sdk/src/bcm/esw/link.c	(revision 8050)
++++ broadcom/esw_sdk/src/bcm/esw/link.c	(working copy)
+@@ -1300,7 +1300,8 @@
+  *      BCM_E_XXX
+  */
+ 
+-STATIC int
++// PTIn modified    STATIC int
++int
+ _bcm_esw_link_fault_get(int unit, int port, int *fault)
+ {
+     uint64 lss;

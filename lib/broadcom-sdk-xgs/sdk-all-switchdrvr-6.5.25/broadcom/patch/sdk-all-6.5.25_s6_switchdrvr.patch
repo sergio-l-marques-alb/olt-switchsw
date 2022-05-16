@@ -1,0 +1,2928 @@
+Index: make/Make.tools
+===================================================================
+--- make/Make.tools	(revision 7735)
++++ make/Make.tools	(revision 7736)
+@@ -130,12 +130,23 @@ MKVERS	=	$(PERL) ${SDK}/tools/version.pl
+ RM	=	/bin/rm -rf
+ CP	=	/bin/cp
+ MKDIR	=	/bin/mkdir -p
+ FOREACH	=	$(MKTOOL) -foreach
+ MAKEDEP =	/bin/echo
+ ECHO	=	/bin/echo
++ifdef LVL7_FIXUP
++ifeq "$(HOSTTYPE)" "Windows2000PC"
++RM = rm -rf
++CP = cp
++MKDIR = mkdir -p
++MAKEDEP = echo
++ECHO = echo
++TOUCH   = touch
++endif
++endif
++
+ MKBEEP	=	$(MKTOOL) -beep
+ endif
+ 
+ #
+ # You may override any of the previous decisions and assignments
+ # determined above by providing your own makefile to be 
+Index: make/Make.config
+===================================================================
+--- make/Make.config	(revision 7735)
++++ make/Make.config	(revision 7736)
+@@ -5,12 +5,13 @@
+ # Make command configuration for SOC driver and diags.
+ ifeq (${BCM_HIDE_DISPATCHABLE},1)
+ # {
+ CFGFLAGS += -DBCM_HIDE_DISPATCHABLE
+ # }
+ endif
++LVL7_FIXUP = 1
+ 
+ ifeq (${WAN_PORT_SUPPORT},1)
+ # {
+ CFGFLAGS += -DWAN_PORT_SUPPORT
+ # }
+ endif
+@@ -746,13 +747,13 @@ endif # LTSW_CHIPS
+ ifndef	FEATURE_LIST
+ # {
+ 
+ ifdef ESW_CHIPS
+ # {
+ _ESW_FEATURE_LIST = L3 I2C MEM_SCAN EDITLINE RCPU OOB_RCPU CUSTOMER \
+-    TEST CHASSIS CINT PTP BFD TCB PSTATS
++    TEST CHASSIS CINT PTP   #PTIN changed (original on next line)
+ #
+ # CES is only supported on Katana devices.
+ #
+ ifdef BCM_56440_A0 
+ # {
+ _ESW_FEATURE_LIST += CES
+@@ -1263,12 +1264,15 @@ endif
+ all_suffix = ${chip_suffix}${target_suffix}
+ 
+ #
+ # Default location to place binaries and make depend files for building
+ # purposes.
+ #
++ifdef LVL7_FIXUP
++BLDROOT = $(L7_OUTPUT)/$(target)${all_suffix}${bldroot_suffix}
++else
+ ifeq "$(HOSTTYPE)" "Windows2000PC"
+ # {
+ BLDROOTWITHDRIVE = ${SDK}/build/${target}${all_suffix}${bldroot_suffix}
+ BLDROOT = ${SDK_NO_DRIVE_NAME}/build/${target}${all_suffix}${bldroot_suffix}
+ # }
+ else # ifeq "$(HOSTTYPE)" "Windows2000PC"
+@@ -1293,12 +1297,14 @@ ifeq ($(MAKELEVEL),0)
+ # {
+ # }
+ endif
+ # }
+ endif
+ 
++endif #end LVL7_FIXUP 
++
+ ifeq ($(DEST_DIR),)
+ # {
+ export DEST_DIR :=${SDK}/${SDKBUILD}$(if ${BLDCONFIG},/${BLDCONFIG})$(DEST_DIR_SUFFIX)
+ # }
+ endif
+ 
+@@ -1864,12 +1870,17 @@ INCDIR += -I${SDK}/src/soc/phy/phy8806x/
+ INCFLAGS = -I${INCDIR} -I${SDK}/systems
+ 
+ CFLAGS += ${INCFLAGS}
+ CXXFLAGS += ${INCFLAGS}
+ CPPFLAGS += ${INCFLAGS}
+ 
++ifdef LVL7_FIXUP
++CFLAGS += $(L7_BCM_VENDOR_INCL) $(L7_BCM_VENDOR_CFLAGS)
++CXXFLAGS += $(L7_BCM_VENDOR_INCL)
++CPPFLAGS += $(L7_BCM_VENDOR_INCL)
++endif
+ #
+ # Debug #ifdef control
+ #
+ # Compiling out #ifdef DEBUG code saves about 1.3% on executable size.
+ # It is recommended to leave debug enabled when developing applications.
+ #
+Index: make/Make.linux
+===================================================================
+--- make/Make.linux	(revision 7735)
++++ make/Make.linux	(revision 7736)
+@@ -17,12 +17,21 @@
+ #
+ # LINUX_MAKE_DIR
+ #   Common makefile location, if it is not ../common
+ #
+ #
+ 
++LVL7_FIXUP = 1
++
++ifdef LVL7_FIXUP
++  ifdef QUIET
++    MAKE := @$(MAKE)
++  endif
++  MAKE := +$(MAKE)
++endif
++
+ export DEST_DIR_SUFFIX :=$(subst $(realpath $(SDK))/systems,,$(realpath $(CURDIR)/$(dir ($(firstword $(MAKEFILE_LIST))))))
+ 
+ ifeq (,$(kernel_version))
+ kernel_version=2_4
+ endif
+ 
+@@ -77,6 +86,13 @@ clean_d: clean
+ 
+ distclean:
+ 	$(MAKE) $(CMD) $@
+         
+ .PHONY: build clean distclean clean_d DELIVER variable mod bcm user issu
+ 
++
++ifdef LVL7_FIXUP
++.PHONY: get_sdk_flags
++
++get_sdk_flags:
++	$(MAKE) $(CMD) get_sdk_flags
++endif
+Index: include/soc/i2c.h
+===================================================================
+--- include/soc/i2c.h	(revision 7735)
++++ include/soc/i2c.h	(revision 7736)
+@@ -159,12 +159,16 @@ extern int soc_i2c_is_attached(int unit)
+ extern void soc_i2c_show_log(int unit, int reverse);
+ extern void soc_i2c_clear_log(int unit);
+ extern void soc_i2c_show_speeds(int unit);
+ extern char *soc_i2c_saddr_to_string(int unit, i2c_saddr_t saddr);
+ extern int soc_i2c_unload_devices(int unit);
+ 
++#ifdef LVL7_FIXUP
++extern int soc_i2c_read_test(int unit, uint8 devid, uint8 *ptr, int len);
++extern int soc_i2c_write_test(int unit, uint8 devid, uint8 *ptr, int len);
++#endif
+ /*
+  * SMB commands
+  */
+ extern int soc_i2c_read_byte(int unit, i2c_saddr_t saddr, uint8* data);
+ extern int soc_i2c_write_byte(int unit, i2c_saddr_t saddr, uint8 data);
+ extern int soc_i2c_read_word(int unit, i2c_saddr_t saddr, uint16* data);
+Index: include/soc/macipadr.h
+===================================================================
+--- include/soc/macipadr.h	(revision 7735)
++++ include/soc/macipadr.h	(revision 7736)
+@@ -11,12 +11,13 @@
+ #define _SYS_MACIPADR_H
+ 
+ #include <sal/core/libc.h>
+ #include <soc/types.h>
+ #include <shared/l3.h>
+ 
++typedef uint8   mac_addr_t[6];          /* MAC address */   /* PTin added: SDK compatibility */
+ typedef _shr_ip_addr_t  ip_addr_t;      /* IP Address */
+ typedef _shr_ip6_addr_t  ip6_addr_t;    /* IPv6 Address */
+ 
+ extern const sal_mac_addr_t _soc_mac_spanning_tree;
+ extern const sal_mac_addr_t _soc_mac_all_routers;
+ extern const sal_mac_addr_t _soc_mac_all_zeroes;
+Index: include/soc/arl.h
+===================================================================
+--- include/soc/arl.h	(revision 7735)
++++ include/soc/arl.h	(revision 7736)
+@@ -11,15 +11,21 @@
+  */
+ 
+ #ifndef _SOC_ARL_H
+ #define _SOC_ARL_H
+ 
+ #include <shared/avl.h>
++
++/* PTin modified: SDK 6.3.0 */
++#ifdef LVL7_FIXUP
++#include <soc/mcm/memregs.h>
++#else
+ #if defined(BCM_ESW_SUPPORT) || defined(BCM_SAND_SUPPORT)
+ #include <soc/mcm/memregs.h>
+ #endif
++#endif
+ 
+ extern int soc_arl_attach(int unit);
+ extern int soc_arl_detach(int unit);
+ extern int soc_arl_init(int unit);
+ 
+ 
+@@ -36,14 +42,17 @@ extern int soc_arl_frozen_cml_set(int un
+ 				  int *repl_cml);
+ extern int soc_arl_frozen_cml_get(int unit, soc_port_t port, int *cml);
+ extern void _drv_arl_hash(uint8 *hash_value, uint8 length, uint16 *hash_result);
+ /*
+  * For ARL software shadow database access
+  */
++/* PTin removed */
++#if 0
+ extern int soc_arl_database_dump(int unit, uint32 index, 
+                                      l2_arl_sw_entry_t *entry);
++#endif
+ extern int soc_arl_database_delete(int unit, uint32 index);
+ extern int soc_arl_database_add(int unit, uint32 index, int pending);
+ 
+ #define ARL_TABLE_WRITE 0  /* For ARL Write operateion */
+ #define ARL_TABLE_READ 1   /* For ARL Read operateion */
+ #define ARL_ENTRY_NULL(e1)\
+Index: include/soc/debug.h
+===================================================================
+--- include/soc/debug.h	(revision 7735)
++++ include/soc/debug.h	(revision 7736)
+@@ -23,13 +23,13 @@ extern void soc_mem_watch_set(int unit,
+ #define _SOC_MSG(string) "%s[%d]%s unit %d: " string "\n", __FILE__, __LINE__, FUNCTION_NAME(), unit
+ 
+ #define _BSL_SOC_MSG(string) _ERR_MSG_MODULE_NAME, unit, "%s[%d]%s unit %d: " string "\n", __FILE__, __LINE__, FUNCTION_NAME(), unit
+ 
+ #else
+ 
+-#define _SOC_MSG(string) string
++#define _SOC_MSG(string) string "\n"
+ 
+-#define _BSL_SOC_MSG(string) _ERR_MSG_MODULE_NAME, unit, string
++#define _BSL_SOC_MSG(string) _ERR_MSG_MODULE_NAME, unit, string "\n"
+ 
+ #endif   /* defined(BROADCOM_DEBUG) */
+ 
+ #endif  /* !_SOC_DEBUG_H */
+Index: include/soc/phy.h
+===================================================================
+--- include/soc/phy.h	(revision 7735)
++++ include/soc/phy.h	(revision 7736)
+@@ -652,12 +652,37 @@ typedef struct soc_phy_wcmod_uc_desc_s{
+ /* Forward def */
+ typedef struct soc_phy_table_s soc_phy_table_t;
+ typedef int (*soc_phy_ident_f)(int unit, soc_port_t port,
+                                soc_phy_table_t *my_entry,
+                                uint16 phy_id0, uint16 phy_id1,
+                                soc_phy_info_t *pi);
++#ifdef LVL7_FIXUP
++/* SDK only provides a way to configure a single phy address for
++ * each port, whereas some of the customer boxes have different
++ * phy addresses for same port. So we use the custom driver
++ * (registered in FP application) checkphy fuction to look for
++ * device ids at the secondary phy addresses, and return SUCESS
++ * if match is successful). _ext_phy_probe() uses two pointer
++ * variables - pi and ext_pc. We manage to run our own custom
++ * _check_phy function, which does the OUI check for us. But
++ * our requirement is to change the phy addresses and other
++ * parameters maintained in structures pointed to by pi
++ * (soc_phy_info_t) and ext_pc(phy_ctrl_t), in  case the match
++ * is successful.  We don't have a way to do that unless we run
++ * our custom function below, or SDK functions are re-designed
++ * to facilitate this operation.
++ */
++typedef int (*soc_phy_cust_f)(int unit, soc_port_t port,
++                              soc_phy_table_t *my_entry,
++                              soc_phy_info_t *pi, phy_ctrl_t *int_pc);
++struct soc_phy_cust_s
++{
++    soc_phy_cust_f  custPhySettings;
++};
++typedef struct soc_phy_cust_s soc_phy_cust_t;
++#endif
+ 
+ /* For identifying phy */
+ struct soc_phy_table_s {
+     soc_phy_ident_f     checkphy;       /* call back to check for this phy */
+     soc_known_phy_t     myNum;          /* For known phys, its enum val */
+     char                *phy_name;      /* Phy Name */
+Index: include/soc/field.h
+===================================================================
+--- include/soc/field.h	(revision 7735)
++++ include/soc/field.h	(revision 7736)
+@@ -8,19 +8,22 @@
+  */
+ 
+ #ifndef _SOC_FIELD_H
+ #define _SOC_FIELD_H
+ 
+ #include <soc/types.h>
++#ifdef LVL7_FIXUP
++#include <soc/mcm/allenum.h>
++#else
+ #if defined(BCM_ESW_SUPPORT) || defined(BCM_SAND_SUPPORT) || defined(PORTMOD_SUPPORT)
+ #include <soc/mcm/allenum.h>
+ #endif
++#endif
+ #include <soc/schanmsg.h>
+ #include <soc/types.h>
+ 
+-
+ /* Values for flags */
+ 
+ #define SOCF_LE                     0x01    /* little endian */
+ #define SOCF_RO                     0x02    /* read only */
+ #define SOCF_WO                     0x04    /* write only */
+ 
+Index: include/soc/property.h
+===================================================================
+--- include/soc/property.h	(revision 7735)
++++ include/soc/property.h	(revision 7736)
+@@ -480,12 +480,16 @@
+ /* This specifies the external PHY device is BCM5690. */
+ #define spn_PHY_5690  "phy_5690"
+ 
+ /* This specifies the external PHY device is BCM8706 and equivalent. */
+ #define spn_PHY_8706  "phy_8706"
+ 
++#ifdef LVL7_FIXUP
++#define spn_PHY_VIRTUALCOMBO            "phy_virtualcombo"
++#endif
++
+ /* This specifies the external PHY device is BCM8072 and equivalent. */
+ #define spn_PHY_8072  "phy_8072"
+ 
+ /* This specifies the external PHY device is BCM84740. */
+ #define spn_PHY_84740  "phy_84740"
+ 
+@@ -2915,12 +2919,26 @@
+  * cannot be used with :i.
+  *  Valid Phy lane configs: 442/244/343. Valid fallback phy options: 0/1/2. Applicable to BCM56860 device family.
+  * Example: portmap_1 = 1:100:343
+  *          portmap_1 = 1:40:2
+  */
+ #define spn_PORTMAP  "portmap"
++#ifdef LVL7_FIXUP
++#define spn_PORT_PHY_ADDR "port_phy_addr"
++#define spn_LED_MODE_CUST "led_mode_cust"
++#define spn_PORT_PHY_ADDR_XE            "port_phy_addr_xe"
++#define spn_PORT_COMBO_VIRTUAL_PHY      "port_combo_virtual_phy"
++#define spn_PORT_VIRTUAL_PHY_ADDR       "port_virtual_phy_addr"
++#define spn_PORT_VIRTUAL_PREF_PHYNUM    "port_virtual_pref_phy"
++#define spn_PORT_VIRTUAL_ACTIVE_DRIV    "port_virtual_activ_driv"
++#define spn_BCM56638_4X12_2X24          "bcm56638_4x12_2x24"
++#define spn_HELPCLI_ENABLE              "help_cli_enable"
++#define spn_SERDES_LANE0_RESET          "serdes_lane0_reset"
++#define spn_PORT_INTERNAL               "port_internal"
++#define spn_PORT_SUPER_ISOLATE          "port_super_isolate"
++#endif
+ /*
+  * Specifies the number of lanes used by each port in the flex port group.
+  * portgroup_<port group>=<number of lanes>.
+  * Applicable to BCM566xx and BCM565xx device family
+  *  Example:
+  *    portgroup_<port_group> = 1
+Index: include/appl/diag/dpp/utils_eeprom.h
+===================================================================
+--- include/appl/diag/dpp/utils_eeprom.h	(revision 7735)
++++ include/appl/diag/dpp/utils_eeprom.h	(revision 7736)
+@@ -635,13 +635,13 @@ typedef struct
+      */
+   unsigned long  program_counter ;
+     /*
+      * Number identifier of task (where reset exception
+      * has occurred).
+      */
+-  int            task_id ;
++  unsigned long long task_id ;
+     /*
+      * Free text description of exception. Null terminated
+      * string.
+      */
+   char           nmi_text[80] ;
+     /*
+@@ -828,13 +828,13 @@ typedef struct
+      */
+   unsigned long  program_counter ;
+     /*
+      * Number identifier of task (where reset exception
+      * has occurred).
+      */
+-  int            task_id ;
++  unsigned long long task_id ;
+     /*
+      * Free text description of exception. Null terminated
+      * string.
+      */
+   char           text[80] ;
+     /*
+Index: include/appl/diag/cmdlist.h
+===================================================================
+--- include/appl/diag/cmdlist.h	(revision 7735)
++++ include/appl/diag/cmdlist.h	(revision 7736)
+@@ -13,13 +13,13 @@
+ 
+ #include <appl/diag/parse.h>
+ #include <appl/diag/shell.h>
+ 
+ #if defined(MOUSSE) || defined(BMW) || defined(IDTRP334) || defined(GTO) || \
+     defined(MBZ) || defined(IDT438) || defined(NSX) ||  \
+-    defined(METROCORE) || defined(KEYSTONE)
++    defined(METROCORE) || defined(KEYSTONE) || defined(LVL7_FIXUP)
+ #endif
+ 
+ #define DCL_CMD(_f,_u)  \
+     extern cmd_result_t _f(int, args_t *); \
+     extern char     _u[];
+ 
+Index: include/appl/stktask/attach.h
+===================================================================
+--- include/appl/stktask/attach.h	(revision 7735)
++++ include/appl/stktask/attach.h	(revision 7736)
+@@ -28,7 +28,13 @@ extern int bcm_stack_attach_unregister(b
+ 
+ extern int bcm_stack_attach_update(cpudb_ref_t db_ref);
+ extern int bcm_stack_attach_running(void);
+ extern int bcm_stack_attach(cpudb_ref_t db_ref);
+ extern int bcm_stack_detach(cpudb_ref_t db_ref);
+ 
++#ifdef LVL7_FIXUP
++int bcm_stack_attach_manager_set(int manager);
++void bcm_stack_attach_fn(cpudb_ref_t topology_db, int local_cpu_only, 
++			 int detach_only);
++#endif
++
+ #endif /* _STKTASK_ATTACH_H */
+Index: include/bcm/types.h
+===================================================================
+--- include/bcm/types.h	(revision 7735)
++++ include/bcm/types.h	(revision 7736)
+@@ -35,14 +35,18 @@ typedef int bcm_multicast_t;
+ #define BCM_LOCAL_UNITS_MAX     18         
+ #endif
+ 
+ #define BCM_MAX_NUM_UNITS       BCM_LOCAL_UNITS_MAX 
+ 
+ #if !defined(BCM_UNITS_MAX)
++#if defined(LVL7_FIXUP) && defined(L7_PRODUCT_SMARTPATH)
++#define BCM_UNITS_MAX           8
++#else
+ #define BCM_UNITS_MAX           128        
+ #endif
++#endif
+ 
+ #define BCM_PP_PIPES_MAX        _SHR_SWITCH_MAX_PP_PIPES 
+ 
+ #define BCM_PBMP_PORT_MAX       _SHR_PBMP_PORT_MAX 
+ 
+ #define BCM_PBMP_CLEAR(pbm)     _SHR_PBMP_CLEAR(pbm) 
+Index: include/bcm/field.h
+===================================================================
+--- include/bcm/field.h	(revision 7735)
++++ include/bcm/field.h	(revision 7736)
+@@ -8757,12 +8757,18 @@ typedef struct bcm_field_group_status_s
+     int counters_free;  /* Unused counters in slice. */
+     int meters_total;   /* Total meters in slice. */
+     int meters_free;    /* Unused meters in slice. */
+     int entry_count;    /* Number of entries in the group. */
+     int counter_count;  /* Number of counters attached to group entries. */
+     int meter_count;    /* Number of meters attached to group entries. */
++#ifdef LVL7_FIXUP
++    int slice_width_physical;   /* Slice width of group based on physical slices. */
++    int intraslice_mode_enable; /* Indicates if intraslice mode is enabled. */
++    int natural_depth;          /* Number of rules when slice depth is one. */
++#endif
++
+ } bcm_field_group_status_t;
+ 
+ /* Group Modes (single, double or triple wide). */
+ typedef enum bcm_field_group_mode_e {
+     bcmFieldGroupModeSingle = 0,        /* Single-wide group. */
+     bcmFieldGroupModeDouble = 1,        /* Double-wide group. */
+Index: include/bcm/custom.h
+===================================================================
+--- include/bcm/custom.h	(revision 7735)
++++ include/bcm/custom.h	(revision 7736)
+@@ -12,14 +12,18 @@
+ #ifndef __BCM_CUSTOM_H__
+ #define __BCM_CUSTOM_H__
+ 
+ #include <bcm/types.h>
+ 
+ #if !defined(BCM_CUSTOM_ARGS_MAX)
++#ifdef LVL7_FIXUP
++#define BCM_CUSTOM_ARGS_MAX     375       
++#else
+ #define BCM_CUSTOM_ARGS_MAX     256        
+ #endif
++#endif
+ 
+ #define BCM_CUSTOM_SET          1          
+ #define BCM_CUSTOM_GET          2          
+ 
+ /* bcm_custom_cb_t */
+ typedef int (*bcm_custom_cb_t)(
+Index: include/bcm/vlan.h
+===================================================================
+--- include/bcm/vlan.h	(revision 7735)
++++ include/bcm/vlan.h	(revision 7736)
+@@ -2243,12 +2243,13 @@ extern int bcm_vlan_port_stat_multi_set3
+                                                           the APP ID. */
+ #define BCM_VLAN_PORT_EGRESS_SVTAG_ENABLE   0x40000000 /* Enable the SVTAG
+                                                           lookup for the
+                                                           VLAN-Port. */
+ #define BCM_VLAN_PORT_IVL                   0x80000000 /* Creates an IVL type
+                                                           vlan port. */
++#define BCM_VLAN_PORT_INNER_VLAN_REPLACE    0x01000000  /* PTin added: Replace the port inner vid */
+ 
+ /* Logical layer 2 port match criteria */
+ typedef enum bcm_vlan_port_match_e {
+     BCM_VLAN_PORT_MATCH_INVALID = 0,    /* Illegal. */
+     BCM_VLAN_PORT_MATCH_NONE = 1,       /* No source match criteria. */
+     BCM_VLAN_PORT_MATCH_PORT = 2,       /* {Module, Port} or Trunk. */
+Index: include/shared/bslext.h
+===================================================================
+--- include/shared/bslext.h	(revision 7735)
++++ include/shared/bslext.h	(revision 7736)
+@@ -16,8 +16,12 @@
+ extern void
+ bsl_config_t_init(bsl_config_t *config);
+ 
+ extern int
+ bsl_init(bsl_config_t *config);
+ 
++/* PTin added: BSL LOG */
++extern int
++bsl_vectors_get(bsl_config_t * dst);
++
+ #endif /* _SHR_BSLEXT_H_ */
+ 
+Index: include/shared/alloc.h
+===================================================================
+--- include/shared/alloc.h	(revision 7735)
++++ include/shared/alloc.h	(revision 7736)
+@@ -16,9 +16,11 @@
+  * 
+  * This allows all code within the SDK to use the NULL-safe version without
+  * affecting existing SAL implementations or external codebases.
+  *
+  */
+ 
++#if (!((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__))))
+ #define sal_free sal_free_safe
++#endif
+  
+ #endif /* _SHR_ALLOC_H */
+Index: include/sal/core/alloc.h
+===================================================================
+--- include/sal/core/alloc.h	(revision 7735)
++++ include/sal/core/alloc.h	(revision 7736)
+@@ -12,6 +12,10 @@
+
+ #include <sal/compiler.h>
+
++#if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
++#include "osapi.h"
++#endif
++
+ /*
+  * SAL Memory and Cache Support
+  *
+@@ -21,9 +25,23 @@
+  *    or after DMA operations.
+  */
+
++/* Map sal_alloc/sal_free to osapi Api's except for
++** - MIPS64 cpu: SDK has some special code for MIPS64 in sal_alloc.
++** - Linux kernel mode
++** - Smartpath product
++*/
++#if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
++#define sal_alloc(sz,str) osapiMalloc(L7_DRIVER_COMPONENT_ID, sz)
++/* sal_alloc2()'s flag (SAL_ALLOC_F_ZERO) decides whether to call calloc (buffer init) vs malloc, but osapiMalloc already does buffer init, so...*/
++#define sal_alloc2(sz, flags, str) osapiMalloc(L7_DRIVER_COMPONENT_ID, sz)
++#define sal_free(ptr) osapiFree(L7_DRIVER_COMPONENT_ID, ptr)
++
++#else
++
+ extern void *sal_alloc(unsigned int, char *) SAL_ATTR_WEAK;
+ extern void *sal_alloc2(unsigned int sz, unsigned int flags, char *s) SAL_ATTR_WEAK;
+ extern void  sal_free(void *) SAL_ATTR_WEAK;
++#endif
+ extern void sal_get_alloc_counters(unsigned long *alloc_bytes_count,unsigned long *free_bytes_count) SAL_ATTR_WEAK;
+ extern void sal_get_alloc_counters_main_thr(unsigned long *alloc_bytes_count,unsigned long *free_bytes_count) SAL_ATTR_WEAK;
+ extern void sal_set_alloc_counters_offset(unsigned long alloc_bytes_count_offset, unsigned long free_bytes_count_offset) SAL_ATTR_WEAK;
+Index: src/appl/cputrans/atp.c
+===================================================================
+--- src/appl/cputrans/atp.c	(revision 7735)
++++ src/appl/cputrans/atp.c	(revision 7736)
+@@ -3864,20 +3864,35 @@ bet_c2c_free_tx_cb(uint8 *pkt_buf, void
+ 
+ STATIC void
+ tx_done_handle(_atp_client_t *client, int cpu, _atp_tx_trans_t *trans)
+ {
+ 
+     if (trans->flags & _ATP_TX_F_TIMEOUT) {
++#ifdef LVL7_FIXUP
++        /* Print the mac-address of the unit */
++        LOG_ERROR(BSL_LS_TKS_ATP,
++                      (BSL_META("ATP: TX timeout, seq %d. cli %d. to %d(mac %x:%x:%x:%x:%x:%x) tx cnt %d.\n"),
++                      trans->_atp_hdr.seq_num, trans->client->client_id,
++                      trans->dest_cpu, 
++                      _atp_cpu_info[trans->dest_cpu].key.key[0],
++                      _atp_cpu_info[trans->dest_cpu].key.key[1],
++                      _atp_cpu_info[trans->dest_cpu].key.key[2],
++                      _atp_cpu_info[trans->dest_cpu].key.key[3],
++                      _atp_cpu_info[trans->dest_cpu].key.key[4],
++                      _atp_cpu_info[trans->dest_cpu].key.key[5],
++                      trans->tx_count));
++#else
+         LOG_ERROR(BSL_LS_TKS_ATP,
+                   (BSL_META("ATP: TX timeout, seq %d. " CPUDB_KEY_FMT 
+                    " cli %d. to %d tx cnt %d.\n"),
+                    trans->_atp_hdr.seq_num,
+                    CPUDB_KEY_DISP(_atp_cpu_info[trans->dest_cpu].key),
+                    trans->client->client_id,
+                    trans->dest_cpu,
+                    trans->tx_count));
++#endif
+         if (atp_timeout_cb != NULL) {
+             (*atp_timeout_cb)(CPU_KEY(trans->dest_cpu));
+         }
+     }
+ 
+     if (trans->callback != NULL) {
+Index: src/appl/dpp/UserInterface/ui_module.c
+===================================================================
+--- src/appl/dpp/UserInterface/ui_module.c	(revision 7735)
++++ src/appl/dpp/UserInterface/ui_module.c	(revision 7736)
+@@ -161,14 +161,16 @@ STATUS
+   #include <sys/types.h>
+   #include <sys/uio.h>
+   #include <unistd.h>
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <termios.h>
++
++  #undef min
+   #define min(a,b)    (((a) < (b)) ? (a) : (b))
+-  
++
+ /*} LINUX */
+ #endif
+ 
+ #ifdef __DUNE_SSF__
+ /* { */
+ #include <appl/diag/dpp/utils_char_queue.h>
+Index: src/appl/dpp/UserInterface/ui_utils.c
+===================================================================
+--- src/appl/dpp/UserInterface/ui_utils.c	(revision 7735)
++++ src/appl/dpp/UserInterface/ui_utils.c	(revision 7736)
+@@ -11,12 +11,13 @@
+ #include <soc/dpp/SAND/Utils/sand_os_interface.h>
+ #ifdef __DUNE_HRP__
+   #include <DHRP/dhrp_defs.h>
+ #endif
+ 
+ #if (defined(LINUX) || defined(UNIX))
++  #undef min
+   #define min(a,b)    (((a) < (b)) ? (a) : (b))
+ 
+   #include <unistd.h>
+ #else
+   #if !defined(__DUNE_GTO_BCM_CPU__)
+   #include <appl/diag/dpp/utils_nvram_configuration.h>
+Index: src/appl/diag/cint/sal_cint_data.c
+===================================================================
+--- src/appl/diag/cint/sal_cint_data.c	(revision 7735)
++++ src/appl/diag/cint/sal_cint_data.c	(revision 7736)
+@@ -29,6 +29,16 @@
+ #include <shared/dbx/dbx_file.h>
+ #endif /* defined(BCM_SAND_SUPPORT) */
+
++
++/* PTin added: solve an incompatibility of CINT with LVL7_FIXUP definition */
++#if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
++#undef sal_alloc
++#undef sal_free
++extern void *sal_alloc(unsigned int, char *);
++extern void sal_free(void *);
++#endif
++
++
+ /*
+  * Explicit wrappers as these may be macros instead of functions
+  */
+Index: src/appl/diag/shell.c
+===================================================================
+--- src/appl/diag/shell.c	(revision 7735)
++++ src/appl/diag/shell.c	(revision 7736)
+@@ -3889,17 +3889,21 @@ sh_print_version(int verbose)
+     char build_year[5];
+ 
+     sal_strncpy(build_year, _build_datestamp, length);
+     build_year[length] = '\0';
+     cli_out("Broadcom Command Monitor: "
+             "Copyright (c) 1998-%s Broadcom\n", build_year);
++#if !defined(LVL7_FIXUP) || defined(VXWORKS)
+     cli_out("Release: %s built %s (%s)\n",
+             _build_release, _build_datestamp, _build_date);
+     cli_out("From %s@%s:%s\n",
+             _build_user, _build_host, _build_tree);
++#endif
++#if !defined(LVL7_FIXUP)
+     cli_out("Platform: %s\n", BCM_PLATFORM_STRING); 
++#endif
+     cli_out("OS: %s\n", sal_os_name() ? sal_os_name() : "unknown"); 
+ 
+     if (verbose) {
+ #if ( defined(BCM_ESW_SUPPORT) || defined(BCM_SAND_SUPPORT))
+     unsigned int i, j;
+ #endif
+Index: src/appl/diag/tksdiag.c
+===================================================================
+--- src/appl/diag/tksdiag.c	(revision 7735)
++++ src/appl/diag/tksdiag.c	(revision 7736)
+@@ -79,12 +79,18 @@ const bcm_mac_t _bcast_mac = {0xff, 0xff
+ /****************************************************************
+  *
+  * CPUDB control
+  *
+  ****************************************************************/
+ 
++#ifdef LVL7_FIXUP
++extern int bcmx_device_attach(int bcm_unit);
++extern int bcmx_device_detach(int bcm_unit);
++extern void tks_st_thread(void *cookie);
++#endif
++
+ STATIC INLINE void
+ db_entry_show(const cpudb_entry_t *entry)
+ {
+     const cpudb_stk_port_t  *sp_p;
+     int                     i;
+     char                    keybuf[CPUDB_KEY_STRING_LEN];
+@@ -347,12 +353,17 @@ char ct_cpudb_usage[] =
+     ;
+ 
+ cpudb_ref_t db_refs[MAX_DBS];
+ int cur_db;
+ int num_db = 0;
+ 
++#ifdef LVL7_FIXUP
++extern void bcmx_attach_callback(int unit, int attach,
++                         cpudb_entry_t *cpuent, int cpuunit);
++#endif
++
+ cmd_result_t
+ ct_cpudb(int unit, args_t *args)
+ {
+     char *subcmd;
+     char *int_arg;
+     parse_table_t pt;
+@@ -932,29 +943,33 @@ mh_opcode0_priority(int action)
+ 
+     return BCM_E_NONE;
+ }
+ 
+ #else 
+ 
++/* PTin removed: not used */
++#if 0
+ STATIC int
+ mh_opcode0_priority(int action)
+ {
+     COMPILER_REFERENCE(action);
+     return BCM_E_NONE;
+ }
++#endif
+ 
+ #endif  /* BCM_FIELD_SUPPORT && BCM_FIREBOLT_SUPPORT */
+ 
+ 
+ #define TKS_STK_DEFAULT_THREAD_PRIORITY 100
+ static int st_pri = TKS_STK_DEFAULT_THREAD_PRIORITY;
+ static sal_thread_t st_tid = SAL_THREAD_ERROR;
+ static sal_sem_t st_done_sem;
+ 
+ #define TOPO_ATP_FLAGS (ATP_F_NEXT_HOP | ATP_F_REASSEM_BUF)
+ 
++#ifndef LVL7_FIXUP
+ STATIC void
+ tks_st_thread(void *cookie)
+ {
+     bcm_st_config_t *cfg;
+     int rv, i;
+     sal_usecs_t attach_timeout;
+@@ -1011,12 +1026,13 @@ tks_st_thread(void *cookie)
+ #endif
+ 
+     mh_opcode0_priority(MH_OPCODE0_CLEAR);
+     sal_sem_give(st_done_sem);
+     sal_thread_exit(rv);
+ }
++#endif
+ 
+ typedef struct {
+     int timeout;
+     int rv;
+ } tks_st_stop_thread_arg_t;
+ 
+Index: src/appl/diag/cmdlist.c
+===================================================================
+--- src/appl/diag/cmdlist.c     (revision 8441)
++++ src/appl/diag/cmdlist.c     (working copy)
+@@ -766,8 +766,10 @@
+     {"STiMeout",        cmd_stimeout,           stimeout_usage,         "Set S-Channel timeout in microseconds" },
+     {"STKMode",         cmd_stkmode,            cmd_stkmode_usage,       "Hardware Stacking Mode Control"},
+ #if defined(TKS_SUPPORT)
++#if LVL7_FIXUP && !defined(L7_PRODUCT_SMARTPATH)
+     {"StkTask",         tks_stk_task,           tks_stk_task_usage,      "Stack task control" },
+ #endif
++#endif
+ #ifdef SW_AUTONEG_SUPPORT
+     {"SW_AN", if_esw_swAutoneg, if_esw_swAutoneg_usage, "Enable/Disable SW AN Thread"},
+ #endif
+Index: src/appl/stktask/topo_brd.c
+===================================================================
+--- src/appl/stktask/topo_brd.c	(revision 7735)
++++ src/appl/stktask/topo_brd.c	(revision 7736)
+@@ -491,12 +491,20 @@ _topo_board_default_program(cpudb_ref_t
+        should not matter. Define TOPO_BRD_UPDATE_BEFORE_PROGRAM to
+        restore the older behavior if it is needed. */
+     BCM_IF_ERROR_RETURN(_topo_stk_ports_update(db_ref, topo_cpu));
+ #endif
+ 
+     /* Set up the board based on device detection. */
++    #ifdef LVL7_FIXUP
++    extern int lvl7_topo_board_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu,int *rv);
++
++    if (lvl7_topo_board_program(db_ref,topo_cpu,&rv)){
++      /* nothing to do but skip the rest of the board detections */
++    }
++    else
++    #endif
+     if (soc_ndev == 1 &&
+                SOC_IS_HERCULES15(0)) {
+         rv = bcm_board_topo_cfm_xgs2(topo_cpu, db_ref);
+     } else if (soc_ndev == 1 &&
+                SOC_IS_XGS12_FABRIC(0)) {
+         rv = bcm_board_topo_8h(topo_cpu, db_ref);
+Index: src/appl/stktask/topology.c
+===================================================================
+--- src/appl/stktask/topology.c	(revision 7735)
++++ src/appl/stktask/topology.c	(revision 7736)
+@@ -158,20 +158,28 @@ tp_weights_init(cpudb_ref_t db_ref, weig
+                  * Already have a connection indicated;
+                  * fabric trunking handles this case
+                  */
+                 continue;
+             }
+ 
++#ifdef LVL7_FIXUP
++            TP_WEIGHT(weights, s_idx, d_idx) = sp_base->weight;
++#else
+             TP_WEIGHT(weights, s_idx, d_idx) = TOPO_DEFAULT_WEIGHT;
++#endif
+             /* Below indicates is reachable and by what stk port */
+             TP_TX_CXN(db_ref, s_idx, d_idx) = i;
+             TP_RX_CXN(db_ref, d_idx, s_idx) = sp->tx_stk_idx;
+             /* Check for duplex connection and set up if so. */
+             if (sp->flags & CPUDB_SPF_DUPLEX) {
+                 if (!TP_REACHABLE(db_ref, d_idx, s_idx)) {
++#ifdef LVL7_FIXUP
++                    TP_WEIGHT(weights, d_idx, s_idx) = dest_entry->base.stk_ports[sp->tx_stk_idx].weight;
++#else
+                     TP_WEIGHT(weights, d_idx, s_idx) = TOPO_DEFAULT_WEIGHT;
++#endif
+                     /* Below indicates is reachable and by what stk port */
+                     TP_TX_CXN(db_ref, d_idx, s_idx) = sp->tx_stk_idx;
+                     TP_RX_CXN(db_ref, s_idx, d_idx) = i;
+                 } else {
+                     LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                              (BSL_META("TOPO WARNING: Duplex port already marked, "
+Index: src/appl/stktask/brd_common.c
+===================================================================
+--- src/appl/stktask/brd_common.c	(revision 7735)
++++ src/appl/stktask/brd_common.c	(revision 7736)
+@@ -443,12 +443,16 @@ _bcm_board_trunk_interconnect_mark(int u
+  * Notes:
+  *     Some early discovery versions do not carry stack-port information
+  *     for remote CPU entries.
+  */
+ 
+ 
++#ifdef LVL7_FIXUP
++extern int lvl7_internal_hg_trunkid;
++#endif
++
+ STATIC int
+ _bcm_board_trunk_unit(int unit, cpudb_entry_t *entry, cpudb_ref_t db_ref,
+                       int start, int flags)
+ {
+     int                     tid, rv = BCM_E_NONE, i, j;
+     int                     idx;
+@@ -464,12 +468,20 @@ _bcm_board_trunk_unit(int unit, cpudb_en
+     bcm_trunk_chip_info_t   ti;
+     int                     trunk_maxnum;
+ 
+     /* Destroy any pre-existing fabric trunks */
+     if (flags & BCM_BOARD_TRUNK_DESTROY) {
+         for (tid = start;; tid++) {
++#ifdef LVL7_FIXUP
++            /* Don't destroy the internal HG trunk */
++            if ((lvl7_internal_hg_trunkid != -1) && (tid == lvl7_internal_hg_trunkid))
++            {
++                continue;            
++            }
++#endif
++
+             rv = bcm_trunk_destroy(unit, tid);
+             if (BCM_FAILURE(rv) && (BCM_E_NOT_FOUND != rv)) {
+                 break;
+             }
+         }
+         if (tid != start) {
+Index: src/appl/discover/disc_int.h
+===================================================================
+--- src/appl/discover/disc_int.h	(revision 7735)
++++ src/appl/discover/disc_int.h	(revision 7736)
+@@ -247,10 +247,14 @@
+ #define STK_ENTRY_BFLAGS_OFS    (STK_ENTRY_WEIGHT_OFS + sizeof(uint32))
+ #define STK_ENTRY_UNIT_OFS      (STK_ENTRY_BFLAGS_OFS + sizeof(uint32))
+ #define STK_ENTRY_PORT_OFS      (STK_ENTRY_UNIT_OFS + sizeof(uint32))
+ 
+ /* These are used to pre-allocate packet buffers for routing packets */
+ #define ROUTE_ENTRIES_PER_PKT_MAX 4    /* Max entries allowed/pkt */
++#if defined(LVL7_FIXUP) && defined(L7_PRODUCT_SMB)
++#define ROUTE_PKTS_MAX            32 /* Max route pkts for table */
++#else
+ #define ROUTE_PKTS_MAX            CPUDB_CPU_MAX /* Max route pkts for table */
++#endif
+ #define ROUTE_PKT_BYTES_MAX    1500    /* Max route pkts for table */
+ 
+ #endif /* _DISC_INT_H_ */
+Index: src/sal/appl/config.c
+===================================================================
+--- src/sal/appl/config.c	(revision 7735)
++++ src/sal/appl/config.c	(revision 7736)
+@@ -907,12 +907,13 @@ sal_config_refresh(void)
+         sal_printf("sal_config_refresh: config file path length is not supported (max length supported %d) \n", SAL_NAME_MAX);
+         return -1; /*throw a failure*/
+     }
+     sal_dirname(fname,dirname);
+     already_imported_tables[0] = sal_alloc(sal_strlen(fname)+1 ," alloc bcm file name");
+     sal_basename(fname, already_imported_tables[0]);
++    printf("%s(%d) Loading %s/%s variables\r\n", __FUNCTION__, __LINE__, dirname, fname);
+     rv =  sal_config_file_process(already_imported_tables[0],&nof_imported_config_files,already_imported_tables, dirname, 0);
+ 
+     for (i=0;i<nof_imported_config_files;i++) {
+         sal_free(already_imported_tables[i]);
+     }
+ 
+Index: src/sal/appl/editline/sysunix.c
+===================================================================
+--- src/sal/appl/editline/sysunix.c	(revision 7735)
++++ src/sal/appl/editline/sysunix.c	(revision 7736)
+@@ -20,20 +20,25 @@
+   -1 Default initialize value which can not be 0 or 1. This is neccessary so 
+      that when Reset is called the first time with either 0 or 1 that 
+      actions will be taken.
+   0 put device into raw mode. Disable echo so that editline can control it.
+   1 restore device back to mode prior to raw mode.
+ */
++/* PTin removed: serial port */
++#if (L7_SERIAL_COM_ATTR)
+ static int sRESET_CURRENT = -1;
++#endif
+ 
+ #if	defined(HAVE_TCGETATTR)
+ #include <termios.h>
+ 
+ void
+ rl_ttyset(int Reset)
+ {
++/* PTin removed: serial port */
++#if (L7_SERIAL_COM_ATTR)
+     static struct termios old;
+     struct termios		  new;
+ 
+     if (Reset != sRESET_CURRENT) {
+       sRESET_CURRENT = Reset;
+       if (Reset == 0) {
+@@ -63,21 +68,24 @@ rl_ttyset(int Reset)
+         }
+       } else {
+         /* Reset must be 1. */
+ 	    (void)tcsetattr(0, TCSADRAIN, &old);
+       }
+     }
++#endif
+ }
+ 
+ #else
+ #if	defined(HAVE_TERMIO)
+ #include <termio.h>
+ 
+ void
+ rl_ttyset(int Reset)
+ {
++/* PTin removed: serial port */
++#if (L7_SERIAL_COM_ATTR)
+     static struct termio old;
+     struct termio		 new;
+ 
+     if (Reset != sRESET_CURRENT) {
+       sRESET_CURRENT = Reset;
+       if (Reset == 0) {
+@@ -102,20 +110,23 @@ rl_ttyset(int Reset)
+ 	    new.c_cc[VTIME] = 0;
+ 	    (void)ioctl(0, TCSETAW, &new);
+       } else {
+         (void)ioctl(0, TCSETAW, &old);
+       }
+     }
++#endif
+ }
+ 
+ #else
+ #include <sgtty.h>
+ 
+ void
+ rl_ttyset(int Reset)
+ {
++/* PTin removed: serial port */
++#if (L7_SERIAL_COM_ATTR)
+     static struct sgttyb	old_sgttyb;
+     static struct tchars	old_tchars;
+     struct sgttyb		new_sgttyb;
+     struct tchars		new_tchars;
+ #if	defined(DO_SIGTSTP)
+     struct ltchars		old_ltchars;
+@@ -151,12 +162,13 @@ rl_ttyset(int Reset)
+ 	    new_tchars.t_quitc = -1;
+ 	  (void)ioctl(0, TIOCSETC, &new_tchars);
+       } else { (void)ioctl(0, TIOCSETP, &old_sgttyb);
+         (void)ioctl(0, TIOCSETC, &old_tchars);
+       }
+     }
++#endif
+ }
+ #endif	/* defined(HAVE_TERMIO) */
+ #endif	/* defined(HAVE_TCGETATTR) */
+ 
+ void
+ rl_add_slash(char	*path, char	*p)
+Index: src/sal/core/unix/alloc.c
+===================================================================
+--- src/sal/core/unix/alloc.c	(revision 7735)
++++ src/sal/core/unix/alloc.c	(revision 7736)
+@@ -22,12 +22,16 @@
+ #include <assert.h>
+ 
+ #include <sal/types.h>
+ #include <sal/core/thread.h>
+ #include <sal/core/memlog.h>
+ #include <sal/core/libc.h>
++#ifdef LVL7_FIXUP
++#include <soc/cm.h>
++#else
++#endif
+ 
+ #ifdef MEMORY_MEASUREMENT_DIAGNOSTICS
+ #include <shared/mem_measure_tool.h>
+ #endif
+ 
+ #ifndef USE_EXTERNAL_MEM_CHECKING
+@@ -777,23 +781,29 @@ sal_dma_alloc(size_t sz, char *s)
+      * allocates memory in pages
+      */
+     new_sz = (new_sz + (size_t)(pagesz-1)) & ~(pagesz-1);
+     p = mmap(NULL,
+              new_sz,
+              PROT_READ|PROT_WRITE,
+-             MAP_ANONYMOUS|MAP_SHARED|MAP_32BIT,
++             MAP_ANONYMOUS|MAP_SHARED|MAP_32BIT,    /* MAP_32BIT is not valid for AARCH64 architecture */
+              -1,
+              0);
+     if (MAP_FAILED == p) {
+         return NULL;
+     }
+ #else
++#if defined(LVL7_FIXUP) && !defined(PLISIM)
++    if ((p = soc_cm_salloc(0,sz + 12 ,s)) == 0) {
++        return p;
++    }
++#else
+     if ((p = malloc(new_sz)) == 0) {
+         return p;
+     }
+ #endif
++#endif
+ 
+     assert(INT_TO_PTR(PTR_TO_INT(p)) == p);
+ 
+     p[0] = sz / 4;
+     p[1] = 0xaaaaaaaa;
+     p[2 + sz / 4] = 0xbbbbbbbb;
+@@ -879,15 +889,19 @@ sal_dma_free(void *addr)
+      * page alligned.
+      */
+     org_sz =  (ap[0] * 4) + 12; /* Add 12 for 3 sentinels */
+     org_sz = (org_sz + (size_t)(pagesz-1)) & ~(pagesz-1);
+     munmap(ap, org_sz);
+ #else
++#if defined(LVL7_FIXUP) && !defined(PLISIM)
++    soc_cm_sfree(0, ap);
++#else
+     /*    coverity[address_free : FALSE]    */
+     free(ap);
+ #endif
++#endif
+ }
+ 
+ /*
+  * Function:
+  *    sal_dma_flush
+  * Purpose:
+Index: src/sal/core/unix/thread.c
+===================================================================
+--- src/sal/core/unix/thread.c  (revision 8441)
++++ src/sal/core/unix/thread.c  (working copy)
+@@ -39,6 +39,8 @@
+ #include <sal/core/spl.h>
+ #include <sal/limits.h>
+
++#include "datatypes.h"
++
+ #if defined (__STRICT_ANSI__)
+ #define NO_CONTROL_C
+ #endif
+@@ -71,10 +73,12 @@
+ #define SAL_SCHED_PRIO_CRITICAL         10
+ #endif
+
++#ifndef LVL7_FIXUP
+ static pthread_mutex_t _sal_thread_lock = PTHREAD_MUTEX_INITIALIZER;
+
+ #define THREAD_LOCK() pthread_mutex_lock(&_sal_thread_lock)
+ #define THREAD_UNLOCK() pthread_mutex_unlock(&_sal_thread_lock)
++#endif
+
+ #if defined(BROADCOM_DEBUG) && defined(INCLUDE_BCM_SAL_PROFILE)
+ static unsigned int _sal_thread_count_curr;
+@@ -120,12 +124,17 @@ sal_thread_resource_usage_get(unsigned i
+  */
+ #ifndef PTHREAD_STACK_MIN
+ #define PTHREAD_STACK_MIN 16384
+ #endif
+ #endif
+ 
++#ifdef LVL7_FIXUP
++#include <l7_common.h>
++#include <osapi.h>
++#else
++
+ /*
+  * Function:
+  *	thread_boot
+  * Purpose:
+  *	Entry point for each new thread created
+  * Parameters:
+@@ -198,12 +207,13 @@ thread_boot(void *ti_void)
+     /* Thread function did not call sal_thread_exit() */
+     sal_thread_exit(0);
+ 
+     /* Will never get here */
+     return NULL;
+ }
++#endif /* LVL7_FIXUP */
+ 
+ 
+ /*
+  * Function:
+  *  sal_thread_join
+  * Purpose:
+@@ -241,12 +251,41 @@ sal_thread_join(sal_thread_t thread, voi
+  *	Thread ID
+  */
+ 
+ sal_thread_t
+ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
+ {
++#ifdef LVL7_FIXUP
++    L7_uint64 salTaskHandle;
++
++    {   //PTIn modified
++        L7_uint32 pri, tslice;
++
++        //if (0==strcmp("bcmRX",name))                {pri=80; tslice=1;}
++        //else
++        //if (0==strcmp("bcmTX",name))                {pri=83; tslice=1;}
++        //else
++        //if (0==strcmp("Desc DMA Timeout",name))     {pri=83; tslice=1;}
++        //else
++        //if (0==strncmp("socdmadesc.", name, strlen("socdmadesc.")))
++        //                                            {pri=83; tslice=1;}
++        //else
++        ////if (0==strcmp("bcmXGS3AsyncTX",name))       {pri=83; tslice=1;}
++        ////else
++        //if (0==strcmp("bcmINTR",name))              {pri=87; tslice=1;}
++        //else
++        {pri=L7_DEFAULT_TASK_PRIORITY; tslice=L7_DEFAULT_TASK_SLICE;}
++
++        salTaskHandle = osapiTaskCreate(name, f, arg, 1,
++                                        (L7_uint32) ss,
++                                        pri,
++                                        tslice);
++    }
++
++    return (sal_thread_t) UINT_TO_PTR(salTaskHandle);
++#else
+     pthread_attr_t	attribs;
+     struct sched_param param;
+     thread_info_t	*ti;
+     pthread_t		id;
+     sal_sem_t           sem;
+ 
+@@ -320,12 +359,13 @@ sal_thread_create(char *name, int ss, in
+      * to update thread_info_t and tell us to continue.
+      */
+     sal_sem_take(sem, sal_sem_FOREVER);
+     sal_sem_destroy(sem);
+ 
+     return ((sal_thread_t)id);
++#endif /* LVL7_FIXUP */
+ }
+ 
+ /*
+  * Function:
+  *	sal_thread_destroy
+  * Purpose:
+@@ -345,12 +385,19 @@ sal_thread_create(char *name, int ss, in
+  *	sal_thread_exit().
+  */
+ 
+ int
+ sal_thread_destroy(sal_thread_t thread)
+ {
++#ifdef LVL7_FIXUP
++    L7_uint64 salTaskHandle = PTR_TO_UINT64(thread);
++
++    osapiTaskDelete(salTaskHandle);
++
++    return 0;
++#else
+ #ifdef netbsd
+     /* not supported */
+     return -1;
+ #else
+     thread_info_t	*ti, **tp;
+     pthread_t		id = (pthread_t) thread;
+@@ -382,12 +429,13 @@ sal_thread_destroy(sal_thread_t thread)
+         }
+         free(ti);
+     }
+ 
+     return 0;
+ #endif
++#endif /* LVL7_FIXUP */
+ }
+ 
+ /*
+  * Function:
+  *	sal_thread_self
+  * Purpose:
+@@ -398,13 +446,17 @@ sal_thread_destroy(sal_thread_t thread)
+  *	Thread ID
+  */
+ 
+ sal_thread_t
+ sal_thread_self(void)
+ {
++#ifdef LVL7_FIXUP
++    return (sal_thread_t) UINT_TO_PTR(osapiTaskIdSelf());
++#else
+     return (sal_thread_t) pthread_self();
++#endif /* LVL7_FIXUP */
+ }
+ 
+ int
+ sal_thread_id_get(void)
+ {
+     return syscall(SYS_gettid);
+@@ -421,15 +473,25 @@ sal_thread_id_get(void)
+  *		gets empty string if not available
+  *	thread_name_size - maximum size of buffer
+  * Returns:
+  *	NULL, if name not available
+  *	thread_name, if name available
+  */
++#ifdef LVL7_FIXUP
++extern pthread_key_t osapi_name_key;
++#endif /* LVL7_FIXUP */
+ char *
+ sal_thread_name(sal_thread_t thread, char *thread_name, int thread_name_size)
+ {
++#ifdef LVL7_FIXUP
++    char *task_name;
++
++    task_name = (char *) pthread_getspecific(osapi_name_key);
++    strncpy(thread_name, task_name, thread_name_size);
++    return thread_name;
++#else
+     thread_info_t	*ti;
+     char                *name;
+ 
+     name = NULL;
+ 
+     THREAD_LOCK();
+@@ -445,12 +507,13 @@ sal_thread_name(sal_thread_t thread, cha
+ 
+     if (name == NULL) {
+         thread_name[0] = 0;
+     }
+ 
+     return name;
++#endif /* LVL7_FIXUP */
+ }
+ 
+ /*
+  * Function:
+  *	sal_thread_exit
+  * Purpose:
+@@ -461,12 +524,19 @@ sal_thread_name(sal_thread_t thread, cha
+  *	Never returns.
+  */
+ 
+ void
+ sal_thread_exit(int rc)
+ {
++#ifdef LVL7_FIXUP
++  L7_uint64 salTaskHandler = osapiTaskIdSelf();
++
++  osapiTaskDelete(salTaskHandler);
++
++  return;
++#else
+     thread_info_t	*ti, **tp;
+     pthread_t		id = pthread_self();
+ 
+     ti = NULL;
+ 
+     THREAD_LOCK();
+@@ -489,12 +559,13 @@ sal_thread_exit(int rc)
+             free(ti->name);
+         }
+         free(ti);
+     }
+ 
+     pthread_exit(INT_TO_PTR(rc));
++#endif /* LVL7_FIXUP */
+ }
+ 
+ /*
+  * Function:
+  *	sal_thread_yield
+  * Purpose:
+@@ -628,19 +628,22 @@ sal_thread_main_get(void)
+  *      None
+  */
+ 
+ void
+ sal_thread_traverse(thread_traverse_cb_f cb_func, void *cb_date)
+ {
++/* PTin removed: SDK 6.5.20 */
++#if 0
+     thread_info_t *ti;
+ 
+     for (ti = thread_head; ti != NULL; ti = ti->next) {
+         if (cb_func) {
+             cb_func(cb_date, ti->tid, ti->name);
+         }
+     }
++#endif
+ }
+ 
+ /*
+  * Function:
+  *	sal_sleep
+  * Purpose:
+Index: src/bcm/dpp/port.c
+===================================================================
+--- src/bcm/dpp/port.c	(revision 7735)
++++ src/bcm/dpp/port.c	(revision 7736)
+@@ -4659,13 +4659,14 @@ bcm_petra_port_selective_get(int unit, b
+         }
+     }
+ 
+     if (mask & BCM_PORT_ATTR_LINKSTAT_MASK) {
+         rv = bcm_petra_port_link_status_get(unit, port_ndx, &info->linkstatus);
+         if (rv != BCM_E_NONE) {
+-            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_link_status_get failed: %s"), bcm_errmsg(rv)));
++            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("(unit %d, port %d) bcm_petra_port_link_status_get failed: %s"),
++                                     unit, port_ndx, bcm_errmsg(rv)));
+         }
+     }
+ 
+     if (mask & BCM_PORT_ATTR_SPEED_MASK) {
+         if ((rv = bcm_petra_port_speed_get(unit, port_ndx, &info->speed)) < 0) {
+             if (rv != BCM_E_BUSY) {
+Index: src/bcm/rpc/rpc.c
+===================================================================
+--- src/bcm/rpc/rpc.c	(revision 7735)
++++ src/bcm/rpc/rpc.c	(revision 7736)
+@@ -306,12 +306,22 @@ bcm_rpc_request(int unit, uint8 *buf, in
+ 
+     if (req->rbuf == NULL) {  /* no response buffer */
+         /* This request normally would have been unlinked when req.sem
+            was given, but if sal_sem_take returns in error then the
+            request record needs to be be unlinked here.
+         */
++#ifdef LVL7_FIXUP
++      LOG_ERROR(BSL_LS_BCM_COMMON,
++                    (BSL_META("RPC - Timeout to CPU: %x:%x:%x:%x:%x:%x.\n"),
++                     cpu.key[0],
++                     cpu.key[1],
++                     cpu.key[2],
++                     cpu.key[3],
++                     cpu.key[4],
++                     cpu.key[5]));
++#endif
+         _bcm_rpc_unlink_request(req);
+         sal_sem_destroy(req->sem);
+         sal_free((void *)req);
+         RPC_COUNT(_rpc_count_c_timeout);
+         return BCM_E_TIMEOUT;
+     }
+Index: src/bcm/common/tx.c
+===================================================================
+--- src/bcm/common/tx.c	(revision 7735)
++++ src/bcm/common/tx.c	(revision 7736)
+@@ -2919,14 +2919,28 @@ _xgs3_tx(int unit, bcm_pkt_t *pkt, void
+                     soc_feature(unit, soc_feature_higig3)) {
+             rv = bcm_td3_tx_hg3_array(unit, packet_pointers_p, pkt_cnt,
+                                       &_xgs3_tx_cb, _xgs3_tx_cb_cookie);
+         } else
+ #endif
+         {
++#ifdef LVL7_FIXUP
++            /* If original pkt was synchronous, make a synchronous call */
++            if (NULL == pkt->call_back) {
++                /* Make synchronous call, and invoke the callback */
++                rv = bcm_common_tx_array(unit, packet_pointers_p, pkt_cnt, NULL, NULL);
++
++                _xgs3_tx_cb(unit, packet_pointers_p[0],  _xgs3_tx_cb_cookie);
++            }
++            else {
++                rv = bcm_common_tx_array(unit, packet_pointers_p, pkt_cnt, &_xgs3_tx_cb,
++                _xgs3_tx_cb_cookie);
++            }
++#else
+             rv = bcm_common_tx_array(unit, packet_pointers_p, pkt_cnt, &_xgs3_tx_cb,
+                     _xgs3_tx_cb_cookie);
++#endif
+         }
+         sal_free(packet_pointers_p);
+         /* packets_p and _xgs3_tx_cb_cookie will be freed by _xgs3_tx_cb */
+ 
+     } else {
+ #ifdef BCM_TRIDENT3_SUPPORT
+Index: src/soc/i2c/bus.c
+===================================================================
+--- src/soc/i2c/bus.c	(revision 7735)
++++ src/soc/i2c/bus.c	(revision 7736)
+@@ -2210,6 +2210,105 @@ soc_i2c_show_speeds(int unit)
+                  i2c_xgs3_freq_tab[i].n : i2c_freq_tab[i].n,
+                  SOC_IS_XGS3_SWITCH(unit) ?
+                  i2c_xgs3_freq_tab[i].speed : i2c_freq_tab[i].speed));
+     }
+ }
+ 
++#ifdef LVL7_FIXUP
++int
++soc_i2c_read_test(int unit, uint8 devid, uint8 *ptr, int len)
++{
++    int rv = SOC_E_NONE;
++    int i;
++
++    if ( (rv = soc_i2c_start(unit, SOC_I2C_RX_ADDR(devid) ) ) < 0 ) {
++        LOG_ERROR(BSL_LS_SOC_I2C,
++                      (BSL_META_U(unit,
++                                  "i2c%d: soc_i2c_read_byte_data: failed to generate start.\n"),
++                       unit));
++        return rv;
++    }
++
++    do {
++        for (i = 0; i < len; i++) {
++           if (i == len - 1) {
++             if ( (rv = soc_i2c_read_one_byte(unit, ptr,
++                                              FALSE)) < 0 ) {
++               LOG_ERROR(BSL_LS_SOC_I2C,
++                             (BSL_META_U(unit,
++                                         "i2c%d: soc_i2c_read_byte_data: failed to read data byte.\n"),
++                              unit));
++             }
++           } else {
++             if ( (rv = soc_i2c_read_one_byte(unit, ptr,
++                                              TRUE)) < 0 ) {
++               LOG_ERROR(BSL_LS_SOC_I2C,
++                             (BSL_META_U(unit,
++                                         "i2c%d: soc_i2c_read_byte_data: failed to read data byte.\n"),
++                              unit));
++             }
++           }
++           ptr++;
++        }
++    } while (0);
++
++    soc_i2c_stop(unit);
++
++    return rv;
++
++
++}
++
++int
++soc_i2c_write_test(int unit, uint8 devid, uint8 *ptr, int len)
++{
++    int rv = SOC_E_NONE;
++    int i;
++
++    if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(devid) ) ) < 0 ) {
++        LOG_ERROR(BSL_LS_SOC_I2C,
++                      (BSL_META_U(unit,
++                                  "i2c%d: soc_i2c_write_test: failed to generate start.\n"),
++                       unit));
++        return rv;
++    }
++
++    do {
++        for (i = 0; i < len; i++) {
++
++              LOG_INFO(BSL_LS_SOC_I2C,
++                           (BSL_META_U(unit,
++                                       "i2c%d: soc_i2c_write_test: writing byte%d = %d\n"),
++                            unit, i, *ptr));
++
++             if ( (rv = soc_i2c_write_one_byte(unit, *ptr)) < 0 ) {
++                LOG_ERROR(BSL_LS_SOC_I2C,
++                              (BSL_META_U(unit,
++                                          "i2c%d: soc_i2c_write_test: failed to write data byte.\n"),
++                               unit));
++             }
++           ptr++;
++        }
++    } while (0);
++
++    soc_i2c_stop(unit);
++
++    return rv;
++
++}
++
++void soc_i2c_regdump()
++{
++  int unit = 0;
++
++  LOG_INFO(BSL_LS_SOC_I2C,
++               (BSL_META_U(unit,
++                           "soc_i2c_regdump: SLAVE_ADDR: 0x%02x DATA: 0x%02x CTRL: 0x%02x STAT: 0x%02x SLAVE_XADDR: 0x%02x RESET: 0x%02x\n"),
++                soc_i2c_pci_read(unit, CMIC_I2C_SLAVE_ADDR),
++                soc_i2c_pci_read(unit, CMIC_I2C_DATA),
++                soc_i2c_pci_read(unit, CMIC_I2C_CTRL),
++                soc_i2c_pci_read(unit, CMIC_I2C_STAT),
++                soc_i2c_pci_read(unit, CMIC_I2C_SLAVE_XADDR),
++                soc_i2c_pci_read(unit, CMIC_I2C_RESET)));
++}
++#endif /* LVL7_FIXUP */
++
+Index: src/soc/portmod/portmod.c
+===================================================================
+--- src/soc/portmod/portmod.c	(revision 7735)
++++ src/soc/portmod/portmod.c	(revision 7736)
+@@ -2258,18 +2258,18 @@ int portmod_port_pm_type_get(int unit, i
+     if(_pmm_info[unit] == NULL){
+         _SOC_EXIT_WITH_ERR(SOC_E_INIT, (_SOC_MSG("Portmod was not initialized for the unit")));
+     }
+ 
+     rv = SOC_WB_ENGINE_GET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_ALIAS_MAP, real_port, port);
+     if (SOC_FAILURE(rv)) {
+-        _SOC_EXIT_WITH_ERR(SOC_E_PORT, ("port %d doesn't exist", port));
++        _SOC_EXIT_WITH_ERR(SOC_E_PORT, (_SOC_MSG("port %d doesn't exist"), port));
+     }
+ 
+     /* if real_port is invalid, it should not call portmod_pm_info_get with invalid port.*/
+     if(*real_port == INVALID_PORT) {
+-        _SOC_EXIT_WITH_ERR(SOC_E_PORT, ("port %d is not valid.", port));        
++        _SOC_EXIT_WITH_ERR(SOC_E_PORT, (_SOC_MSG("port %d is not valid."), port));
+     }
+ 
+     _SOC_IF_ERR_EXIT(portmod_pm_info_get(unit, *real_port, &pm_info));
+     *type = pm_info->type;
+ exit:
+     SOC_FUNC_RETURN;     
+Index: src/soc/common/soc_flash.c
+===================================================================
+--- src/soc/common/soc_flash.c	(revision 7735)
++++ src/soc/common/soc_flash.c	(revision 7736)
+@@ -59,13 +59,15 @@
+ #define SPI_RW_END   0x02    /* Deassert CS after transfer */
+ 
+ 
+ /* Common status */
+ #define STATUS_WIP              0x01
+ #ifndef __KERNEL__
++#undef max
+ #define max(a, b) (((a) > (b)) ? (a) : (b))
++#undef min
+ #define min(a, b) (((a) < (b)) ? (a) : (b))
+ #endif
+ #define ID_LEN 11
+ 
+ 
+ /* Configuration register */
+Index: src/soc/common/dma.c
+===================================================================
+--- src/soc/common/dma.c	(revision 7735)
++++ src/soc/common/dma.c	(revision 7736)
+@@ -57,12 +57,16 @@
+ #endif
+ 
+ #ifdef INCLUDE_KNET
+ #include <soc/knet.h>
+ #endif
+ 
++/* PTin added */
++#include "ptin/logger.h"
++#include "unistd.h"
++
+ #ifdef BCM_CMIC_SUPPORT
+ 
+ #define DV_MAGIC_NUMBER 0xba5eba11
+ 
+ #define DMA_CHAIN_DONE_TIMEOUT_USEC         (4000)
+ #define DMA_CHAIN_DONE_INTERVAL_USEC        (1000)
+@@ -2036,13 +2040,32 @@ soc_dma_done_chain(int unit, uint32 vcha
+     sc->sc_q_cnt--;                     /* Decrement */
+ 
+     soc_dma_start_channel(unit, sc);
+ 
+     SOC_DMA_UNLOCK(soc_dma_lock);
+ 
+-    soc_dma_process_done_desc(unit, dv_chain, dv_active);
++    /* PTIn added: By calling this multiple times it should force a cache flush. */
++    int i = 0;
++    do
++    {
++      soc_dma_process_done_desc(unit, dv_chain, dv_active);
++
++      /* Wait 1 millisecond, if process not completed */
++      if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
++        usleep(10000);
++    } while ((dv_chain->dv_dcnt != dv_chain->dv_vcnt) && ((++i) < 100));
++
++    /* PTin added: print assert info */
++    if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
++    {
++      PT_LOG_ERR(LOG_CTX_SDK, "dv_chain->dv_dcnt=%d, dv_chain->dv_vcnt=%d", dv_chain->dv_dcnt, dv_chain->dv_vcnt);
++    }
++    else if (i > 0)
++    {
++      PT_LOG_WARN(LOG_CTX_SDK, "%u tries to achieve dv_chain->dv_dcnt (%d) == dv_chain->dv_vcnt (%d)", i, dv_chain->dv_dcnt, dv_chain->dv_vcnt);
++    }
+ 
+     if (!soc_feature(unit, soc_feature_cmicx)) {
+         dma_done_desc_check(unit, dv_chain, dv_active, sc);
+     }
+ 
+     if (dv_chain->dv_flags & DV_F_NOTIFY_CHN) {
+Index: src/soc/common/mem.c
+===================================================================
+--- src/soc/common/mem.c	(revision 7735)
++++ src/soc/common/mem.c	(revision 7736)
+@@ -24843,19 +24843,31 @@ _soc_mem_dual_hash_insert(int unit,
+         if (hash_info.hash_sel0 == hash_info.hash_sel1) {
+             /* Can't juggle the entries */
+             return SOC_E_FULL;
+         }
+         hash_info.bucket_size = SOC_L2X_BUCKET_SIZE;
+         hash_info.base_mem = mem;
++#ifdef LVL7_FIXUP
++       /* soc_l2x_freeze/thaw routine are very costly as they try to disable
++        * learning on all Physical and VPs. In cases where we are continously
++        * running into hash collision, freeze/thaw ends up taking a lot of 
++        * cpu time un-neccessarily as we have not enabled software dual-hash
++        * move by default. */
++       if (recurse_depth > 0)
++       {
++#endif
+ 
+         /* Time to shuffle the entries */
+         SOC_IF_ERROR_RETURN(soc_l2x_freeze(unit));
+         rv = _soc_mem_dual_hash_move(unit, mem, SOC_MEM_HASH_BANK_BOTH,
+                                      copyno, entry_data, &hash_info,
+                                      NULL, recurse_depth - 1,0);
+         SOC_IF_ERROR_RETURN(soc_l2x_thaw(unit));
++#ifdef LVL7_FIXUP
++       }
++#endif
+         return rv;
+ #ifdef BCM_TRX_SUPPORT
+     case VLAN_XLATEm:
+         if (!SOC_IS_TRX(unit)) {
+             break;
+         }
+Index: src/soc/common/cm.c
+===================================================================
+--- src/soc/common/cm.c	(revision 7735)
++++ src/soc/common/cm.c	(revision 7736)
+@@ -44,12 +44,15 @@
+ #include <soc/ltsw/ha.h>
+ #include <soc/ltsw/issu.h>
+ #endif
+ 
+ #include <sal/core/memlog.h>
+ 
++/* PTin added: logger */
++#include "ptin/logger.h"
++
+ #if defined(BCM_ESW_SUPPORT) || defined(BCM_SAND_SUPPORT)
+ #define IHOST_S0_ADDR_START 0x19000000
+ #define IHOST_S0_ADDR_END  0x1901FFFF
+ #define IHOST_ACP_ADDR_START 0x19020000
+ #define IHOST_ACP_ADDR_END  0x19022FFF
+ 
+@@ -7744,12 +7747,17 @@ soc_cm_salloc(int dev, int size, const c
+ #ifdef BROADCOM_DEBUG
+     if (soc_cm_debug_property_get(dev)) {
+         shared_block_t  *p = NULL;
+         uint32             size_words = (size + 3) / 4;
+         uint32             modified_size = 0;
+ 
++        if (name == NULL || name[0] == 0)
++        {
++          PT_LOG_FATAL(LOG_CTX_SDK,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
++        }
++
+         assert(name != NULL);        /* Don't pass NULLs in here! */
+         assert(name[0] != 0);        /* Don't pass empty strings in here! */
+ 
+         modified_size = sizeof (shared_block_t) + (size_words * 4);
+         p = CMVEC(dev).salloc(&CMDEV(dev).dev, modified_size, name);
+ 
+@@ -7817,12 +7825,16 @@ soc_cm_sfree(int dev, void *ptr)
+         /*
+         int            size_words = 0;
+         */
+ 
+         p = (shared_block_t *) (((char*)ptr) -
+         ( (((char*)&(((shared_block_t*)0)->user_data[0]))) - ((char*)(shared_block_t*)0) ));
++        if (p == NULL)
++        {
++          PT_LOG_FATAL(LOG_CTX_SDK,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
++        }
+         /* check sentinel */
+         assert(SHARED_GOOD_FREE(p));
+         assert(SHARED_GOOD_START(p));
+         assert(SHARED_GOOD_END(p));
+ 
+         /*
+@@ -7837,12 +7849,16 @@ soc_cm_sfree(int dev, void *ptr)
+         if (p == head) {
+             head = p->next;
+             if (head != NULL) {
+                 head->prev = NULL;
+             }
+         } else {
++            if (p->prev == NULL)
++            {
++              PT_LOG_FATAL(LOG_CTX_SDK,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
++            }
+             p->prev->next = p->next;
+             if (p->next != NULL) {
+                 p->next->prev = p->prev;
+             }
+         }
+         /* Detect redundant frees */
+@@ -7981,12 +7997,19 @@ soc_cm_sflush(int dev, void *addr, int l
+  * Returns:     SOC_E_XXX
+  */
+ 
+ int
+ soc_cm_sinval(int dev, void *addr, int length)
+ {
++#if defined(LVL7_FIXUP) && defined(LVL7_DNI8541)
++/* The cache doesn't need to be synced on the PPC85XX processor. 
++** Invoking the function causes a crash on the PPC85XX devices.
++*/
++    return SOC_E_NONE;
++#endif	
++
+     if (CMVEC(dev).sinval) {
+         return CMVEC(dev).sinval(&CMDEV(dev).dev, addr, length);
+     }
+ 
+     return SOC_E_NONE;
+ }
+Index: src/soc/phy/phyreg.c
+===================================================================
+--- src/soc/phy/phyreg.c	(revision 7735)
++++ src/soc/phy/phyreg.c	(revision 7736)
+@@ -19,12 +19,21 @@
+ #include <soc/phy/phyctrl.h>
+ 
+ #include "phydefs.h"      /* Must include before other phy related includes */
+ 
+ #include "phyreg.h"
+ 
++#ifdef LVL7_FIXUP
++#include "sysapi_hpc.h"
++#include "hpc_phy.h"
++
++#undef SOC_IF_ERROR_RETURN
++#define SOC_IF_ERROR_RETURN(op) \
++    do { int __rv__; if ((__rv__ = (op)) < 0) {HPC_PHY_SHADOW_REG_UNLOCK(unit); return(__rv__);} } while(0)
++#endif
++
+ #define _SOC_PHY_REG_DIRECT \
+         ((SOC_PHY_REG_1000X << 1) | (SOC_PHY_REG_1000X >> 1))
+ 
+ 
+ #define PHY_MODEL_CHECK(_pc, _oui, _model) \
+                                 (((_pc)->phy_oui == (_oui)) && \
+@@ -68,32 +77,44 @@ phy_reg_modify(int unit, phy_ctrl_t *pc,
+     uint16  tmp, otmp;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     reg_data = reg_data & reg_mask;
+ 
+     SOC_IF_ERROR_RETURN
+         (READ_PHY_REG(unit, pc, reg_addr, &tmp));
+     otmp = tmp;
+     tmp &= ~(reg_mask);
+     tmp |= reg_data;
+ 
+     if (otmp != tmp) {
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, reg_addr, tmp));
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ int 
+ phy_reg_fe_read(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+                 uint8 reg_addr, uint16 *data)
+ {
+     uint16 test_reg;
+   
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_bank) {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg | 0x0080));
+     
+@@ -102,12 +123,16 @@ phy_reg_fe_read(int unit, phy_ctrl_t *pc
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg));
+     } else {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, reg_addr, data));
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ int 
+ phy_reg_fe_write(int unit, phy_ctrl_t *pc, uint16 reg_bank, 
+                  uint8 reg_addr, uint16 data)
+@@ -115,12 +140,16 @@ phy_reg_fe_write(int unit, phy_ctrl_t *p
+     uint16 test_reg;
+  
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_bank) {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg | 0x0080));
+     
+@@ -129,12 +158,16 @@ phy_reg_fe_write(int unit, phy_ctrl_t *p
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg));
+     } else {
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, reg_addr, data));
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ int 
+ phy_reg_fe_modify(int unit, phy_ctrl_t *pc, uint16 reg_bank, 
+                   uint8 reg_addr, uint16 data, uint16 mask)
+@@ -142,12 +175,16 @@ phy_reg_fe_modify(int unit, phy_ctrl_t *
+     uint16 test_reg;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+   
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_bank) {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg | 0x0080));
+     
+@@ -157,23 +194,31 @@ phy_reg_fe_modify(int unit, phy_ctrl_t *
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg));
+     } else {
+         SOC_IF_ERROR_RETURN
+             (MODIFY_PHY_REG(unit, pc, reg_addr, data, mask));
+     }
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ int
+ phy_reg_ge_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
+                 uint8 reg_addr, uint16 *data)
+ {
+     int     rv;
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (flags & SOC_PHY_REG_1000X) {
+         if (reg_addr <= 0x000f) {
+             uint16 blk_sel;
+ 
+             /* Map 1000X page */
+             SOC_IF_ERROR_RETURN
+@@ -237,12 +282,16 @@ phy_reg_ge_read(int unit, phy_ctrl_t *pc
+             break;
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = READ_PHY_REG(unit, pc, reg_addr, data);
+         }
+     } 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         LOG_ERROR(BSL_LS_SOC_PHY,
+                   (BSL_META_U(unit,
+                               "phy_reg_ge_read failed:"
+                               " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
+                               " rv=%d\n"), unit, pc->phy_id, reg_bank, reg_addr, rv)); 
+@@ -302,12 +351,16 @@ phy_reg_ge_write(int unit, phy_ctrl_t *p
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (flags & SOC_PHY_REG_1000X) {
+         if (reg_addr <= 0x000f) {
+             uint16 blk_sel;
+ 
+             /* Map 1000X page */
+             SOC_IF_ERROR_RETURN
+@@ -387,12 +440,16 @@ phy_reg_ge_write(int unit, phy_ctrl_t *p
+                             SOC_PHY_SHAD_RETRY_CNT);
+                 }
+             }
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         LOG_ERROR(BSL_LS_SOC_PHY,
+                   (BSL_META_U(unit,
+                               "phy_reg_ge_write failed:"
+                               " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
+                               " rv=%d\n"), unit, pc->phy_id, reg_bank, reg_addr, rv)); 
+@@ -410,12 +467,16 @@ phy_reg_ge_modify(int unit, phy_ctrl_t *
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (flags & SOC_PHY_REG_1000X) {
+         if (reg_addr <= 0x000f) {
+             uint16 blk_sel;
+ 
+             /* Map 1000X page */
+             SOC_IF_ERROR_RETURN
+@@ -515,12 +576,16 @@ phy_reg_ge_modify(int unit, phy_ctrl_t *
+                 }
+             }
+ 
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         LOG_ERROR(BSL_LS_SOC_PHY,
+                   (BSL_META_U(unit,
+                               "phy_reg_ge_modify failed:"
+                               " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
+                               " rv=%d\n"), unit, pc->phy_id, reg_bank, reg_addr, rv)); 
+@@ -615,12 +680,16 @@ phy_reg_xge_write(int unit, phy_ctrl_t *
+     rv       = SOC_E_NONE;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)) {
+         return rv;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     {
+         switch(reg_addr) {
+         /* Map shadow registers */
+         case 0xfff5:
+             SOC_IF_ERROR_RETURN
+                     (WRITE_PHY_REG(unit, pc, SOC_PHY_CLAUSE45_ADDR(dev_addr, 0xfff7), reg_bank));
+@@ -660,12 +729,16 @@ phy_reg_xge_write(int unit, phy_ctrl_t *
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, SOC_PHY_CLAUSE45_ADDR(dev_addr, reg_addr), data);
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         LOG_ERROR(BSL_LS_SOC_PHY,
+                   (BSL_META_U(unit,
+                               "phy_reg_ge_write failed:"
+                               " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
+                               " rv=%d\n"), unit, pc->phy_id, dev_addr, reg_bank, reg_addr, rv)); 
+@@ -679,12 +752,16 @@ phy_reg_xge_modify(int unit, phy_ctrl_t
+                 uint8 dev_addr, uint16 reg_addr, uint16 data, uint16 mask)
+ {
+     int     rv;
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     {
+         switch(reg_addr) {
+         /* Map shadow registers */
+         case 0xfff5:
+             SOC_IF_ERROR_RETURN
+                 (WRITE_PHY_REG(unit, pc, SOC_PHY_CLAUSE45_ADDR(dev_addr, 0xfff7), reg_bank));
+@@ -733,12 +810,16 @@ phy_reg_xge_modify(int unit, phy_ctrl_t
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = MODIFY_PHY_REG(unit, pc, SOC_PHY_CLAUSE45_ADDR(dev_addr, reg_addr), data, mask);
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         LOG_ERROR(BSL_LS_SOC_PHY,
+                   (BSL_META_U(unit,
+                               "phy_reg_ge_modify failed:"
+                               " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
+                               " rv=%d\n"), unit, pc->phy_id, dev_addr, reg_bank, reg_addr, rv)); 
+@@ -751,12 +832,16 @@ phy_reg_serdes_read(int unit, phy_ctrl_t
+                     uint8 reg_addr, uint16 *phy_rd_data) 
+ { 
+     int    rv; 
+  
+     rv     = SOC_E_NONE; 
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+ #ifdef INCLUDE_PHY_XGXS6
+     if (soc_feature(unit, soc_feature_xgxs_v6)) { 
+         if ((reg_bank != 0) || (reg_addr >= 0x0010)) { 
+             reg_bank = 0x300 + (reg_bank << 4); 
+         } 
+     } 
+@@ -765,12 +850,16 @@ phy_reg_serdes_read(int unit, phy_ctrl_t
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank); 
+  
+     if (SOC_SUCCESS(rv)) { 
+         rv = READ_PHY_REG(unit, pc, reg_addr, phy_rd_data);  
+     } 
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv; 
+ }
+ 
+ int
+ phy_reg_serdes_write(int unit, phy_ctrl_t *pc, uint16 reg_bank, 
+                      uint8 reg_addr, uint16 phy_wr_data)
+@@ -780,12 +869,16 @@ phy_reg_serdes_write(int unit, phy_ctrl_
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
+     rv     = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+ #ifdef INCLUDE_PHY_XGXS6
+     if (soc_feature(unit, soc_feature_xgxs_v6)) {
+         if ((reg_bank != 0) || (reg_addr >= 0x0010)) {
+             reg_bank = 0x300 + (reg_bank << 4);
+         }
+     }
+@@ -794,12 +887,16 @@ phy_reg_serdes_write(int unit, phy_ctrl_
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = WRITE_PHY_REG(unit, pc, reg_addr, phy_wr_data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int
+ phy_reg_serdes_modify(int unit, phy_ctrl_t *pc,
+                       uint16 reg_bank, uint8 reg_addr,
+@@ -810,12 +907,16 @@ phy_reg_serdes_modify(int unit, phy_ctrl
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
+     rv     = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+ #ifdef INCLUDE_PHY_XGXS6
+     if (soc_feature(unit, soc_feature_xgxs_v6)) {
+         if ((reg_bank != 0) || (reg_addr >= 0x0010)) {
+             reg_bank = 0x300 + (reg_bank << 4);
+         }
+     }
+@@ -824,28 +925,40 @@ phy_reg_serdes_modify(int unit, phy_ctrl
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = MODIFY_PHY_REG(unit, pc, reg_addr, phy_mo_data, phy_mo_mask);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ #if defined(INCLUDE_PHY_XGXS)
+ int 
+ phy_reg_xgxs_read(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+                            uint8 reg_addr, uint16 *data)
+ {
+     int    rv;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = READ_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+                             uint8 reg_addr, uint16 data)
+@@ -853,18 +966,26 @@ phy_reg_xgxs_write(int unit, phy_ctrl_t
+     int    rv;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = WRITE_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs_modify(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+                              uint8 reg_addr, uint16 data, uint16 mask)
+@@ -872,18 +993,26 @@ phy_reg_xgxs_modify(int unit, phy_ctrl_t
+     int    rv;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = MODIFY_PHY_REG(unit, pc, reg_addr, data, mask);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ #endif /* INCLUDE_PHY_XGXS */
+ 
+ #if defined(INCLUDE_PHY_XGXS6)
+ int 
+@@ -891,12 +1020,16 @@ phy_reg_xgxs6_read(int unit, phy_ctrl_t
+                            uint8 reg_addr, uint16 *data)
+ {
+     int    rv;
+ 
+     rv     = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_addr < 0x10) {
+         /* Select between SerDes and XAUI mapping */
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, 0x0000));
+         SOC_IF_ERROR_RETURN
+             (MODIFY_PHY_REG(unit, pc, 0x1e, 
+@@ -909,12 +1042,16 @@ phy_reg_xgxs6_read(int unit, phy_ctrl_t
+     }
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = READ_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs6_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
+                             uint8 reg_addr, uint16 data)
+@@ -922,12 +1059,16 @@ phy_reg_xgxs6_write(int unit, phy_ctrl_t
+     int    rv;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv     = SOC_E_NONE;
+ 
+     if (reg_addr < 0x10) {
+         /* Select between SerDes and XAUI mapping */
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, 0x0000));
+@@ -942,12 +1083,16 @@ phy_reg_xgxs6_write(int unit, phy_ctrl_t
+     }
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = WRITE_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs6_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
+                              uint8 reg_addr, uint16 data, uint16 mask)
+@@ -955,12 +1100,16 @@ phy_reg_xgxs6_modify(int unit, phy_ctrl_
+     int    rv;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv     = SOC_E_NONE;
+ 
+     if (reg_addr < 0x10) {
+         /* Select between SerDes and XAUI mapping */
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, 0x0000));
+@@ -975,23 +1124,31 @@ phy_reg_xgxs6_modify(int unit, phy_ctrl_
+     }
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = MODIFY_PHY_REG(unit, pc, reg_addr, data, mask);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ #endif /* INCLUDE_PHY_XGXS6 */
+ 
+ STATIC int 
+ _phy_reg_aer_cl45_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+                  uint16 *data)
+ {
+     uint16 phy_reg_addr;
+     int    cl45_devid;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
+     cl45_devid   = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
+ 
+     if (PHY_AER_REG_ADDR_LANE_NUM(reg_addr)) {
+         /* write the lane number to the AER if lane specific */
+         SOC_IF_ERROR_RETURN
+@@ -1007,12 +1164,17 @@ _phy_reg_aer_cl45_read(int unit, phy_ctr
+         /* restore back the lane number to 0 */
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 
+                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
+                 0));
+     }
++
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl45_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+                   uint16 data)
+@@ -1021,12 +1183,16 @@ _phy_reg_aer_cl45_write(int unit, phy_ct
+     int    cl45_devid;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
+     cl45_devid = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
+ 
+     if (PHY_AER_REG_ADDR_LANE_NUM(reg_addr)) {
+         /* write the lane number to the AER if lane specific */
+         SOC_IF_ERROR_RETURN
+@@ -1042,12 +1208,17 @@ _phy_reg_aer_cl45_write(int unit, phy_ct
+         /* write the lane number 0 to the AER */
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 
+                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
+                 0));
+     }
++
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl45_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+                   uint16 data,uint16 mask)
+@@ -1056,12 +1227,16 @@ _phy_reg_aer_cl45_modify(int unit, phy_c
+     int    cl45_devid;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
+     cl45_devid = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
+ 
+     if (PHY_AER_REG_ADDR_LANE_NUM(reg_addr)) {
+         /* write the lane number to the AER if lane specific */
+         SOC_IF_ERROR_RETURN
+@@ -1077,12 +1252,17 @@ _phy_reg_aer_cl45_modify(int unit, phy_c
+         /* write the lane number 0 to the AER */
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 
+                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
+                 0));
+     }
++
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl22_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+                  uint16 *data)
+@@ -1091,12 +1271,16 @@ _phy_reg_aer_cl22_read(int unit, phy_ctr
+     uint16 phy_reg_blk;
+     uint16 phy_reg_addr;
+     int    rv;
+ 
+     rv     = SOC_E_UNAVAIL;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
+     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
+     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(reg_addr);
+     if (phy_reg_aer == 0) {
+         rv = WRITE_PHY_REG(unit, pc, 0x1f, phy_reg_blk);
+ 
+@@ -1128,12 +1312,16 @@ _phy_reg_aer_cl22_read(int unit, phy_ctr
+             rv = WRITE_PHY_REG(unit, pc, 0x1e, 0);
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, 0x1f, 0x0);
+         }
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl22_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+                   uint16 data)
+@@ -1144,12 +1332,16 @@ _phy_reg_aer_cl22_write(int unit, phy_ct
+     int    rv;
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv     = SOC_E_UNAVAIL;
+ 
+     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
+     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
+     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(reg_addr);
+     if (phy_reg_aer == 0) {
+@@ -1180,12 +1372,16 @@ _phy_reg_aer_cl22_write(int unit, phy_ct
+             rv = WRITE_PHY_REG(unit, pc, 0x1f, 0xffd0);
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, 0x1e, 0);
+         }
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl22_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+                    uint16 data, uint16 mask)
+@@ -1198,12 +1394,16 @@ _phy_reg_aer_cl22_modify(int unit, phy_c
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
+     rv     = SOC_E_UNAVAIL;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
+     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
+     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(reg_addr);
+     if (phy_reg_aer == 0) {
+         /* Only support AER = 0 for now */
+         rv = WRITE_PHY_REG(unit, pc, 0x1f, phy_reg_blk);
+@@ -1233,12 +1433,16 @@ _phy_reg_aer_cl22_modify(int unit, phy_c
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, 0x1e, 0);
+         }
+ 
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ 
+ }
+ 
+ int
+ phy_reg_aer_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+Index: src/soc/phy/phyident.c
+===================================================================
+--- src/soc/phy/phyident.c	(revision 7735)
++++ src/soc/phy/phyident.c	(revision 7736)
+@@ -6195,12 +6195,37 @@ _ext_phy_probe(int unit, soc_port_t port
+                     soc_cm_get_id(unit, &dev_id, &rev_id);
+                     ext_pc->phy_rev = rev_id;
+                 }
+ #endif /* BCM_HURRICANE3_SUPPORT */
+ 
+                 PHY_FLAGS_SET(unit, port, PHY_FLAGS_EXTERNAL_PHY);
++#ifdef LVL7_FIXUP
++#if L7_FEAT_SF10GBT
++                /* SDK only provides a way to configure a single phy address for 
++                 * each port, whereas some of the customer boxes have different
++                 * phy addresses for same port. So we use the custom driver 
++                 * (registered in FP application) checkphy fuction to look for
++                 * device ids at the secondary phy addresses, and return SUCESS
++                 * if match is successful). _ext_phy_probe() uses two pointer 
++                 * variables - pi and ext_pc. We manage to run our own custom 
++                 * _check_phy function, which does the OUI check for us. But 
++                 * our requirement is to change the phy addresses and other 
++                 * parameters maintained in structures pointed to by pi 
++                 * (soc_phy_info_t) and ext_pc(phy_ctrl_t), in  case the match 
++                 * is successful.  We don't have a way to do that unless we run 
++                 * our custom function below, or SDK functions are re-designed 
++                 * to facilitate this operation.
++                 */
++                soc_phy_cust_t* fixPhySet = NULL;
++                if (phy_table[i]->cookie != NULL)
++                {
++                  fixPhySet = (soc_phy_cust_t*)(phy_table[i]->cookie);
++                  (fixPhySet->custPhySettings)(unit, port, phy_table[i], pi, ext_pc);
++                }
++#endif
++#endif
+ 
+                 break;
+             }
+         }
+     }
+ 
+Index: src/soc/phy/phy5464.c
+===================================================================
+--- src/soc/phy/phy5464.c	(revision 7735)
++++ src/soc/phy/phy5464.c	(revision 7736)
+@@ -117,12 +117,17 @@
+ 
+ #include "phyident.h"
+ #include "phyreg.h"
+ #include "phyfege.h"
+ #include "phy5464.h"
+ 
++#ifdef LVL7_FIXUP
++#include "sysapi_hpc.h"
++#include "hpc_phy.h"
++#endif
++
+ /*
+  * Please see the errata sheet for the PHY devices for a description of
+  * the errata to decide which workarounds (WARs) to enable for your
+  * application.
+  */
+ 
+@@ -196,12 +201,16 @@ STATIC int _phy_5464_medium_change(int u
+ STATIC int
+ _phy_5464_medium_check(int unit, soc_port_t port, int *medium)
+ {
+     phy_ctrl_t        *pc;    /* PHY state */
+     uint16             tmp;    /* Temp variable */
+     int                copper; /* Copper medium is active */
++#if (defined(LVL7_FIXUP) && \
++    (defined(LVL7_ALPHA8245) || defined(LVL7_DNI8541)))
++static int              fiberCnt[2][24];
++#endif
+ 
+     pc    = EXT_PHY_SW_STATE(unit, port);
+     /* Read Mode Register (0x1c shadow 11111) */
+     SOC_IF_ERROR_RETURN
+         (READ_PHY5464_MODE_CTRLr(unit, pc, &tmp));
+     if (PHY_FORCED_COPPER_MODE(unit, port)) {
+@@ -213,13 +222,28 @@ _phy_5464_medium_check(int unit, soc_por
+             copper = FALSE;
+         } else {
+             if (pc->fiber.preferred) {
+                 /* 0x10 Fiber Signal Detect
+                  * 0x20 Copper Energy Detect
+                  */
++#if (defined(LVL7_FIXUP) && \
++    (defined(LVL7_ALPHA8245) || defined(LVL7_DNI8541)))
++                copper = TRUE;
++                if ((tmp & 0x10) == 0x10) {
++                    fiberCnt[unit][port]++;
++                    /* Require multiple detections so as not to prematurely    */
++                    /* disable the copper transmitter because of a transition. */
++                    if (fiberCnt[unit][port] > 5) {
++                        copper = FALSE;
++                    }
++                } else {
++                    fiberCnt[unit][port] = 0;
++                }
++#else
+                 copper = ((tmp & 0x30) == 0x20); 
++#endif
+             } else {
+                 copper = ((tmp & 0x20) == 0x20);
+             }
+         }
+     }
+     *medium = copper ? SOC_PORT_MEDIUM_COPPER : SOC_PORT_MEDIUM_FIBER;
+@@ -1293,12 +1317,19 @@ phy_5464_link_get(int unit, soc_port_t p
+         if (PHY_FIBER_MODE(unit, port)) {
+             copper_transmit = (*link) ? 0x2000 : 0; 
+         }
+         SOC_IF_ERROR_RETURN
+             (MODIFY_PHY5464_MII_ECRr(unit, pc, copper_transmit, 0x2000));
+     }
++#ifdef LVL7_FIXUP 
++    /* alok relook*/
++    if (soc_property_get(unit, spn_LED_MODE_CUST, 0))
++    {
++      (void)sysapiHpcLedModeCustomization(unit, (int)port, *link);
++    }
++#endif
+ 
+     DPRINTF_VERBOSE((BSL_META_U(unit,
+                                 "phy_5464_link_get: "
+                                 "u=%d p=%d mode=%s%s%s link=%d\n"),
+                     unit, port,
+                     PHY_COPPER_MODE(unit, port) ? "C" : "",
+@@ -3186,12 +3217,16 @@ phy_5464_shadow_dump(int unit, soc_port_
+     uint16      tmp;
+     int         i;
+     phy_ctrl_t *pc;
+ 
+     pc       = EXT_PHY_SW_STATE(unit, port);
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     /* Register 0x18 Shadows */
+     for (i = 0; i <= 7; i++) {
+         WRITE_PHY_REG(unit, pc, 0x18, (i << 12) | 0x7);
+         READ_PHY_REG(unit, pc, 0x18, &tmp);
+         if ((tmp & ~7) == 0x0000) {
+             continue;
+@@ -3218,16 +3253,66 @@ phy_5464_shadow_dump(int unit, soc_port_
+         if (tmp  == 0x0000) {
+             continue;
+         }
+         LOG_CLI((BSL_META_U(unit,
+                             "0x17[0x%x]=0x%04x\n"), i, tmp));
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+ }
+ 
+ #endif /* BROADCOM_DEBUG */
+ 
++#ifdef LVL7_FIXUP
++/*
++ * Function:    
++ *      phy_5464_link_up
++ * Purpose:     
++ *      Performs tasks on link up.
++ * Parameters:
++ *      unit - StrataSwitch unit #.
++ *      port - StrataSwitch port #. 
++ * Returns:     
++ *      SOC_E_XXX
++ * Notes:
++ *      sees link up.
++ */
++STATIC int
++phy_5464_link_up(int unit, soc_port_t port)
++{
++    int an, an_done;
++
++    DPRINTF((BSL_META_U(unit,
++                        "phy_5464_link_up: u=%d p=%d \n"),
++             unit, port));
++
++    /* For copper mode only */
++    if (PHY_FLAGS_TST(unit, port, PHY_FLAGS_COPPER)) {
++        /* Get the an status */
++        SOC_IF_ERROR_RETURN
++            (phy_5464_autoneg_get(unit, port, &an, &an_done));
++
++        /* If an is diabled and link up happens then enable PHY 
++        ** as on combp ports it does not happen 
++        */
++        if (an == FALSE) {
++
++            SOC_IF_ERROR_RETURN
++               (soc_phyctrl_notify(unit, port, phyEventResume, PHY_STOP_PHY_DIS));
++
++            DPRINTF((BSL_META_U(unit,
++                                "phy_5464_link_up: Resume PHY_STOP_PHY_DIS for u=%d p=%d \n"),
++                     unit, port));
++        }
++    }
++    return SOC_E_NONE;
++}
++#endif /* LVL7_FIXUP */
++
+ /*
+  * Variable:    phy_5464drv_ge
+  * Purpose:     PHY driver for 5464
+  */
+ 
+ phy_driver_t phy_5464drv_ge = {
+@@ -3250,13 +3335,17 @@ phy_driver_t phy_5464drv_ge = {
+     phy_5464_adv_remote_get,
+     phy_5464_lb_set,
+     phy_5464_lb_get,
+     phy_5464_interface_set,
+     phy_5464_interface_get,
+     phy_5464_ability_get,
+-    NULL,                       /* Link up event */
++#ifdef LVL7_FIXUP
++    phy_5464_link_up,          /* Link up event */
++#else 
++    NULL,
++#endif
+     phy_5464_link_down,
+     phy_5464_mdix_set,
+     phy_5464_mdix_get,
+     phy_5464_mdix_status_get,
+     phy_5464_medium_config_set,
+     phy_5464_medium_config_get,
+Index: src/soc/phy/phy54680.c
+===================================================================
+--- src/soc/phy/phy54680.c	(revision 7735)
++++ src/soc/phy/phy54680.c	(revision 7736)
+@@ -1017,12 +1017,18 @@ phy_54680_enable_set(int unit, soc_port_
+ 
+     power_down = (enable) ? 0 : MII_CTRL_PD;
+ 
+     SOC_IF_ERROR_RETURN
+         (MODIFY_PHY54680_MII_CTRLr(unit, pc, power_down, MII_CTRL_PD));
+ 
++#ifdef LVL7_FIXUP
++        if (soc_property_port_get(unit, port, spn_PORT_SUPER_ISOLATE, 0) != 0) {
++            SOC_IF_ERROR_RETURN
++                (MODIFY_PHY54680_MII_POWER_CTRLr(unit, pc, 0, 0x20));
++        }
++#endif
+     if (!enable) {
+         if ((PHY_FLAGS_TST(unit, port, PHY_FLAGS_EEE_ENABLED)) &&
+            (((pc->phy_rev & 0x4) == 0x0) || /* A0,A1,B0,B1 */
+             (PHY_IS_BCM53324(pc) && pc->phy_rev == 0x0))) {
+             soc_timeout_init(&to, 2000000, 0);
+             do {
+Index: src/shared/bsl.c
+===================================================================
+--- src/shared/bsl.c	(revision 7735)
++++ src/shared/bsl.c	(revision 7736)
+@@ -30,12 +30,21 @@ bsl_init(bsl_config_t *config)
+ void
+ bsl_config_t_init(bsl_config_t *config)
+ {
+     sal_memset(config, 0, sizeof(*config));
+ }
+ 
++/* PTin added: LOG */
++int
++bsl_vectors_get(bsl_config_t * dst)
++{
++    *dst = bsl_config;
++    return 0;
++}
++
++
+ /* "Fast" checker function for a single 'chk' */
+ int
+ bsl_fast_check(uint32 chk)
+ {
+     if (bsl_config.check_hook != NULL) {
+         return bsl_config.check_hook(chk);
+Index: systems/linux/kernel/modules/include/lkm.h
+===================================================================
+--- systems/linux/kernel/modules/include/lkm.h  (revision 8460)
++++ systems/linux/kernel/modules/include/lkm.h  (working copy)
+@@ -34,13 +34,15 @@
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39)
+ #include <linux/smp_lock.h>
+ #endif
+ #include <linux/module.h>
+
+ /* Helper defines for multi-version kernel  support */
++#ifndef LKM_2_6
+ #define LKM_2_6
++#endif
+
+ #include <linux/kernel.h>   /* printk() */
+ #include <linux/fs.h>       /* everything... */
+ #include <linux/errno.h>    /* error codes */
+ #include <linux/types.h>    /* size_t */
+ #include <linux/proc_fs.h>

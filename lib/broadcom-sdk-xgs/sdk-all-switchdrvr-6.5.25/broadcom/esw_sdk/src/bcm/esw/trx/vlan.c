@@ -1815,6 +1815,22 @@ _bcm_trx_vlan_action_profile_init(int unit)
                    }
                    if (0 != fs_idx) { /* Recover flex stat counter */
                        sal_memset(&event, 0, sizeof(event));
+                       /* PTin modified: Virtual port supported for Helix4 */
+                       if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, ENTRY_TYPEf)) {
+                           soc_EGR_VLAN_XLATEm_field32_set(unit, &event,
+                                                           ENTRY_TYPEf,
+                           soc_EGR_VLAN_XLATEm_field32_get(unit,
+                                                           &egr_xlate_entry, ENTRY_TYPEf));
+                       }
+                       else if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, KEY_TYPEf)) {
+                           soc_EGR_VLAN_XLATEm_field32_set(unit, &event,
+                                                           KEY_TYPEf,
+                                                           soc_EGR_VLAN_XLATEm_field32_get(unit, &egr_xlate_entry, KEY_TYPEf));
+                       }
+                       else {
+                           return BCM_E_CONFIG;
+                       }
+                       /* PTin end */
                        /* Construct key-only entry, copy to FS handle */
                         soc_mem_field32_set(unit, egr_mem, &event, ENTRY_TYPEf,
                                  soc_mem_field32_get(unit, egr_mem,
@@ -9927,8 +9943,19 @@ _bcm_trx_vlan_translate_egress_action_delete_all(int unit)
             (0 != soc_mem_field32_get(unit, mem, vtabp, VINTF_CTR_IDXf))) {
             sal_memset(&vent, 0, sizeof(vent));
             /* Construct key-only entry, copy to FS handle */
-            soc_mem_field32_set(unit, mem, &vent, ENTRY_TYPEf,
-                soc_mem_field32_get(unit, mem, vtabp, ENTRY_TYPEf));
+            /* PTin modified: Virtual port supported for Helix4 (updated at SDK-ALL-6.5.15) */
+            if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, ENTRY_TYPEf)) {
+              soc_mem_field32_set(unit, mem, &vent, ENTRY_TYPEf,
+                  soc_mem_field32_get(unit, mem, vtabp, ENTRY_TYPEf));
+            }
+            else if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, KEY_TYPEf)) {
+              soc_mem_field32_set(unit, mem, &vent, KEY_TYPEf,
+                  soc_mem_field32_get(unit, mem, vtabp, KEY_TYPEf));
+            }
+            else {
+              return BCM_E_CONFIG;
+            }
+            /* PTin end */
             soc_mem_field_get(unit, mem, (uint32 *) vtabp,
                                KEYf, (uint32 *) key);
             soc_mem_field_set(unit, mem, (uint32 *) &vent,

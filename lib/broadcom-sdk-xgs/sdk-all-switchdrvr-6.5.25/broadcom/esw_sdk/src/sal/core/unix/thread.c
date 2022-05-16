@@ -39,6 +39,8 @@
 #include <sal/core/spl.h>
 #include <sal/limits.h>
 
+#include "datatypes.h"
+
 #if defined (__STRICT_ANSI__)
 #define NO_CONTROL_C
 #endif
@@ -71,10 +73,12 @@
 #define SAL_SCHED_PRIO_CRITICAL         10
 #endif
 
+#ifndef LVL7_FIXUP
 static pthread_mutex_t _sal_thread_lock = PTHREAD_MUTEX_INITIALIZER;
 
 #define THREAD_LOCK() pthread_mutex_lock(&_sal_thread_lock)
 #define THREAD_UNLOCK() pthread_mutex_unlock(&_sal_thread_lock)
+#endif
 
 #if defined(BROADCOM_DEBUG) && defined(INCLUDE_BCM_SAL_PROFILE)
 static unsigned int _sal_thread_count_curr;
@@ -150,6 +154,11 @@ sal_thread_resource_usage_get(unsigned int *sal_thread_count_curr,
 #endif
 #endif
 
+#ifdef LVL7_FIXUP
+#include <l7_common.h>
+#include <osapi.h>
+#else
+
 /*
  * Function:
  *	thread_boot
@@ -222,6 +231,7 @@ thread_boot(void *ti_void)
     /* Will never get here */
     return NULL;
 }
+#endif /* LVL7_FIXUP */
 
 
 /*
@@ -265,6 +275,35 @@ sal_thread_join(sal_thread_t thread, void **retval)
 sal_thread_t
 sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
 {
+#ifdef LVL7_FIXUP
+    L7_uint64 salTaskHandle;
+
+    {   //PTIn modified
+        L7_uint32 pri, tslice;
+
+        //if (0==strcmp("bcmRX",name))                {pri=80; tslice=1;}
+        //else
+        //if (0==strcmp("bcmTX",name))                {pri=83; tslice=1;}
+        //else
+        //if (0==strcmp("Desc DMA Timeout",name))     {pri=83; tslice=1;}
+        //else
+        //if (0==strncmp("socdmadesc.", name, strlen("socdmadesc.")))
+        //                                            {pri=83; tslice=1;}
+        //else
+        ////if (0==strcmp("bcmXGS3AsyncTX",name))       {pri=83; tslice=1;}
+        ////else
+        //if (0==strcmp("bcmINTR",name))              {pri=87; tslice=1;}
+        //else
+        {pri=L7_DEFAULT_TASK_PRIORITY; tslice=L7_DEFAULT_TASK_SLICE;}
+
+        salTaskHandle = osapiTaskCreate(name, f, arg, 1,
+                                        (L7_uint32) ss,
+                                        pri,
+                                        tslice);
+    }
+
+    return (sal_thread_t) UINT_TO_PTR(salTaskHandle);
+#else
     pthread_attr_t	attribs;
     struct sched_param param;
     thread_info_t	*ti;
@@ -346,6 +385,7 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
     sal_sem_destroy(sem);
 
     return ((sal_thread_t)id);
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -371,6 +411,13 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
 int
 sal_thread_destroy(sal_thread_t thread)
 {
+#ifdef LVL7_FIXUP
+    L7_uint64 salTaskHandle = PTR_TO_UINT64(thread);
+
+    osapiTaskDelete(salTaskHandle);
+
+    return 0;
+#else
 #ifdef netbsd
     /* not supported */
     return -1;
@@ -410,6 +457,7 @@ sal_thread_destroy(sal_thread_t thread)
 
     return 0;
 #endif
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -426,7 +474,11 @@ sal_thread_destroy(sal_thread_t thread)
 sal_thread_t
 sal_thread_self(void)
 {
+#ifdef LVL7_FIXUP
+    return (sal_thread_t) UINT_TO_PTR(osapiTaskIdSelf());
+#else
     return (sal_thread_t) pthread_self();
+#endif /* LVL7_FIXUP */
 }
 
 int
@@ -449,9 +501,19 @@ sal_thread_id_get(void)
  *	NULL, if name not available
  *	thread_name, if name available
  */
+#ifdef LVL7_FIXUP
+extern pthread_key_t osapi_name_key;
+#endif /* LVL7_FIXUP */
 char *
 sal_thread_name(sal_thread_t thread, char *thread_name, int thread_name_size)
 {
+#ifdef LVL7_FIXUP
+    char *task_name;
+
+    task_name = (char *) pthread_getspecific(osapi_name_key);
+    strncpy(thread_name, task_name, thread_name_size);
+    return thread_name;
+#else
     thread_info_t	*ti;
     char                *name;
 
@@ -473,6 +535,7 @@ sal_thread_name(sal_thread_t thread, char *thread_name, int thread_name_size)
     }
 
     return name;
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -489,6 +552,13 @@ sal_thread_name(sal_thread_t thread, char *thread_name, int thread_name_size)
 void
 sal_thread_exit(int rc)
 {
+#ifdef LVL7_FIXUP
+  L7_uint64 salTaskHandler = osapiTaskIdSelf();
+
+  osapiTaskDelete(salTaskHandler);
+
+  return;
+#else
     thread_info_t	*ti, **tp;
     pthread_t		id = pthread_self();
 
@@ -519,6 +589,7 @@ sal_thread_exit(int rc)
     }
 
     pthread_exit(INT_TO_PTR(rc));
+#endif /* LVL7_FIXUP */
 }
 
 /*
@@ -664,6 +735,8 @@ sal_thread_prio_get(int *prio)
 void
 sal_thread_traverse(thread_traverse_cb_f cb_func, void *cb_date)
 {
+/* PTin removed: SDK 6.5.20 */
+#if 0
     thread_info_t *ti;
 
     for (ti = thread_head; ti != NULL; ti = ti->next) {
@@ -671,6 +744,7 @@ sal_thread_traverse(thread_traverse_cb_f cb_func, void *cb_date)
             cb_func(cb_date, ti->tid, ti->name);
         }
     }
+#endif
 }
 
 /*

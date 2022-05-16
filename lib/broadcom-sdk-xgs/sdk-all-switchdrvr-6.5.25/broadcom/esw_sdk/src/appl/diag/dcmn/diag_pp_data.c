@@ -9,6 +9,10 @@
  *
  */
 
+#if (__GNUC__ >= 6) /* PTin added */
+#pragma GCC diagnostic ignored "-Wformat-overflow"
+#endif
+
 #ifdef _ERR_MSG_MODULE_NAME
   #error "_ERR_MSG_MODULE_NAME redefined"
 #endif

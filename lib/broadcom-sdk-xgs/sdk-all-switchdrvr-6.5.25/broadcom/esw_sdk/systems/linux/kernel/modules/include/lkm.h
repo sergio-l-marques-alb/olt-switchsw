@@ -37,7 +37,9 @@
 #include <linux/module.h>
 
 /* Helper defines for multi-version kernel  support */
+#ifndef LKM_2_6
 #define LKM_2_6
+#endif
 
 #include <linux/kernel.h>   /* printk() */
 #include <linux/fs.h>       /* everything... */

@@ -1,0 +1,88 @@
+diff -rpN -u6 sdk-all-6.5.20/src/appl/diag/infix.c sdk-all-6.5.20_mod/src/appl/diag/infix.c
+--- sdk-all-6.5.20/src/appl/diag/infix.c	2020-07-15 12:37:56.000000000 +0100
++++ sdk-all-6.5.20_mod/src/appl/diag/infix.c	2020-09-11 18:01:44.693662478 +0100
+@@ -136,15 +136,17 @@ static void infix_doop(infix_data_t *id,
+     switch (op) {
+     case OP_BNOT:    v = ~v;                break;
+     case OP_UNEG:    v = 0 - v;            break;
+     case OP_CNOT:    v = ! v;            break;
+     case OP_MUL:    v = infix_pop(id) * v;        break;
+     case OP_DIV:    if (v == 0) { id->err = 1; }
+-                else { v = infix_pop(id) / v; }  break;
++                    else { v = infix_pop(id) / v; }
++                    break;
+     case OP_MOD:    if (v == 0) { id->err = 1; }
+-                else { v = infix_pop(id) % v; }  break;
++                    else { v = infix_pop(id) % v; }
++                    break;
+     case OP_ADD:    v = infix_pop(id) + v;        break;
+     case OP_SUB:    v = infix_pop(id) - v;        break;
+     case OP_LSH:    v = infix_pop(id) << v;        break;
+     case OP_RSH:    v = infix_pop(id) >> v;        break;
+     case OP_BAND:    v = infix_pop(id) & v;        break;
+     case OP_BXOR:    v = infix_pop(id) ^ v;        break;
+diff -rpN -u6 sdk-all-6.5.20/src/shared/libxml/parser.c sdk-all-6.5.20_mod/src/shared/libxml/parser.c
+--- sdk-all-6.5.20/src/shared/libxml/parser.c	2020-07-15 12:38:28.000000000 +0100
++++ sdk-all-6.5.20_mod/src/shared/libxml/parser.c	2020-09-11 18:01:44.298666504 +0100
+@@ -633,17 +633,17 @@ xmlValidityError(xmlParserCtxtPtr ctxt,
+               const char *msg, const xmlChar *str1, const xmlChar *str2)
+ {
+     xmlStructuredErrorFunc schannel = NULL;
+ 
+     if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+         (ctxt->instate == XML_PARSER_EOF))
+-	return;
++	   return;
+     if (ctxt != NULL) {
+-	ctxt->errNo = error;
+-	if ((ctxt->sax != NULL) && (ctxt->sax->initialized == XML_SAX2_MAGIC))
+-	    schannel = ctxt->sax->serror;
++	   ctxt->errNo = error;
++	   if ((ctxt->sax != NULL) && (ctxt->sax->initialized == XML_SAX2_MAGIC))
++	       schannel = ctxt->sax->serror;
+     }
+     if (ctxt != NULL) {
+         __xmlRaiseError(schannel,
+                     ctxt->vctxt.error, ctxt->vctxt.userData,
+                     ctxt, NULL, XML_FROM_DTD, error,
+                     XML_ERR_ERROR, NULL, 0, (const char *) str1,
+diff -rpN -u6 sdk-all-6.5.20/src/shared/libxml/tree.c sdk-all-6.5.20_mod/src/shared/libxml/tree.c
+--- sdk-all-6.5.20/src/shared/libxml/tree.c	2020-07-15 12:38:28.000000000 +0100
++++ sdk-all-6.5.20_mod/src/shared/libxml/tree.c	2020-09-11 18:01:44.299666494 +0100
+@@ -4761,15 +4761,15 @@ xmlGetNodePath(const xmlNode *node)
+ 		    occur++;
+                 tmp = tmp->prev;
+             }
+             if (occur == 0) {
+                 tmp = cur->next;
+                 while (tmp != NULL && occur == 0) {
+-		    if (tmp->type == XML_COMMENT_NODE)
+-		        occur++;
+-                    tmp = tmp->next;
++		          if (tmp->type == XML_COMMENT_NODE)
++		              occur++;
++                  tmp = tmp->next;
+                 }
+                 if (occur != 0)
+                     occur = 1;
+             } else
+                 occur++;
+         } else if ((cur->type == XML_TEXT_NODE) ||
+diff -rpN -u6 sdk-all-6.5.20/src/soc/phy/chip/koi/merlin_koi_src/merlin_koi_functions.c sdk-all-6.5.20_mod/src/soc/phy/chip/koi/merlin_koi_src/merlin_koi_functions.c
+--- sdk-all-6.5.20/src/soc/phy/chip/koi/merlin_koi_src/merlin_koi_functions.c	2020-07-15 12:39:28.000000000 +0100
++++ sdk-all-6.5.20_mod/src/soc/phy/chip/koi/merlin_koi_src/merlin_koi_functions.c	2020-09-11 18:01:39.995710362 +0100
+@@ -278,13 +278,13 @@ err_code_t merlin_koi_display_eye_scan_s
+         return(_error(ERR_CODE_BAD_PTR_OR_INVALID_INPUT));
+     }
+ 
+     EFUN_PRINTF(("%6dmV : ",level));
+ 
+     for (x=-31;x<32;x++) {
+-      for (i=0;i<7;i++) {
++        for (i=0;i<7;i++) {
+             if (buffer[x+31]>=limits[i]) {
+                 EFUN_PRINTF(("%c", '0'+i+1));
+                 break;
+             }
+         }
+         if (i==7) {

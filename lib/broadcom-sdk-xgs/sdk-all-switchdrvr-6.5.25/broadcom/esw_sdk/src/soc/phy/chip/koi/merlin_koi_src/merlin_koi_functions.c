@@ -281,7 +281,7 @@ err_code_t merlin_koi_display_eye_scan_stripe(int8_t y,uint32_t *buffer) {
     EFUN_PRINTF(("%6dmV : ",level));
 
     for (x=-31;x<32;x++) {
-      for (i=0;i<7;i++) {
+        for (i=0;i<7;i++) {
             if (buffer[x+31]>=limits[i]) {
                 EFUN_PRINTF(("%c", '0'+i+1));
                 break;

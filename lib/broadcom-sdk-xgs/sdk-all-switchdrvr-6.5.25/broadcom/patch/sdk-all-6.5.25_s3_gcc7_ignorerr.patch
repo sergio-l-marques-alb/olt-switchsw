@@ -1,0 +1,87 @@
+diff -rpN -u6 sdk-all-6.5.20/src/appl/diag/dcmn/diag_pp_data.c sdk-all-6.5.20_mod/src/appl/diag/dcmn/diag_pp_data.c
+--- sdk-all-6.5.20/src/appl/diag/dcmn/diag_pp_data.c	2020-07-15 12:37:57.000000000 +0100
++++ sdk-all-6.5.20_mod/src/appl/diag/dcmn/diag_pp_data.c	2020-09-11 18:01:44.938659981 +0100
+@@ -6,12 +6,16 @@
+  *
+  * File:        diag_pp_data.c
+  * Purpose:     Routines for PP data export/import
+  *
+  */
+ 
++#if (__GNUC__ >= 6) /* PTin added */
++#pragma GCC diagnostic ignored "-Wformat-overflow"
++#endif
++
+ #ifdef _ERR_MSG_MODULE_NAME
+   #error "_ERR_MSG_MODULE_NAME redefined"
+ #endif
+ 
+ #define _ERR_MSG_MODULE_NAME BSL_APPL_SHELL
+ 
+diff -rpN -u6 sdk-all-6.5.20/src/appl/diag/decode.c sdk-all-6.5.20_mod/src/appl/diag/decode.c
+--- sdk-all-6.5.20/src/appl/diag/decode.c	2020-07-15 12:37:56.000000000 +0100
++++ sdk-all-6.5.20_mod/src/appl/diag/decode.c	2020-09-11 18:01:44.963659726 +0100
+@@ -13,16 +13,17 @@
+ 
+ #ifdef linux
+ #undef  _POSIX_SOURCE
+ #undef  _POSIX_C_SOURCE
+ #undef _GNU_SOURCE
+ #undef _SVID_SOURCE
+-#define _BSD_SOURCE
+-#ifndef _DEFAULT_SOURCE
+-#define _DEFAULT_SOURCE
+-#endif
++#if ((__GNUC__ == 4 && __GNUC_MINOR__ >= 9) || (__GNUC__ > 4)) /* PTin modified */
++ #define _DEFAULT_SOURCE
++#else
++ #define _BSD_SOURCE
++#endif
+ #endif
+ 
+ #include <sal/types.h>
+ #include <sys/socket.h>
+ #include <sys/types.h>
+ #include <net/if.h>
+diff -rpN -u6 sdk-all-6.5.20/src/appl/diag/sand/diag_sand_packet.c sdk-all-6.5.20_mod/src/appl/diag/sand/diag_sand_packet.c
+--- sdk-all-6.5.20/src/appl/diag/sand/diag_sand_packet.c	2020-07-15 12:38:02.000000000 +0100
++++ sdk-all-6.5.20_mod/src/appl/diag/sand/diag_sand_packet.c	2020-09-11 18:01:44.701662396 +0100
+@@ -10,12 +10,17 @@
+ 
+ #ifdef BSL_LOG_MODULE
+ #error "BSL_LOG_MODULE redefined"
+ #endif
+ #define BSL_LOG_MODULE BSL_LS_APPLDNX_DIAGDNX
+ 
++#if (__GNUC__ >= 6) /* PTin added */
++#pragma GCC diagnostic ignored "-Wformat-truncation"
++#endif
++
++
+ /*
+  * INCLUDES
+  * {
+  */
+ /*
+  * shared
+diff -rpN -u6 sdk-all-6.5.20/src/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv4_lpm_mngr.c sdk-all-6.5.20_mod/src/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv4_lpm_mngr.c
+--- sdk-all-6.5.20/src/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv4_lpm_mngr.c	2020-07-15 12:38:49.000000000 +0100
++++ sdk-all-6.5.20_mod/src/soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv4_lpm_mngr.c	2020-09-11 18:01:43.024679489 +0100
+@@ -14,12 +14,17 @@
+ #include<soc/dpp/SAND/Utils/sand_integer_arithmetic.h>
+ #include<soc/dpp/SAND/Utils/sand_os_interface.h>
+ #include<soc/dpp/SAND/Management/sand_error_code.h>
+ #include<soc/dpp/SAND/Management/sand_low_level.h>
+ #include<soc/dpp/drv.h>
+ #include<assert.h>
++
++#if (__GNUC__ >= 6) /* PTin added */
++#pragma GCC diagnostic ignored "-Wmisleading-indentation"
++#endif
++
+ #define l200 typedef
+ #define l31 int32
+ #define l377 SOC_SAND_LONG
+ #define lf uint32
+ #define l12 SOC_SAND_ULONG
+ #define l4 static

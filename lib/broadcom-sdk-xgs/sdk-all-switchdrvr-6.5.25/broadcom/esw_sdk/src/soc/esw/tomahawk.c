@@ -52,6 +52,10 @@
 #include <soc/iproc.h>
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+#endif
 
 #define PORT_BLOCK_BASE_PORT(port) \
         (1 + ((SOC_INFO(unit).port_l2p_mapping[port] - 1) & ~0x3));

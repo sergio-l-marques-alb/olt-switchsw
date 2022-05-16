@@ -17,6 +17,11 @@
 #include<soc/dpp/SAND/Management/sand_low_level.h>
 #include<soc/dpp/drv.h>
 #include<assert.h>
+
+#if (__GNUC__ >= 6) /* PTin added */
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
+
 #define l200 typedef
 #define l31 int32
 #define l377 SOC_SAND_LONG

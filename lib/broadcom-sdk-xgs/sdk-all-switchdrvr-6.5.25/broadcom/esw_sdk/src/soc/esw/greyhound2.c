@@ -18714,9 +18714,9 @@ _soc_greyhound2_tscx_reg_read(int unit, uint32 phy_addr,
     SOC_IF_ERROR_RETURN
         (soc_greyhound2_sbus_tsc_block(unit, phy_port, &blk));
 
-    LOG_INFO(BSL_LS_SOC_MII, (BSL_META_U(unit,
-             "_soc_greyhound2_tscx_reg_read[%d]: %d/%d/%d/%d\n"),
-             unit, phy_addr, phy_port, port, blk));
+    LOG_DEBUG(BSL_LS_SOC_MII, (BSL_META_U(unit,
+              "_soc_greyhound2_tscx_reg_read[%d]: %d/%d/%d/%d\n"),
+              unit, phy_addr, phy_port, port, blk));
     TSC_REG_ADDR_TSCID_SET(phy_reg, phy_addr);
     rv = soc_sbus_tsc_reg_read(unit, port, blk, phy_addr,
                                phy_reg, phy_data);
@@ -18747,9 +18747,9 @@ _soc_greyhound2_tscx_reg_write(int unit, uint32 phy_addr,
     SOC_IF_ERROR_RETURN
         (soc_greyhound2_sbus_tsc_block(unit, phy_port, &blk));
 
-    LOG_INFO(BSL_LS_SOC_MII, (BSL_META_U(unit,
-             "_soc_greyhound2_tscx_reg_write[%d]: %d/%d/%d/%d\n"),
-             unit, phy_addr, phy_port, port, blk));
+    LOG_DEBUG(BSL_LS_SOC_MII, (BSL_META_U(unit,
+              "_soc_greyhound2_tscx_reg_write[%d]: %d/%d/%d/%d\n"),
+              unit, phy_addr, phy_port, port, blk));
     TSC_REG_ADDR_TSCID_SET(phy_reg, phy_addr);
     rv = soc_sbus_tsc_reg_write(unit, port, blk, phy_addr,
                                 phy_reg, phy_data);

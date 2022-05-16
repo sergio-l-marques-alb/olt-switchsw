@@ -61,6 +61,10 @@
 #include <soc/knet.h>
 #endif
 
+/* PTin added */
+#include "ptin/logger.h"
+#include "unistd.h"
+
 #ifdef BCM_CMIC_SUPPORT
 
 #define DV_MAGIC_NUMBER 0xba5eba11
@@ -2187,7 +2191,26 @@ soc_dma_done_chain(int unit, uint32 vchan)
 
     SOC_DMA_UNLOCK(soc_dma_lock);
 
-    soc_dma_process_done_desc(unit, dv_chain, dv_active);
+    /* PTIn added: By calling this multiple times it should force a cache flush. */
+    int i = 0;
+    do
+    {
+      soc_dma_process_done_desc(unit, dv_chain, dv_active);
+
+      /* Wait 1 millisecond, if process not completed */
+      if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
+        usleep(10000);
+    } while ((dv_chain->dv_dcnt != dv_chain->dv_vcnt) && ((++i) < 100));
+
+    /* PTin added: print assert info */
+    if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
+    {
+      PT_LOG_ERR(LOG_CTX_SDK, "dv_chain->dv_dcnt=%d, dv_chain->dv_vcnt=%d", dv_chain->dv_dcnt, dv_chain->dv_vcnt);
+    }
+    else if (i > 0)
+    {
+      PT_LOG_WARN(LOG_CTX_SDK, "%u tries to achieve dv_chain->dv_dcnt (%d) == dv_chain->dv_vcnt (%d)", i, dv_chain->dv_dcnt, dv_chain->dv_vcnt);
+    }
 
     if (!soc_feature(unit, soc_feature_cmicx)) {
         dma_done_desc_check(unit, dv_chain, dv_active, sc);

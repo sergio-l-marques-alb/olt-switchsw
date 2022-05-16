@@ -1964,22 +1964,22 @@ int soc_dpp_drc_combo28_init_check_bist_result(int unit, int dram_ndx, combo28_b
     is_crc   = ((drc_info->write_crc == 1) && (drc_info->read_crc == 1));
 
     /* Print Result */
-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "\nDRAM index: %u \nResults:\n"), dram_ndx));
+    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "\nDRAM index: %u \nResults:\n"), dram_ndx));
     /* Mapping of bits with errors : 0x%x (bit N stands for an error in bits N, N+32, ... N+224) */
-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_err_occur));
+    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_err_occur));
     /* Number of errors occoured in bits that are not masked by bist full mask: %d */
-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist full mask): %d\n"), combo28_bist_err_cnt->bist_full_err_cnt)); 
+    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist full mask): %d\n"), combo28_bist_err_cnt->bist_full_err_cnt)); 
     /* Number of errors occoured in bits that are not masked by bist single bit mask: %d */
-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist single mask): %d\n"), combo28_bist_err_cnt->bist_single_err_cnt)); 
-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of global errors: %d\n"), combo28_bist_err_cnt->bist_global_err_cnt));
-    LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of DBI errors: %d\n"), combo28_bist_err_cnt->bist_dbi_global_err_cnt));
+    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of errors occoured (bist single mask): %d\n"), combo28_bist_err_cnt->bist_single_err_cnt)); 
+    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of global errors: %d\n"), combo28_bist_err_cnt->bist_global_err_cnt));
+    LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of DBI errors: %d\n"), combo28_bist_err_cnt->bist_dbi_global_err_cnt));
     /* Mapping of DBI bits with errors : 0x%x (bit N stands for an error in bits N, N+8, ... N+24) */
     LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of DBI bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_dbi_err_occur));
     if ((is_gddr5 == 1) && (is_crc == 1))
     {
-        LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of EDC errors: %d\n"), combo28_bist_err_cnt->bist_edc_global_err_cnt));
+        LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Number of EDC errors: %d\n"), combo28_bist_err_cnt->bist_edc_global_err_cnt));
         /* Mapping of EDC bits with errors : 0x%x (bit N stands for an error in bits N, N+8, ... N+24) */
-        LOG_VERBOSE(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of EDC bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_edc_err_occur));
+        LOG_INFO(BSL_LS_SOC_DRAM, (BSL_META_U(unit, "Mapping of EDC bits with errors : 0x%x \n"), combo28_bist_err_cnt->bist_edc_err_occur));
     }
 
     /* Check BIST resault */

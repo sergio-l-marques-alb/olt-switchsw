@@ -13,6 +13,11 @@
 #endif
 #define BSL_LOG_MODULE BSL_LS_APPLDNX_DIAGDNX
 
+#if (__GNUC__ >= 6) /* PTin added */
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
+
+
 /*
  * INCLUDES
  * {

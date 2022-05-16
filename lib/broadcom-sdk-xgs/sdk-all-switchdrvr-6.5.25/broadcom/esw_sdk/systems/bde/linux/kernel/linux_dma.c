@@ -222,7 +222,7 @@ MODULE_PARM_DESC(himemaddr,
 #ifdef SAL_BDE_DMA_MEM_DEFAULT
 #define DMA_MEM_DEFAULT (SAL_BDE_DMA_MEM_DEFAULT * ONE_MB)
 #else
-#define DMA_MEM_DEFAULT (8 * ONE_MB)
+#define DMA_MEM_DEFAULT (16 * ONE_MB)
 #endif
 
 #ifdef BDE_EDK_SUPPORT
@@ -692,6 +692,9 @@ _edk_mpool_alloc(int dev_id, size_t size)
 #ifdef REMAP_DMA_NONCACHED
     _dma_vbase = ioremap(dma_pbase, size);
 #endif
+    if (dma_debug >= 1)
+      gprintk("%s (himem=1 ?): _dma_vbase:%p pbase:%lx  allocated:%lx\n",
+              __FUNCTION__, _dma_vbase, pbase, (unsigned long)size);
     _edk_dma_pool[dev_id].cpu_pbase = cpu_pbase;
     _edk_dma_pool[dev_id].dma_pbase = dma_pbase;
     _edk_dma_pool[dev_id].dma_vbase = dma_vbase;
@@ -953,10 +956,12 @@ void _dma_per_device_init(int dev_index)
 #if _SIMPLE_MEMORY_ALLOCATION_
     if (_dma_pool_alloc_state == DMA_POOL_INITIALIZED && dmaalloc == ALLOC_TYPE_API) {
         /* allocate the DMA buffer pool and map it to the device, uses CMA */
+        dma_addr = 0;
         _dma_vbase = dma_alloc_coherent(dev, _dma_mem_size, &dma_addr, GFP_KERNEL);
-        if (!_dma_vbase) {
+        if (!_dma_vbase || !dma_addr) {
             _dma_pool_alloc_state = DMA_POOL_FAILED;
-            gprintk("Failed to allocate coherent memory pool of size 0x%x\n", _dma_mem_size);
+            gprintk("%s: failed to allocate coherent memory pool of size 0x%x (_dma_vbase=0x%08lx dma_addr=0x%08llx)\n",
+                    __FUNCTION__, _dma_mem_size, (unsigned long) _dma_vbase, dma_addr);
             return;
         }
         _dma_alloc_coherent_device = dev;
@@ -964,6 +969,7 @@ void _dma_per_device_init(int dev_index)
         /* Set the host physical address of the DMA buffer pool */
         _cpu_pbase = HOST_PHYS_ADDR(dev, dma_addr, _dma_vbase);
 
+        gprintk("%s: _SIMPLE_MEMORY_ALLOCATION_ successfull\n", __FUNCTION__);
     } else
 #endif /* _SIMPLE_MEMORY_ALLOCATION_ */
 

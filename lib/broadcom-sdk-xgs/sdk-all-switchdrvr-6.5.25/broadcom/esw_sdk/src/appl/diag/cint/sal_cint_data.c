@@ -29,6 +29,16 @@ typedef int sal_core_cint_data_not_empty; /* Make ISO compilers happy. */
 #include <shared/dbx/dbx_file.h>
 #endif /* defined(BCM_SAND_SUPPORT) */
 
+
+/* PTin added: solve an incompatibility of CINT with LVL7_FIXUP definition */
+#if ((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__)))
+#undef sal_alloc
+#undef sal_free
+extern void *sal_alloc(unsigned int, char *);
+extern void sal_free(void *);
+#endif
+
+
 /*
  * Explicit wrappers as these may be macros instead of functions
  */

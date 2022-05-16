@@ -1086,7 +1086,8 @@ bcm_tr_cosq_port_bandwidth_get(int unit, bcm_port_t port,
 
 }
 
-STATIC int
+/* PTin modified: GCC8 */
+/*STATIC*/ int
 _bcm_tr_cosq_port_packet_bandwidth_set(int unit, bcm_port_t port,
                                        bcm_cos_queue_t cosq,
                                        int pps, int burst)
