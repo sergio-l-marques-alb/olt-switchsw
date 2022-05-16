@@ -51,6 +51,7 @@ typedef struct {
     L7_ulong32 periodo;  //periodo de integracao (1-1min 2-15min, 4-24H, 8-60min)
   } conf;
 
+  L7_uint64 dropEvents;
   L7_uint64 Octets;
   L7_uint64 Pkts;
   L7_uint64 Broadcast;
@@ -71,6 +72,7 @@ typedef struct {
 
   struct {
     int  cTempo;   //Tempo efectivamente analisado
+    L7_uint64 dropEvents;
     L7_uint64 Octets;
     L7_uint64 Pkts;
     L7_uint64 Broadcast;

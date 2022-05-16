@@ -15,6 +15,7 @@ typedef struct {
   L7_long32  path; 
   L7_long32  cTempo;  
 
+  L7_uint64 dropEvents;
   L7_uint64 Octets;
   L7_uint64 Pkts;
   L7_uint64 Broadcast;

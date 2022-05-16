@@ -3064,6 +3064,7 @@ typedef struct {
   L7_ulong32 path;   /* portid    */
   L7_ulong32 cTempo; /* monitorin period in seconds */ 
 
+  L7_uint64 dropEvents;
   L7_uint64 Octets;
   L7_uint64 Pkts;
   L7_uint64 Broadcast;

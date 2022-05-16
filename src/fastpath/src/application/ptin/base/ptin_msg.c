@@ -18404,6 +18404,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
       buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
       buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
                                                                                                                  
+      buffer[*n_elements].dropEvents            = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
       buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
       buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
       buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
@@ -18427,6 +18428,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
       PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[*n_elements].time );   
       PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[*n_elements].path);   
       PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
+      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[*n_elements].dropEvents );   
       PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[*n_elements].Octets );   
       PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[*n_elements].Pkts);   
       PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[*n_elements].Broadcast);   
@@ -18470,6 +18472,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
     buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
                                                                                                            
+    buffer[*n_elements].dropEvents            = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
     buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
     buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
     buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
@@ -18493,6 +18496,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[*n_elements].time );   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[*n_elements].path);   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[*n_elements].dropEvents );   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[*n_elements].Octets );   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[*n_elements].Pkts);   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[*n_elements].Broadcast);   
@@ -18564,6 +18568,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
   buffer[n_elements].path                 = ENDIAN_SWAP32(ring_buffer.path);
   buffer[n_elements].cTempo               = ENDIAN_SWAP32(ring_buffer.cTempo);
 
+  buffer[n_elements].dropEvents           = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
   buffer[n_elements].Octets               = ENDIAN_SWAP64(ring_buffer.Octets);
   buffer[n_elements].Pkts                 = ENDIAN_SWAP64(ring_buffer.Pkts);                
   buffer[n_elements].Broadcast            = ENDIAN_SWAP64(ring_buffer.Broadcast);
@@ -18587,6 +18592,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
   PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[n_elements].time );   
   PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[n_elements].path);   
   PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[n_elements].cTempo);   
+  PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[n_elements].dropEvents );   
   PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[n_elements].Octets );   
   PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[n_elements].Pkts);   
   PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[n_elements].Broadcast);   

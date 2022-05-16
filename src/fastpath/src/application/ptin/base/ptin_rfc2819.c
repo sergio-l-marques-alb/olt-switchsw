@@ -227,6 +227,7 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.time                 =   time(NULL);
   aux_qual_RFC2819.cTempo               =   qual->status[RFC2819_ACTUAL].cTempo;
 
+  aux_qual_RFC2819.dropEvents           =   qual->status[RFC2819_ACTUAL].dropEvents          ;
   aux_qual_RFC2819.Octets               =   qual->status[RFC2819_ACTUAL].Octets              ;
   aux_qual_RFC2819.Pkts                 =   qual->status[RFC2819_ACTUAL].Pkts                ;
   aux_qual_RFC2819.Broadcast            =   qual->status[RFC2819_ACTUAL].Broadcast           ;
@@ -245,7 +246,7 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.Pkts512to1023Octets  =   qual->status[RFC2819_ACTUAL].Pkts512to1023Octets ;
   aux_qual_RFC2819.Pkts1024to1518Octets =   qual->status[RFC2819_ACTUAL].Pkts1024to1518Octets;   
 
-  PT_LOG_TRACE(LOG_CTX_RFC2819, "15MIN  : %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
+  PT_LOG_TRACE(LOG_CTX_RFC2819, "15MIN  : %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
             qual->reg_data.dia,
             qual->reg_data.mes,
@@ -253,6 +254,7 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
             qual->reg_data.hora,
             qual->reg_data.min,
             aux_qual_RFC2819.cTempo               ,
+            aux_qual_RFC2819.dropEvents           ,
             aux_qual_RFC2819.Octets               ,
             aux_qual_RFC2819.Pkts                 ,
             aux_qual_RFC2819.Broadcast            ,
@@ -300,6 +302,7 @@ void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.time                = time(NULL);
   aux_qual_RFC2819.cTempo              = qual->status[RFC2819_PER24HORAS].cTempo;
 
+  aux_qual_RFC2819.dropEvents          =   qual->status[RFC2819_PER24HORAS].dropEvents          ;
   aux_qual_RFC2819.Octets              =   qual->status[RFC2819_PER24HORAS].Octets              ;
   aux_qual_RFC2819.Pkts                =   qual->status[RFC2819_PER24HORAS].Pkts                ;
   aux_qual_RFC2819.Broadcast           =   qual->status[RFC2819_PER24HORAS].Broadcast           ;
@@ -318,7 +321,7 @@ void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.Pkts512to1023Octets =   qual->status[RFC2819_PER24HORAS].Pkts512to1023Octets ;
   aux_qual_RFC2819.Pkts1024to1518Octets=   qual->status[RFC2819_PER24HORAS].Pkts1024to1518Octets;
 
-  PT_LOG_TRACE(LOG_CTX_RFC2819, "24HOURS: %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
+  PT_LOG_TRACE(LOG_CTX_RFC2819, "24HOURS: %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
             qual->reg_data.dia,
             qual->reg_data.mes,
@@ -326,6 +329,7 @@ void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
             qual->reg_data.hora,
             qual->reg_data.min,
             aux_qual_RFC2819.cTempo            ,  
+            aux_qual_RFC2819.dropEvents         ,  
             aux_qual_RFC2819.Octets            ,  
             aux_qual_RFC2819.Pkts              ,  
             aux_qual_RFC2819.Broadcast         ,  
@@ -376,6 +380,7 @@ void ptin_rfc2819_init_probe(T_QUALIDADE_RFC2819 *param, L7_uint8 slot, L7_ulong
 
   for (i=0;i<2;i++) {
 
+    param->status[i].dropEvents           = 0;
     param->status[i].Octets               = 0;
     param->status[i].Pkts                 = 0;
     param->status[i].Broadcast            = 0;
@@ -397,6 +402,7 @@ void ptin_rfc2819_init_probe(T_QUALIDADE_RFC2819 *param, L7_uint8 slot, L7_ulong
 
   }
 
+  param->dropEvents           = 0;
   param->Octets               = 0;
   param->Pkts                 = 0;
   param->Broadcast            = 0;
@@ -476,6 +482,7 @@ L7_int ptin_rfc2819_refresh_counters(L7_int Port)
     PT_LOG_TRACE(LOG_CTX_RFC2819, "Getting statistics of port# %u: SUCCESS", portStats.Port);
 
   //RX
+  RFC2819_probes_Rx[Port].dropEvents           = portStats.Rx.etherStatsDropEvents;
   RFC2819_probes_Rx[Port].Octets               = portStats.Rx.etherStatsOctets;
   RFC2819_probes_Rx[Port].Pkts                 = portStats.Rx.etherStatsPkts;
   RFC2819_probes_Rx[Port].Broadcast            = portStats.Rx.etherStatsBroadcastPkts;
@@ -495,6 +502,7 @@ L7_int ptin_rfc2819_refresh_counters(L7_int Port)
   RFC2819_probes_Rx[Port].Pkts1024to1518Octets = portStats.Rx.etherStatsPkts1024to1518Octets;
 
   //TX
+  RFC2819_probes_Tx[Port].dropEvents           = portStats.Tx.etherStatsDropEvents;
   RFC2819_probes_Tx[Port].Octets               = portStats.Tx.etherStatsOctets;
   RFC2819_probes_Tx[Port].Pkts                 = portStats.Tx.etherStatsPkts;
   RFC2819_probes_Tx[Port].Broadcast            = portStats.Tx.etherStatsBroadcastPkts;
@@ -556,6 +564,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
   //Process receive counters
   //------------------------------------------------------------------------
   if (RFC2819_probes_Rx[Port].conf.estado==0 ) {
+    RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].dropEvents           = 0;
     RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].Octets               = 0;
     RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].Pkts                 = 0;
     RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].Broadcast            = 0;
@@ -575,6 +584,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
     RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].Pkts1024to1518Octets = 0;
   } 
   else {
+    RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].dropEvents           = portStats.Rx.etherStatsDropEvents          -RFC2819_probes_Rx[Port].dropEvents;
     RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].Octets               = portStats.Rx.etherStatsOctets              -RFC2819_probes_Rx[Port].Octets;
     RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].Pkts                 = portStats.Rx.etherStatsPkts                -RFC2819_probes_Rx[Port].Pkts;                
     RFC2819_probes_Rx[Port].status[RFC2819_ACTUAL].Broadcast            = portStats.Rx.etherStatsBroadcastPkts       -RFC2819_probes_Rx[Port].Broadcast;           
@@ -595,6 +605,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
 
 
     //Refresh backup counters
+    RFC2819_probes_Rx[Port].dropEvents           = portStats.Rx.etherStatsDropEvents          ;
     RFC2819_probes_Rx[Port].Octets               = portStats.Rx.etherStatsOctets              ;
     RFC2819_probes_Rx[Port].Pkts                 = portStats.Rx.etherStatsPkts                ;
     RFC2819_probes_Rx[Port].Broadcast            = portStats.Rx.etherStatsBroadcastPkts       ;
@@ -617,6 +628,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
   //Process Transmit counters
   //------------------------------------------------------------------------
   if (RFC2819_probes_Tx[Port].conf.estado==0 ) {
+    RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].dropEvents           = 0;
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Octets               = 0;
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Pkts                 = 0;
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Broadcast            = 0;
@@ -636,6 +648,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Pkts1024to1518Octets = 0;
   } 
   else {
+    RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].dropEvents           = portStats.Tx.etherStatsDropEvents          -RFC2819_probes_Tx[Port].dropEvents;
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Octets               = portStats.Tx.etherStatsOctets              -RFC2819_probes_Tx[Port].Octets;
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Pkts                 = portStats.Tx.etherStatsPkts                -RFC2819_probes_Tx[Port].Pkts;                
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Broadcast            = portStats.Tx.etherStatsBroadcastPkts       -RFC2819_probes_Tx[Port].Broadcast;           
@@ -655,6 +668,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Pkts1024to1518Octets = portStats.Tx.etherStatsPkts1024to1518Octets-RFC2819_probes_Tx[Port].Pkts1024to1518Octets;
 
     //Refresh backup counters
+    RFC2819_probes_Tx[Port].dropEvents           = portStats.Tx.etherStatsDropEvents          ;
     RFC2819_probes_Tx[Port].Octets               = portStats.Tx.etherStatsOctets              ;
     RFC2819_probes_Tx[Port].Pkts                 = portStats.Tx.etherStatsPkts                ;
     RFC2819_probes_Tx[Port].Broadcast            = portStats.Tx.etherStatsBroadcastPkts       ;
@@ -817,6 +831,7 @@ L7_RC_t ptin_rfc2819_init(void)
  */
 void ptin_rfc2819_clear(T_QUALIDADE_RFC2819 *param)
 {
+  param->status[RFC2819_ACTUAL].dropEvents           = param->dropEvents          ; 
   param->status[RFC2819_ACTUAL].Octets               = param->Octets              ; 
   param->status[RFC2819_ACTUAL].Pkts                 = param->Pkts                ; 
   param->status[RFC2819_ACTUAL].Broadcast            = param->Broadcast           ; 
@@ -950,6 +965,7 @@ void ptin_rfc2819_proc(L7_uint8 buffer_15min, L7_uint8 buffer_24horas, T_QUALIDA
     ptin_rfc2819_regista_15min(buffer_15min,(void *)param);        
 
     param->status[RFC2819_PER24HORAS].cTempo              +=   param->status[RFC2819_ACTUAL].cTempo              ;
+    param->status[RFC2819_PER24HORAS].dropEvents          +=   param->status[RFC2819_ACTUAL].dropEvents          ;
     param->status[RFC2819_PER24HORAS].Octets              +=   param->status[RFC2819_ACTUAL].Octets              ;
     param->status[RFC2819_PER24HORAS].Pkts                +=   param->status[RFC2819_ACTUAL].Pkts                ;
     param->status[RFC2819_PER24HORAS].Broadcast           +=   param->status[RFC2819_ACTUAL].Broadcast           ;
@@ -977,6 +993,7 @@ void ptin_rfc2819_proc(L7_uint8 buffer_15min, L7_uint8 buffer_24horas, T_QUALIDA
       ptin_rfc2819_regista_24horas(buffer_24horas,(void *)param); 
 
       param->status[RFC2819_PER24HORAS].cTempo            = 0;  
+      param->status[RFC2819_PER24HORAS].dropEvents        = 0;  
       param->status[RFC2819_PER24HORAS].Octets            = 0;  
       param->status[RFC2819_PER24HORAS].Pkts              = 0;  
       param->status[RFC2819_PER24HORAS].Broadcast         = 0;  
