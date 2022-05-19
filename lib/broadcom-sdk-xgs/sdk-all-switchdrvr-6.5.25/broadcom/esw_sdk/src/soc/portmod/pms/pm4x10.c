@@ -6321,10 +6321,10 @@ int pm4x10_port_ability_local_get (int unit, int port, pm_info_t pm_info, uint32
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(unit,
-                         "%-22s:unit=%d p=%d sp=%08x bitmap=%x\n"),
-              FUNCTION_NAME(), unit, port, ability->speed_full_duplex, bitmap));
+    LOG_VERBOSE(BSL_LS_SOC_PHY,
+                (BSL_META_U(unit,
+                            "%-22s:unit=%d p=%d sp=%08x bitmap=%x\n"),
+                 FUNCTION_NAME(), unit, port, ability->speed_full_duplex, bitmap));
 
 exit:
     SOC_FUNC_RETURN;

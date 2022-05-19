@@ -27,7 +27,7 @@ export CCACHE_DIR     = /home/olt_shared/switchdrvr/ccache
 
 # Kernel and SDK paths
 KERNEL_PATH ?= $(KERNEL_BASE)/linux-tc16sxg/linux-5.4.2
-SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.25/broadcom
 
 # DESTDIR will point to build_dir location (external libs and includes)
 ifeq ($(DESTDIR),)

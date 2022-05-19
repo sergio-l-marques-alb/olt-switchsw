@@ -26,3 +26,53 @@ Index: broadcom/esw_sdk/src/bcm/esw/link.c
  _bcm_esw_link_fault_get(int unit, int port, int *fault)
  {
      uint64 lss;
+Index: lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.25/broadcom/esw_sdk/src/soc/portmod/pms/pm4x10.c
+===================================================================
+--- broadcom/esw_sdk/src/soc/portmod/pms/pm4x10.c	(revision 8468)
++++ broadcom/esw_sdk/src/soc/portmod/pms/pm4x10.c	(working copy)
+@@ -6318,16 +6318,16 @@ int pm4x10_port_ability_local_get (int u
+         } else {
+             /* We might need to consider calling portmod phy chain for
+              * non legacy phys as well*/
+         }
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(unit,
+-                         "%-22s:unit=%d p=%d sp=%08x bitmap=%x\n"),
+-              FUNCTION_NAME(), unit, port, ability->speed_full_duplex, bitmap));
++    LOG_VERBOSE(BSL_LS_SOC_PHY,
++                (BSL_META_U(unit,
++                            "%-22s:unit=%d p=%d sp=%08x bitmap=%x\n"),
++                 FUNCTION_NAME(), unit, port, ability->speed_full_duplex, bitmap));
+ 
+ exit:
+     SOC_FUNC_RETURN;
+ 
+ }
+ 
+Index: lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.25/broadcom/esw_sdk/src/soc/portmod/pms/pm4x25.c
+===================================================================
+--- broadcom/esw_sdk/src/soc/portmod/pms/pm4x25.c	(revision 8468)
++++ broadcom/esw_sdk/src/soc/portmod/pms/pm4x25.c	(working copy)
+@@ -5279,16 +5279,16 @@ int pm4x25_port_ability_local_get(int un
+         } else {
+             /* We might need to consider calling portmod phy chain for
+              * non legacy phys as well*/
+         }
+     }
+ 
+-    LOG_INFO(BSL_LS_SOC_PHY,
+-             (BSL_META_U(unit,
+-                         "phy_tscf_ability_local_get:unit=%d p=%d sp=%08x\n"),
+-              unit, port, ability->speed_full_duplex));
++    LOG_VERBOSE(BSL_LS_SOC_PHY,
++                (BSL_META_U(unit,
++                            "phy_tscf_ability_local_get:unit=%d p=%d sp=%08x\n"),
++                 unit, port, ability->speed_full_duplex));
+ 
+ exit:
+     SOC_FUNC_RETURN;
+ }
+ 
+ static int _pm4x25_nof_lanes_get(int unit, int port, pm_info_t pm_info)
