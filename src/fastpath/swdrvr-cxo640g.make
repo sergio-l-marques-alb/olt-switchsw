@@ -25,7 +25,7 @@ CROSS_COMPILE = ppc_85xxDP-
 
 # Kernel and SDK paths
 KERNEL_PATH ?= $(KERNEL_BASE)/linux-denx-3.18.25_cxo640g-mx
-SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.25/broadcom
 
 # DESTDIR will point to build_dir location (external libs and includes)
 ifeq ($(DESTDIR),)
