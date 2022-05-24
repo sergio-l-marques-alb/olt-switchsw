@@ -14762,15 +14762,8 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     if ((mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
         (msgBwProfile->client_vlan > 0 && msgBwProfile->client_vlan < 4096))
     {
-      /* Adjust outer VID considering the port virtualization scheme */
-      if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id),
-                                       msgBwProfile->client_vlan,
-                                       &profile->inner_vlan_egress) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
-                   msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, msgBwProfile->client_vlan);
-        return L7_FAILURE;
-      }
+      profile->inner_vlan_ingress = msgBwProfile->client_vlan;
+      
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
