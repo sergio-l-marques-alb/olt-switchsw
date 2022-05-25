@@ -2892,7 +2892,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (leaf_port1 < 0)       leaf_port1 = ptin_port;   /* First leaf port */
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-      if (iptv_enabled)
+      /* MAC bridge service have a specific fp rule to direct traffic to wired or wireless*/
+      if (iptv_enabled || evc_type == PTIN_EVC_TYPE_STD_P2P)
       {
          /* GPON ports use wireless queue*/
          if (ptin_port < PTIN_SYSTEM_N_PONS_PHYSICAL && queue_type != PTIN_EVC_QUEUE_WIRELESS)
@@ -2916,7 +2917,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
          }
          else
          {
-           PT_LOG_ERR(LOG_CTX_EVC, "In IPTV EVC is not supported mix of XGS and GPON ports! (ptin_port = %u)", ptin_port);
+           PT_LOG_ERR(LOG_CTX_EVC, "On EVC is not supported mix of XGS and GPON ports! (ptin_port = %u)", ptin_port);
            return L7_FAILURE;
          }
       }
