@@ -14681,33 +14681,47 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   {
     /* SVID */
     if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
-        (msgBwProfile->service_vlan > 0 && msgBwProfile->service_vlan < 4096))
+        (msgBwProfile->service_vlan > 0 && msgBwProfile->service_vlan < 4096)) 
     {
-      /* Adjust outer VID considering the port virtualization scheme */
-      if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id),
-                                       msgBwProfile->service_vlan,
-                                       &profile->outer_vlan_lookup) != L7_SUCCESS)
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+      uint8_t evc_type;
+      L7_RC_t rc;
+
+      rc = ptin_evc_check_evctype(msgBwProfile->evcId, &evc_type);
+      if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
-                   msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, msgBwProfile->service_vlan);
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
+                   msgBwProfile->evcId);
         return L7_FAILURE;
       }
-      PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted! (Using Service VLAN %u)", profile->outer_vlan_lookup);
+      /* On TC16SXG (and on other boards) on P2P, the msgBwProfile->service_vlan is the nni-vlan,
+         so this VLAN cannot be virtualized. On MAC bridge these parameter is the gem vlan so it must be virtualized*/
+      if (evc_type != PTIN_EVC_TYPE_STD_P2P) 
+      {
+        /* Adjust outer VID considering the port virtualization scheme */
+        if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id),
+                                         msgBwProfile->service_vlan,
+                                         &profile->outer_vlan_lookup) != L7_SUCCESS) 
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
+                     msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, msgBwProfile->service_vlan);
+          return L7_FAILURE;
+        }
+      }
+      else
+#endif
+      {
+          profile->outer_vlan_lookup = msgBwProfile->service_vlan;
+      }
+      PT_LOG_DEBUG(LOG_CTX_MSG, " SVID extracted! (Using Service VLAN %u)", profile->outer_vlan_lookup);
     }
 
-    /* CVID */
+    /* CVID, Note: On P2P services this client_vlan  is the NNI-CTAG and on MAC bridge this is the UNI-CTAG.
+       Both of then cannot be virtualized*/
     if ((mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
         (msgBwProfile->client_vlan > 0 && msgBwProfile->client_vlan < 4096))
     {
-      /* Adjust outer VID considering the port virtualization scheme */
-      if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id),
-                                       msgBwProfile->client_vlan,
-                                       &profile->inner_vlan_ingress) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
-                   msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, msgBwProfile->service_vlan);
-        return L7_FAILURE;
-      }
+      profile->inner_vlan_ingress = msgBwProfile->client_vlan;
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
@@ -14746,15 +14760,37 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
         (msgBwProfile->service_vlan > 0 && msgBwProfile->service_vlan < 4096))
     {
-      /* Adjust outer VID considering the port virtualization scheme */
-      if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id),
-                                       msgBwProfile->service_vlan,
-                                       &profile->outer_vlan_egress) != L7_SUCCESS)
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+      uint8_t evc_type;
+      L7_RC_t rc;
+
+      rc = ptin_evc_check_evctype(msgBwProfile->evcId, &evc_type);
+      if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
-                   msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, msgBwProfile->service_vlan);
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
+                   msgBwProfile->evcId);
         return L7_FAILURE;
       }
+      /* On TC16SXG (and on other boards) on P2P, the msgBwProfile->service_vlan is the nni-vlan,
+         so this VLAN cannot be virtualized. On MAC bridge these parameter is the gem vlan so it must be virtualized*/
+      if (evc_type != PTIN_EVC_TYPE_STD_P2P) 
+      {
+        /* Adjust outer VID considering the port virtualization scheme */
+        if (ptin_intf_portGem2virtualVid(ptintf2port(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id),
+                                         msgBwProfile->service_vlan,
+                                         &profile->outer_vlan_egress) != L7_SUCCESS) 
+        {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error with ptin_intf_portGem2intIfNumVid(type=%u, id=%u, ovid=%u)",
+                       msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, msgBwProfile->service_vlan);
+            return L7_FAILURE;
+        }
+      }
+      else
+#endif
+      {
+        profile->outer_vlan_egress = msgBwProfile->service_vlan;
+      }
+
       PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted! (Using Service VLAN %u)", profile->outer_vlan_egress);
     }
 
