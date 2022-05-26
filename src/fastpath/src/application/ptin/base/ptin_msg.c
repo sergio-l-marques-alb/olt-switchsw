@@ -14789,11 +14789,14 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       L7_RC_t rc;
 
       rc = ptin_evc_check_evctype(msgBwProfile->evcId, &evc_type);
-      if (rc != L7_SUCCESS)
+      if (rc != L7_SUCCESS) 
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
-                   msgBwProfile->evcId);
-        return L7_FAILURE;
+        if (rc == L7_NOT_EXIST) 
+        {
+          PT_LOG_NOTICE(LOG_CTX_MSG, " EVC id %u is not in use, return success",
+                        msgBwProfile->evcId);
+          return L7_SUCCESS;
+        }
       }
       /* On TC16SXG (and on other boards) on P2P, the msgBwProfile->service_vlan is the nni-vlan,
          so this VLAN cannot be virtualized. On MAC bridge these parameter is the gem vlan so it must be virtualized*/
