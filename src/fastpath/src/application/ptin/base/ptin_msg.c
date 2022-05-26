@@ -9534,6 +9534,12 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
         rc = ptin_evc_check_evctype(profile[i].evc_id, &evc_type);
         if (rc != L7_SUCCESS)
         {
+          if (rc == L7_NOT_EXIST) 
+          {
+              PT_LOG_NOTICE(LOG_CTX_MSG, " EVC id %u is not in use, return success",
+                            profile[i].evc_id);
+              return L7_SUCCESS;
+          }
           PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
                      profile[i].evc_id);
           return L7_FAILURE;
@@ -9544,8 +9550,8 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
         {
           /* Adjust outer VID considering the port virtualization scheme */
           if (ptin_intf_portGem2virtualVid(client.ptin_port,
-                                           client.outerVlan,
-                                           &client.outerVlan) != L7_SUCCESS)
+                                            client.outerVlan,
+                                            &client.outerVlan) != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
                        client.innerVlan);
@@ -9939,6 +9945,12 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
       rc = ptin_evc_check_evctype(dhcp_stats->evc_id, &evc_type);
       if (rc != L7_SUCCESS)
       {
+        if (rc == L7_NOT_EXIST) 
+        {
+          PT_LOG_NOTICE(LOG_CTX_MSG, " EVC id %u is not in use, return success",
+                        dhcp_stats->evc_id);
+          return L7_SUCCESS;
+        }
         PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
                    dhcp_stats->evc_id);
         return L7_FAILURE;
@@ -11469,6 +11481,12 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
       rc = ptin_evc_check_evctype(McastClient[i].mcEvcId, &evc_type);
       if (rc != L7_SUCCESS)
       {
+        if (rc == L7_NOT_EXIST) 
+        {
+          PT_LOG_NOTICE(LOG_CTX_MSG, " EVC id %u is not in use, return success",
+                        McastClient[i].mcEvcId);
+          return L7_SUCCESS;
+        }
         PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
                    McastClient[i].mcEvcId);
         return L7_FAILURE;
@@ -11762,6 +11780,12 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
   rc = ptin_evc_check_evctype(aux_mcEvcId, &evc_type);
   if (rc != L7_SUCCESS)
   {
+    if (rc == L7_NOT_EXIST) 
+    {
+      PT_LOG_NOTICE(LOG_CTX_MSG, " EVC id %u is not in use, return success",
+                    aux_mcEvcId);
+      return L7_SUCCESS;
+    }
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
                aux_mcEvcId);
     return L7_FAILURE;
