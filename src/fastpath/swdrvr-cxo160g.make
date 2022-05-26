@@ -26,7 +26,7 @@ CROSS_COMPILE = powerpc-fsl-linux-
 # Kernel and SDK paths
 
 KERNEL_PATH ?= $(KERNEL_BASE)/linux-4.1.35-QorIQ-SDK2.0
-SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.20/broadcom
+SDK_PATH    ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.25/broadcom
 
 # DESTDIR will point to build_dir location (external libs and includes)
 ifeq ($(DESTDIR),)
