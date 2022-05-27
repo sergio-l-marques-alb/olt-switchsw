@@ -9730,6 +9730,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
     }
   }
 
+  ENDIAN_SWAP32_MOD(dhcp_stats->evc_id);
+
   /* Inner VLAN will identify the client using the GEM-VLAN value.
      So, we need to add an offset according to the virtual port in use */
   if ((client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) &&
@@ -12712,7 +12714,6 @@ static ptin_igmpChannelInfo_t clist[IPCLIB_MAX_MSGSIZE/sizeof(msg_MCActiveChanne
 L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, msg_MCActiveChannelsReply_t *outputPtr, L7_uint16 *numberOfChannels)
 {  
   L7_uint16              i, number_of_channels, total_channels;
-  L7_uint8               evc_type;
   ptin_client_id_t       client;
   L7_RC_t                rc;
 
@@ -12762,51 +12763,51 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   {
     client.innerVlan = inputPtr->client.inner_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-  }
 
-  rc = ptin_evc_check_evctype(inputPtr->evc_id, &evc_type);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
-               inputPtr->evc_id);
-    return L7_FAILURE;
-  }
-
-  /* On P2P virtualization change outer VLAN */
-  if (evc_type == PTIN_EVC_TYPE_STD_P2P)
-  {
-    /* Adjust outer VID considering the port virtualization scheme */
-    if (ptin_intf_portGem2virtualVid(client.ptin_port,
-                                     client.outerVlan,
-                                     &client.outerVlan) != L7_SUCCESS)
+    if (inputPtr->client.outer_vlan == 0) 
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
-                 client.innerVlan);
-      return L7_FAILURE;
+      if (ptin_intf_portGem2virtualVid(client.ptin_port, client.innerVlan, &client.innerVlan) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+      } 
+      else 
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
+      }
     }
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.outerVlan = %u", client.outerVlan);
-  }
-  else
-  {
-    /* Adjust outer VID considering the port virtualization scheme */
-    if (ptin_intf_portGem2virtualVid(client.ptin_port,
-                                     client.innerVlan,
-                                     &client.innerVlan) != L7_SUCCESS)
+    else
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
-                 client.innerVlan);
-      return L7_FAILURE;
+      /* when the outer vlan is given it must be virtualized because ist he GEM vlan (not the inner vlan)*/
+      if (ptin_intf_portGem2virtualVid(client.ptin_port, inputPtr->client.outer_vlan, &client.outerVlan) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                   client.outerVlan);
+      } 
+      else 
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.OVlan = %u", client.outerVlan);
+      }
     }
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.innerVlan = %u", client.innerVlan);
-  } 
+  }
 
   if (inputPtr->client.mask & MSG_CLIENT_OVLAN_MASK)
   {
-    if (inputPtr->client.outer_vlan==0) 
+    if (inputPtr->client.outer_vlan == 0) 
     {        
       inputPtr->client.outer_vlan = client.innerVlan;        
     }
-    client.outerVlan = inputPtr->client.outer_vlan;
+    /* the same operation is done above when processing inner vlan. It is not supposed to have both flags filled*/
+    if (ptin_intf_portGem2virtualVid(client.ptin_port, inputPtr->client.outer_vlan, &client.outerVlan)!= L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
+                 client.outerVlan);
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.OVlan = %u", client.outerVlan);
+    }
+
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
 
@@ -12824,7 +12825,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
       outputPtr[i].srcIP   = ENDIAN_SWAP32(clist[i].sourceAddr.addr.ipv4.s_addr);
       outputPtr[i].chType  = clist[i].static_type;
       PT_LOG_TRACE(LOG_CTX_MSG,"EntryId[%u] -> Group:[%08X] Source[%08X] isStatic[%s]", ENDIAN_SWAP16(outputPtr[i].entryId), ENDIAN_SWAP32(outputPtr[i].chIP), 
-                                                                                                              ENDIAN_SWAP32(outputPtr[i].srcIP), outputPtr[i].chType?"Yes":"No");
+                                                                                        ENDIAN_SWAP32(outputPtr[i].srcIP), outputPtr[i].chType?"Yes":"No");
     }
      *numberOfChannels = i;
      PT_LOG_DEBUG(LOG_CTX_MSG, "Read %u channels and retrieving %u channels.",number_of_channels, *numberOfChannels);
@@ -13159,20 +13160,45 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
 
   ENDIAN_SWAP16_MOD(client_list->page_index);
   ENDIAN_SWAP32_MOD(client_list->evc_id);
-  rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, &sourceIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
+  rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, &sourceIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, &extended_evc_id[0],&total_clients);
   PT_LOG_DEBUG(LOG_CTX_MSG,"number_of_clients=%u total_clients=%u", number_of_clients, total_clients);
   if (rc==L7_SUCCESS)
   {
     /* Copy channels to message */
     for (i=0; i<MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX && i<number_of_clients; i++)
     {
-      /* Inner VLAN will identify the client using the GEM-VLAN value.
-      So, we need to add an offset according to the virtual port in use */
-      if (ptin_intf_virtualVid2GemVid(clist[i].innerVlan,
-                                      &clist[i].innerVlan) != L7_SUCCESS)
+      uint8_t evc_type;
+
+      rc = ptin_evc_check_evctype(extended_evc_id[i], &evc_type);
+      if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
-                   clist[i].innerVlan);
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
+                   extended_evc_id[i]);
+        return L7_FAILURE;
+      }
+        /* Outer or Inner VLAN will identify the client using the GEM-VLAN value.
+        So, we need to add an offset according to the virtual port in use */
+      if (evc_type == PTIN_EVC_TYPE_STD_P2P) 
+      {
+        /* Inner VLAN will identify the client using the GEM-VLAN value.
+        So, we need to add an offset according to the virtual port in use */
+        if (ptin_intf_virtualVid2GemVid(clist[i].outerVlan,
+                                       &clist[i].outerVlan) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                     clist[i].outerVlan);
+          return L7_FAILURE;
+        }
+      }
+      else
+      {
+        if (ptin_intf_virtualVid2GemVid(clist[i].innerVlan,
+                                       &clist[i].innerVlan) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
+                     clist[i].innerVlan);
+          return L7_FAILURE;
+        }
       }
 
       client_list->clients_list[i].mask           = clist[i].mask;
