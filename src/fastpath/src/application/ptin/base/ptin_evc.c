@@ -2993,7 +2993,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     rc = ptin_evc_entry_allocate(evc_ext_id, &evc_id);
     if (rc != L7_SUCCESS) {
       PT_LOG_CRITIC(LOG_CTX_EVC, "Error allocating an internal EVC!");
-      return L7_FAILURE;
+      return rc;
     }
 
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
@@ -3044,13 +3044,14 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       root_vlan = evcConf->internal_vlan;
     }
 
+    rc = ptin_evc_vlan_allocate(&root_vlan, freeVlan_queue, evc_id); 
     /* Get a VLAN from the pool to use as Internal Root VLAN */
-    if (ptin_evc_vlan_allocate(&root_vlan, freeVlan_queue, evc_id) != L7_SUCCESS)  /* cannot fail! */
+    if ( rc != L7_SUCCESS)  /* cannot fail! */
     {
       PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error allocating internal VLAN", evc_id);
       ptin_evc_freeVlanQueue_free(freeVlan_queue);
       ptin_evc_entry_free(evc_ext_id);
-      return L7_FAILURE;
+      return rc;
     }
 
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Enabling cross-connects?", evc_ext_id);
@@ -4587,7 +4588,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   if (queue_free_clients.n_elems == 0)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: No available clients", evc_id);
-    return L7_FAILURE;
+    return L7_NO_RESOURCES;
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: adding bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
@@ -6085,7 +6086,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       if (queue_free_clients.n_elems == 0)
       {
         PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: No available flows", evc_id);
-        return L7_FAILURE;
+        return L7_NO_RESOURCES;
       }
 
       /* Get a new L2intf id */
@@ -9241,14 +9242,14 @@ static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id)
   if (extEvcId_avlTree.extEvcIdAvlTree.count >= PTIN_SYSTEM_N_EVCS)
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Np space in AVL TREE to add one more node");
-    return L7_FAILURE;
+    return L7_NO_RESOURCES;
   }
 
   /* Try to get an entry from the pool of free elements */
   rc = dl_queue_remove_head(&queue_free_evcs, (dl_queue_elem_t **) &evc_pool_entry);
   if (rc != NOERR) {
     PT_LOG_CRITIC(LOG_CTX_EVC, "There are no free EVCs available! rc=%d", rc);
-    return L7_FAILURE;
+    return L7_NO_RESOURCES;
   }
 
   PT_LOG_DEBUG(LOG_CTX_EVC, "EVC free pool: %u of %u entries",
@@ -10933,7 +10934,7 @@ static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, 
     if (queue_vlans->n_elems == 0)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "There no VLANs available");
-      return L7_FAILURE;
+      return L7_NO_RESOURCES;
     }
 
     dl_queue_remove_head(queue_vlans, (dl_queue_elem_t**)&pvlan);
