@@ -37,6 +37,8 @@
 /* *******************************************************************************/
 
 tblErps_t               tbl_erps[MAX_PROT_PROT_ERPS];
+static
+L7_uint8                n_used_tbl_erps=0;
 erpsVlanInclusionList_t tbl_erps_vlanList[MAX_PROT_PROT_ERPS];
 
 static const char *stateToString[]  = {"FRZ", "Z_Init", "A_Idle", "B_Protection", "C_ManualSwitch", "D_ForcedSwitch", "E_Pending"};
@@ -200,6 +202,7 @@ int ptin_erps_init(void)
     ptin_erps_init_entry(erps_idx);
     ptin_erps_vlanList_init_entry(erps_idx);
   }
+  n_used_tbl_erps = 0;
   
   //PT_LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -3856,11 +3859,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
  */
 int ptin_prot_erps_proc(void)
 {
-  L7_uint8 erps_idx;
+  L7_uint8 erps_idx, n;
 //L7_uint8 flush_pending = 0;
 
   // CONTROL
-  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
+  for (erps_idx=0, n=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
   {
     osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
@@ -3870,10 +3873,14 @@ int ptin_prot_erps_proc(void)
       continue;
     }
 
+    ++n;
     tbl_erps[erps_idx].hal.prot_proc(erps_idx);
 
     osapiSemaGive(ptin_prot_erps_sem);
   }
+
+  n_used_tbl_erps = n;
+  if (0 == n_used_tbl_erps) return PROT_ERPS_EXIT_OK;
 
   // HW Sync
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
@@ -3964,9 +3971,15 @@ void ptin_erps_task(void)
     {
      struct timespec requiredSleepTime;
      struct timespec remainingSleepTime;
-     
-     requiredSleepTime.tv_sec  = 0;
-     requiredSleepTime.tv_nsec = PROT_ERPS_CALL_PROC_US*1000;
+
+     if (0==n_used_tbl_erps) {
+         requiredSleepTime.tv_sec  = 1;
+         requiredSleepTime.tv_nsec = 0;
+     }
+     else {
+         requiredSleepTime.tv_sec  = 0;
+         requiredSleepTime.tv_nsec = PROT_ERPS_CALL_PROC_US*1000;
+     }
      nanosleep(&requiredSleepTime, &remainingSleepTime);
     }
 
