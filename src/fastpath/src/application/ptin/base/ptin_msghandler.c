@@ -131,7 +131,6 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
       return ERROR_CODE_NOSUCHNAME;
 
     case L7_TABLE_IS_FULL:
-    case L7_NO_RESOURCES:
       return ERROR_CODE_FULLTABLE;
 
     case L7_NOT_SUPPORTED:
