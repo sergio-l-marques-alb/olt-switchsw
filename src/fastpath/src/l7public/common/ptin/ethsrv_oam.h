@@ -933,7 +933,8 @@ extern int del_mip(u32 i_mip, T_ETH_SRV_OAM *p_oam);
 
 
 //PROCESS - to be called periodically
-extern void proc_ethsrv_oam(T_ETH_SRV_OAM *p_oam, u32 T_ms);
+//returns the number of active MEPs
+extern u32 proc_ethsrv_oam(T_ETH_SRV_OAM *p_oam, u32 T_ms);
 
 //EVENT - to be called for every OAM packet received
 extern int rx_oam_pckt(u16 oam_prt, u8 *pkt, u32 pkt_len, u64 vid, u8 *pDMAC, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl);
