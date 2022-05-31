@@ -4078,7 +4078,7 @@ L7_RC_t ptin_prot_uplink_state_sync(L7_uint32 protIdx_in)
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "Requesting protection state to the other SF board...");
 
-  memset(&prot_state, 0x00, sizeof(msg_uplinkprot_st));
+  memset(prot_state, 0x00, sizeof(prot_state));
 
   prot_state[0].slotId    = (ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT;
   prot_state[0].protIndex = (L7_uint16)-1;
