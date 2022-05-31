@@ -4613,13 +4613,8 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   else
   {
     /* Remove inner vlan @ egress */
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    /* On TC16SXG P2P have different xlate operations,
-      due to the port virtualization and ASPEN limitations*/
-    rc = switching_elan_leaf_add(&intf_vlan, evcs[evc_id].rvlan, L7_FALSE, -1);
-#else
+
     rc = switching_elan_leaf_add(&intf_vlan, evcs[evc_id].rvlan, L7_TRUE, -1);
-#endif 
   }
   if (rc != L7_SUCCESS)
   {
