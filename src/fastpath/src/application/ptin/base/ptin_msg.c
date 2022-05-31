@@ -9781,7 +9781,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 #endif
   {
     /* Get statistics */
-    rc = ptin_dhcp_stat_client_get(ENDIAN_SWAP32(dhcp_stats->evc_id), &client, &stats);
+    rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id, &client, &stats);
 
     if (rc!=L7_SUCCESS)
     {
@@ -9936,6 +9936,8 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
                                                 client.ptin_intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
+
+    ENDIAN_SWAP32_MOD(dhcp_stats->evc_id);
 
     /* Inner VLAN will identify the client using the GEM-VLAN value.
        So, we need to add an offset according to the virtual port in use */
