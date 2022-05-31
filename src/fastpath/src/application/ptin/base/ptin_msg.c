@@ -13865,6 +13865,22 @@ L7_RC_t ptin_msg_uplink_prot_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc_global = L7_FAILURE;
       continue;
     }
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    {   /* Need to synchronize FSM status from active CXO after instance creation */
+        L7_RC_t r;  
+        
+        /*check if this is the inactive matrix*/
+        if (!ptin_fpga_mx_is_matrixactive_rt())
+        {
+            r = ptin_prot_uplink_state_sync(protConf[i].protIndex);
+            if (L7_SUCCESS != r) {
+                PT_LOG_ERR(LOG_CTX_MSG,
+                           "ptin_prot_uplink_state_sync(%u)=%d",
+                           protConf[i].protIndex, r);
+            }
+        }
+    }
+#endif
   }
 
   return rc_global;
@@ -14015,6 +14031,22 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Recreate protection group */
       rc = ptin_prot_uplink_create(protConf[i].protIndex, &intfW, &intfP,
                                    restore_time, operationMode, alarmFlagsEn, flags, L7_TRUE);
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      if (L7_SUCCESS == rc) {   /* Need to synchronize FSM status from active CXO after instance creation */
+          L7_RC_t r;  
+          
+          /*check if this is the inactive matrix*/
+          if (!ptin_fpga_mx_is_matrixactive_rt())
+          {
+              r = ptin_prot_uplink_state_sync(protConf[i].protIndex);
+              if (L7_SUCCESS != r) {
+                  PT_LOG_ERR(LOG_CTX_MSG,
+                             "ptin_prot_uplink_state_sync(%u)=%d",
+                             protConf[i].protIndex, r);
+              }
+          }
+      }
+#endif
     }
     else if ((protConf[i].confMask & HWUPLINKPROT_CONFMASK_OperationMode))
     {
@@ -18341,6 +18373,7 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
       }         
 
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      /* We shouldn't be needing this anymore, as it is now being done after ETH UPLNKPROT instance creation */
       do {
           static int not_1st_flush_end=0;
 
@@ -18350,7 +18383,7 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
 
 
           /* 1st we synchronize from active matrix UPLNK PROT status */
-          if (ptin_prot_uplink_state_sync() != L7_SUCCESS) 
+          if (ptin_prot_uplink_state_sync(-1) != L7_SUCCESS) 
           {
             PT_LOG_WARN(LOG_CTX_CONTROL,
                         "Error synchronizing Uplink Protection state from the other SF."

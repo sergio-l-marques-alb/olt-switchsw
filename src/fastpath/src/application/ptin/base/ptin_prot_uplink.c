@@ -4063,9 +4063,13 @@ L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCM
  * 
  * @author mruas (26/09/17)
  * 
+ * @param protIdx_in: 
+ *        instance to be processed or...
+ *        all instances if >=MAX_UPLINK_PROT
+ *  
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_uplink_state_sync(void)
+L7_RC_t ptin_prot_uplink_state_sync(L7_uint32 protIdx_in)
 {
 #if (PTIN_BOARD_IS_MATRIX)
   /* Query active matrix, abot active ports */
@@ -4116,6 +4120,10 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
       PT_LOG_ERR(LOG_CTX_INTF, "Something is wrong... returned group index is invalid (%u)", protIdx);
       continue;
     }
+
+    /* protIdx_in<MAX_UPLINK_PROT? Process just protIdx_in
+       protIdx_in>=MAX_UPLINK_PROT? Process all instances */
+    if (protIdx_in < MAX_UPLINK_PROT && protIdx!=protIdx_in) continue;
     
     /* If in the other side, there are active timers, reset machine!
       (already use ptin_prot_uplink_sem inside uplinkprotResetStateMachine) */

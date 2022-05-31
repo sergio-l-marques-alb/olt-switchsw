@@ -300,9 +300,13 @@ extern L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PR
  * 
  * @author mruas (26/09/17)
  * 
+ * @param protIdx_in: 
+ *        instance to be processed or...
+ *        all instances if >=MAX_UPLINK_PROT
+ *  
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_prot_uplink_state_sync(void);
+extern L7_RC_t ptin_prot_uplink_state_sync(L7_uint32 protIdx_in);
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 /**

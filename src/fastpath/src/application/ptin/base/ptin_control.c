@@ -1288,7 +1288,7 @@ void ptin_control_switchover_monitor(void)
       PT_LOG_INFO(LOG_CTX_CONTROL, "Going to reenable Uplink Protection machine");
 
       /* If this SF is active, reenable uplink protections */
-      if (ptin_prot_uplink_state_sync() != L7_SUCCESS)
+      if (ptin_prot_uplink_state_sync(-1) != L7_SUCCESS)
       {
         PT_LOG_WARN(LOG_CTX_CONTROL, "Error synchronizing Uplink Protection state from the other SF. Resetting machine...");
         uplinkprotResetStateMachine((L7_uint16)-1 /*All*/);
