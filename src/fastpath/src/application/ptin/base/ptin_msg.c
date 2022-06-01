@@ -11557,7 +11557,6 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   PTIN_MGMD_CTRL_STATS_RESPONSE_t stats;
   L7_RC_t                         rc;
   L7_uint32                       aux_mcEvcId;
-  uint8_t                         evc_type;
 
   if (igmp_stats==L7_NULLPTR)
   {
@@ -11624,16 +11623,8 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
 
-  rc = ptin_evc_check_evctype(aux_mcEvcId, &evc_type);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
-               aux_mcEvcId);
-    return L7_FAILURE;
-  }
-
-  /* On P2P virtualization change outer VLAN */
-  if (evc_type == PTIN_EVC_TYPE_STD_P2P)
+  /* Change the outer vlan when given */
+  if (client.outerVlan != 0)
   {
     /* Adjust outer VID considering the port virtualization scheme */
     if (ptin_intf_portGem2virtualVid(client.ptin_port,
@@ -11657,7 +11648,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
                  client.innerVlan);
       return L7_FAILURE;
     }
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.outerVlan = %u", client.innerVlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.innerVlan = %u", client.innerVlan);
   } 
 
   /* Get statistics */
@@ -12777,6 +12768,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
       {
         PT_LOG_DEBUG(LOG_CTX_IGMP, "  New Client.IVlan = %u", client.innerVlan);
       }
+      client.outerVlan = client.innerVlan;  
     }
     else
     {
@@ -12800,7 +12792,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
       inputPtr->client.outer_vlan = client.innerVlan;        
     }
     /* the same operation is done above when processing inner vlan. It is not supposed to have both flags filled*/
-    if (ptin_intf_portGem2virtualVid(client.ptin_port, inputPtr->client.outer_vlan, &client.outerVlan)!= L7_SUCCESS)
+    else if (ptin_intf_portGem2virtualVid(client.ptin_port, inputPtr->client.outer_vlan, &client.outerVlan)!= L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u",
                  client.outerVlan);
@@ -13189,7 +13181,6 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
                      clist[i].outerVlan);
-          return L7_FAILURE;
         }
       }
       else
@@ -13199,7 +13190,6 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Error obtaining the virtual VID from GEM VID %u", 
                      clist[i].innerVlan);
-          return L7_FAILURE;
         }
       }
 

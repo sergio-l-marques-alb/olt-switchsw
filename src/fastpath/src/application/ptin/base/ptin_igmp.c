@@ -4234,7 +4234,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
     /*MAC Bridge Services Support*/
     if (L7_SUCCESS != ptin_evc_get_evcIdfromIntVlan(tempKey.outerVlan,&extendedEvcId[clientBufferIdx]))
     {
-      PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get external EVC Id :%u",tempKey.outerVlan);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get external EVC Id : outervlan : %u",tempKey.outerVlan);
 
       extendedEvcId[clientBufferIdx] = McastEvcId;//;(L7_uint32)-1;
     }
