@@ -2059,11 +2059,7 @@ L7_RC_t filterVlanFilteringModeSet(L7_uint32 vlanId, L7_FILTER_VLAN_FILTER_MODE_
     /*osapiSemaGive(mfdbSemaphore);*/
     return L7_FAILURE;
   }
-  if (vlanCfg->mode == mode)
-  {
-    /*osapiSemaGive(mfdbSemaphore); */
-    return L7_SUCCESS;
-  }
+
   if (filterCfgData->filteringEnabled == L7_TRUE)
   {
     if (dtlL2McastVlanFloodModeSet(vlanId, mode) != L7_SUCCESS)

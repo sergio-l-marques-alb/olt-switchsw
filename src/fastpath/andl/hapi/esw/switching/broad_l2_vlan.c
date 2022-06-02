@@ -2278,6 +2278,7 @@ L7_RC_t hapiBroadQvlanMcastFloodModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   L7_uint32              vlanId;
   L7_uint32              mode;
   bcm_vlan_mcast_flood_t bcmxMode;
+  int                    rv, unit=0;
 
   vlanId = cmdVlanCfg->cmdData.mcastFloodModeSet.vlanId;
   mode = cmdVlanCfg->cmdData.mcastFloodModeSet.mode;
@@ -2297,8 +2298,12 @@ L7_RC_t hapiBroadQvlanMcastFloodModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     return L7_FAILURE;
   }
 
-  if (usl_bcmx_vlan_mcast_flood_set(vlanId, bcmxMode) != BCM_E_NONE)
+  rv = bcm_vlan_mcast_flood_set(unit, vlanId, bcmxMode); 
+  if (rv != BCM_E_NONE)
   {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Failed to call bcm_vlan_mcast_flood_set rv :%u bcmxMode = %d", 
+               rv, 
+               bcmxMode);
     result = L7_FAILURE;
   }
 

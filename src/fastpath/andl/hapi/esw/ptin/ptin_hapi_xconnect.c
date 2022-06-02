@@ -207,7 +207,7 @@ L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet)
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,5,18,0))
   {
-    int unit, error;
+    int unit=0, error;
     bcm_vlan_control_vlan_t control;
     
     /* Switch is compatible for this operation */
@@ -215,6 +215,13 @@ L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet)
     {
       PT_LOG_WARN(LOG_CTX_HAPI, "Switch not ready for this operation");
       return L7_SUCCESS;
+    }
+
+    error = bcm_vlan_control_vlan_get(unit, vlanId, &control);
+    if (error != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "unit=%d: Error getting vlan control structure! error=%d (%s)\r\n", unit, error, bcm_errmsg(error));
+      return L7_FAILURE;
     }
 
     /* Run all units */
