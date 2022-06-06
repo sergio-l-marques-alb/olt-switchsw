@@ -227,25 +227,132 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.time                 =   time(NULL);
   aux_qual_RFC2819.cTempo               =   qual->status[RFC2819_ACTUAL].cTempo;
 
-  aux_qual_RFC2819.dropEvents           =   qual->status[RFC2819_ACTUAL].dropEvents          ;
-  aux_qual_RFC2819.Octets               =   qual->status[RFC2819_ACTUAL].Octets              ;
-  aux_qual_RFC2819.Pkts                 =   qual->status[RFC2819_ACTUAL].Pkts                ;
-  aux_qual_RFC2819.Broadcast            =   qual->status[RFC2819_ACTUAL].Broadcast           ;
-  aux_qual_RFC2819.Multicast            =   qual->status[RFC2819_ACTUAL].Multicast           ;
-  aux_qual_RFC2819.CRCAlignErrors       =   qual->status[RFC2819_ACTUAL].CRCAlignErrors      ;
-  aux_qual_RFC2819.UndersizePkts        =   qual->status[RFC2819_ACTUAL].UndersizePkts       ;
-  aux_qual_RFC2819.OversizePkts         =   qual->status[RFC2819_ACTUAL].OversizePkts        ;
-  aux_qual_RFC2819.Fragments            =   qual->status[RFC2819_ACTUAL].Fragments           ;
-  aux_qual_RFC2819.Jabbers              =   qual->status[RFC2819_ACTUAL].Jabbers             ;
-  aux_qual_RFC2819.Collisions           =   qual->status[RFC2819_ACTUAL].Collisions          ;
-  aux_qual_RFC2819.Utilization          =   (L7_uint64)((aux_qual_RFC2819.Octets / aux_qual_RFC2819.cTempo)*8);
-  aux_qual_RFC2819.Pkts64Octets         =   qual->status[RFC2819_ACTUAL].Pkts64Octets        ;
-  aux_qual_RFC2819.Pkts65to127Octets    =   qual->status[RFC2819_ACTUAL].Pkts65to127Octets   ;
-  aux_qual_RFC2819.Pkts128to255Octets   =   qual->status[RFC2819_ACTUAL].Pkts128to255Octets  ;
-  aux_qual_RFC2819.Pkts256to511Octets   =   qual->status[RFC2819_ACTUAL].Pkts256to511Octets  ;
-  aux_qual_RFC2819.Pkts512to1023Octets  =   qual->status[RFC2819_ACTUAL].Pkts512to1023Octets ;
-  aux_qual_RFC2819.Pkts1024to1518Octets =   qual->status[RFC2819_ACTUAL].Pkts1024to1518Octets;   
+  if (PTIN_RFC2819_MASK_DROPEVENTS & qual->mask) {
+      aux_qual_RFC2819.dropEvents = qual->status[RFC2819_ACTUAL].dropEvents;
+  }
+  else {
+      aux_qual_RFC2819.dropEvents = RFC2819_INVALID_VALUE;
+  }
 
+  if (PTIN_RFC2819_MASK_OCTETS & qual->mask) {
+      aux_qual_RFC2819.Octets = qual->status[RFC2819_ACTUAL].Octets;
+  }
+  else {
+      aux_qual_RFC2819.Octets = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_PKTS & qual->mask) {
+      aux_qual_RFC2819.Pkts = qual->status[RFC2819_ACTUAL].Pkts;
+  }
+  else {
+      aux_qual_RFC2819.Pkts = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_BROADCASTPKTS & qual->mask) {
+      aux_qual_RFC2819.Broadcast = qual->status[RFC2819_ACTUAL].Broadcast;
+  }
+  else {
+      aux_qual_RFC2819.Broadcast = RFC2819_INVALID_VALUE;
+  }
+    
+  if (PTIN_RFC2819_MASK_MULTICASTPKTS & qual->mask) {
+      aux_qual_RFC2819.Multicast = qual->status[RFC2819_ACTUAL].Multicast;
+  }
+  else {
+      aux_qual_RFC2819.Multicast = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_CRCALIGNERRORS & qual->mask) {
+      aux_qual_RFC2819.CRCAlignErrors = qual->status[RFC2819_ACTUAL].CRCAlignErrors;
+  }
+  else {
+      aux_qual_RFC2819.CRCAlignErrors = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_UNDERSIZEPKTS & qual->mask) {
+      aux_qual_RFC2819.UndersizePkts = qual->status[RFC2819_ACTUAL].UndersizePkts;
+  }
+  else {
+      aux_qual_RFC2819.UndersizePkts = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_OVERSIZEPKTS & qual->mask) {
+      aux_qual_RFC2819.OversizePkts = qual->status[RFC2819_ACTUAL].OversizePkts;
+  }
+  else {
+      aux_qual_RFC2819.OversizePkts = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_FRAGMENTS & qual->mask) {
+      aux_qual_RFC2819.Fragments = qual->status[RFC2819_ACTUAL].Fragments;
+  }
+  else {
+      aux_qual_RFC2819.Fragments = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_JABBERS & qual->mask) {
+      aux_qual_RFC2819.Jabbers = qual->status[RFC2819_ACTUAL].Jabbers;
+  }
+  else {
+      aux_qual_RFC2819.Jabbers = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_COLLISIONS & qual->mask) {
+      aux_qual_RFC2819.Collisions = qual->status[RFC2819_ACTUAL].Collisions;
+  }
+  else {
+      aux_qual_RFC2819.Collisions = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_OCTETS & qual->mask) { //must check octets
+      aux_qual_RFC2819.Utilization = (L7_uint64)((aux_qual_RFC2819.Octets / aux_qual_RFC2819.cTempo)*8);
+  }
+  else {
+      aux_qual_RFC2819.Utilization = RFC2819_INVALID_VALUE;
+  }
+    
+  if (PTIN_RFC2819_MASK_PKTS64OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts64Octets = qual->status[RFC2819_ACTUAL].Pkts64Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts64Octets = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_PKTS65TO127OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts65to127Octets = qual->status[RFC2819_ACTUAL].Pkts65to127Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts65to127Octets = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_PKTS128TO255OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts128to255Octets = qual->status[RFC2819_ACTUAL].Pkts128to255Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts128to255Octets = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_PKTS256TO511OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts256to511Octets = qual->status[RFC2819_ACTUAL].Pkts256to511Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts256to511Octets = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_PKTS512TO1023OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts512to1023Octets = qual->status[RFC2819_ACTUAL].Pkts512to1023Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts512to1023Octets = RFC2819_INVALID_VALUE;
+  }
+  
+  if (PTIN_RFC2819_MASK_PKTS1024TO1518OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts1024to1518Octets = qual->status[RFC2819_ACTUAL].Pkts1024to1518Octets;   
+  }
+  else {
+      aux_qual_RFC2819.Pkts1024to1518Octets = RFC2819_INVALID_VALUE;
+  }
+    
   PT_LOG_TRACE(LOG_CTX_RFC2819, "15MIN  : %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
             qual->reg_data.dia,
@@ -302,24 +409,132 @@ void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.time                = time(NULL);
   aux_qual_RFC2819.cTempo              = qual->status[RFC2819_PER24HORAS].cTempo;
 
-  aux_qual_RFC2819.dropEvents          =   qual->status[RFC2819_PER24HORAS].dropEvents          ;
-  aux_qual_RFC2819.Octets              =   qual->status[RFC2819_PER24HORAS].Octets              ;
-  aux_qual_RFC2819.Pkts                =   qual->status[RFC2819_PER24HORAS].Pkts                ;
-  aux_qual_RFC2819.Broadcast           =   qual->status[RFC2819_PER24HORAS].Broadcast           ;
-  aux_qual_RFC2819.Multicast           =   qual->status[RFC2819_PER24HORAS].Multicast           ;
-  aux_qual_RFC2819.CRCAlignErrors      =   qual->status[RFC2819_PER24HORAS].CRCAlignErrors      ;
-  aux_qual_RFC2819.UndersizePkts       =   qual->status[RFC2819_PER24HORAS].UndersizePkts       ;
-  aux_qual_RFC2819.OversizePkts        =   qual->status[RFC2819_PER24HORAS].OversizePkts        ;
-  aux_qual_RFC2819.Fragments           =   qual->status[RFC2819_PER24HORAS].Fragments           ;
-  aux_qual_RFC2819.Jabbers             =   qual->status[RFC2819_PER24HORAS].Jabbers             ;
-  aux_qual_RFC2819.Collisions          =   qual->status[RFC2819_PER24HORAS].Collisions          ;
-  aux_qual_RFC2819.Utilization         =   (L7_uint64)((aux_qual_RFC2819.Octets / aux_qual_RFC2819.cTempo)*8) ;
-  aux_qual_RFC2819.Pkts64Octets        =   qual->status[RFC2819_PER24HORAS].Pkts64Octets        ;
-  aux_qual_RFC2819.Pkts65to127Octets   =   qual->status[RFC2819_PER24HORAS].Pkts65to127Octets   ;
-  aux_qual_RFC2819.Pkts128to255Octets  =   qual->status[RFC2819_PER24HORAS].Pkts128to255Octets  ;
-  aux_qual_RFC2819.Pkts256to511Octets  =   qual->status[RFC2819_PER24HORAS].Pkts256to511Octets  ;
-  aux_qual_RFC2819.Pkts512to1023Octets =   qual->status[RFC2819_PER24HORAS].Pkts512to1023Octets ;
-  aux_qual_RFC2819.Pkts1024to1518Octets=   qual->status[RFC2819_PER24HORAS].Pkts1024to1518Octets;
+  if (PTIN_RFC2819_MASK_DROPEVENTS & qual->mask) {
+      aux_qual_RFC2819.dropEvents = qual->status[RFC2819_PER24HORAS].dropEvents;
+  }
+  else {
+      aux_qual_RFC2819.dropEvents = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_OCTETS & qual->mask) {
+      aux_qual_RFC2819.Octets = qual->status[RFC2819_PER24HORAS].Octets;
+  }
+  else {
+      aux_qual_RFC2819.Octets = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_PKTS & qual->mask) {
+      aux_qual_RFC2819.Pkts = qual->status[RFC2819_PER24HORAS].Pkts;
+  }
+  else {
+      aux_qual_RFC2819.Pkts = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_BROADCASTPKTS & qual->mask) {
+      aux_qual_RFC2819.Broadcast = qual->status[RFC2819_PER24HORAS].Broadcast;
+  }
+  else {
+      aux_qual_RFC2819.Broadcast = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_MULTICASTPKTS & qual->mask) {
+      aux_qual_RFC2819.Multicast = qual->status[RFC2819_PER24HORAS].Multicast;
+  }
+  else {
+      aux_qual_RFC2819.Multicast = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_CRCALIGNERRORS & qual->mask) {
+      aux_qual_RFC2819.CRCAlignErrors = qual->status[RFC2819_PER24HORAS].CRCAlignErrors;
+  }
+  else {
+      aux_qual_RFC2819.CRCAlignErrors = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_UNDERSIZEPKTS & qual->mask) {
+      aux_qual_RFC2819.UndersizePkts = qual->status[RFC2819_PER24HORAS].UndersizePkts;
+  }
+  else {
+      aux_qual_RFC2819.UndersizePkts = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_OVERSIZEPKTS & qual->mask) {
+      aux_qual_RFC2819.OversizePkts = qual->status[RFC2819_PER24HORAS].OversizePkts;
+  }
+  else {
+      aux_qual_RFC2819.OversizePkts = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_FRAGMENTS & qual->mask) {
+      aux_qual_RFC2819.Fragments = qual->status[RFC2819_PER24HORAS].Fragments;
+  }
+  else {
+      aux_qual_RFC2819.Fragments = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_JABBERS & qual->mask) {
+      aux_qual_RFC2819.Jabbers = qual->status[RFC2819_PER24HORAS].Jabbers;
+  }
+  else {
+      aux_qual_RFC2819.Jabbers = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_COLLISIONS & qual->mask) {
+      aux_qual_RFC2819.Collisions = qual->status[RFC2819_PER24HORAS].Collisions;
+  }
+  else {
+      aux_qual_RFC2819.Collisions = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_OCTETS & qual->mask) { //must check octets
+      aux_qual_RFC2819.Utilization = (L7_uint64)((aux_qual_RFC2819.Octets / aux_qual_RFC2819.cTempo)*8);
+  }
+  else {
+      aux_qual_RFC2819.Utilization = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_PKTS64OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts64Octets = qual->status[RFC2819_PER24HORAS].Pkts64Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts64Octets = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_PKTS65TO127OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts65to127Octets = qual->status[RFC2819_PER24HORAS].Pkts65to127Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts65to127Octets = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_PKTS128TO255OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts128to255Octets = qual->status[RFC2819_PER24HORAS].Pkts128to255Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts128to255Octets = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_PKTS256TO511OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts256to511Octets = qual->status[RFC2819_PER24HORAS].Pkts256to511Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts256to511Octets = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_PKTS512TO1023OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts512to1023Octets = qual->status[RFC2819_PER24HORAS].Pkts512to1023Octets;
+  }
+  else {
+      aux_qual_RFC2819.Pkts512to1023Octets = RFC2819_INVALID_VALUE;
+  }
+
+  if (PTIN_RFC2819_MASK_PKTS1024TO1518OCTETS & qual->mask) {
+      aux_qual_RFC2819.Pkts1024to1518Octets = qual->status[RFC2819_PER24HORAS].Pkts1024to1518Octets;   
+  }
+  else {
+      aux_qual_RFC2819.Pkts1024to1518Octets = RFC2819_INVALID_VALUE;
+  }
+
 
   PT_LOG_TRACE(LOG_CTX_RFC2819, "24HOURS: %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5ld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
@@ -482,6 +697,7 @@ L7_int ptin_rfc2819_refresh_counters(L7_int Port)
     PT_LOG_TRACE(LOG_CTX_RFC2819, "Getting statistics of port# %u: SUCCESS", portStats.Port);
 
   //RX
+  RFC2819_probes_Rx[Port].mask                 = portStats.RxMask;
   RFC2819_probes_Rx[Port].dropEvents           = portStats.Rx.etherStatsDropEvents;
   RFC2819_probes_Rx[Port].Octets               = portStats.Rx.etherStatsOctets;
   RFC2819_probes_Rx[Port].Pkts                 = portStats.Rx.etherStatsPkts;
@@ -502,6 +718,7 @@ L7_int ptin_rfc2819_refresh_counters(L7_int Port)
   RFC2819_probes_Rx[Port].Pkts1024to1518Octets = portStats.Rx.etherStatsPkts1024to1518Octets;
 
   //TX
+  RFC2819_probes_Tx[Port].mask                 = portStats.TxMask;
   RFC2819_probes_Tx[Port].dropEvents           = portStats.Tx.etherStatsDropEvents;
   RFC2819_probes_Tx[Port].Octets               = portStats.Tx.etherStatsOctets;
   RFC2819_probes_Tx[Port].Pkts                 = portStats.Tx.etherStatsPkts;
@@ -605,6 +822,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
 
 
     //Refresh backup counters
+    RFC2819_probes_Rx[Port].mask                 = portStats.RxMask;
     RFC2819_probes_Rx[Port].dropEvents           = portStats.Rx.etherStatsDropEvents          ;
     RFC2819_probes_Rx[Port].Octets               = portStats.Rx.etherStatsOctets              ;
     RFC2819_probes_Rx[Port].Pkts                 = portStats.Rx.etherStatsPkts                ;
@@ -668,6 +886,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
     RFC2819_probes_Tx[Port].status[RFC2819_ACTUAL].Pkts1024to1518Octets = portStats.Tx.etherStatsPkts1024to1518Octets-RFC2819_probes_Tx[Port].Pkts1024to1518Octets;
 
     //Refresh backup counters
+    RFC2819_probes_Tx[Port].mask                 = portStats.TxMask;
     RFC2819_probes_Tx[Port].dropEvents           = portStats.Tx.etherStatsDropEvents          ;
     RFC2819_probes_Tx[Port].Octets               = portStats.Tx.etherStatsOctets              ;
     RFC2819_probes_Tx[Port].Pkts                 = portStats.Tx.etherStatsPkts                ;

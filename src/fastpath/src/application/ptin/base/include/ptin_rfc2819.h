@@ -42,6 +42,8 @@
 
 #define CONCAT_QUAL_PATH(dir, type, porto) ( (((dir)<<31) & 0x80000000) | (((type)<<28) & 0x70000000) | (((porto)<<14) & 0x0FFFC000) )
 
+#define RFC2819_INVALID_VALUE 0xFFFFFFFFFFFFFFFFL
+
 //Estrutura que suporta a analise qualidade (performance)                                        
 typedef struct {
   struct {
@@ -51,6 +53,7 @@ typedef struct {
     L7_ulong32 periodo;  //periodo de integracao (1-1min 2-15min, 4-24H, 8-60min)
   } conf;
 
+  L7_uint32 mask;
   L7_uint64 dropEvents;
   L7_uint64 Octets;
   L7_uint64 Pkts;
