@@ -10767,14 +10767,16 @@ static void ptin_evc_vlan_pool_init(void)
   memset(queue_free_vlans, 0x00, sizeof(queue_free_vlans));
 
   /* ELAN vlans */
-  /* Unicast services */
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST]);
+
+  /* Unicast services */
   for (i=PTIN_SYSTEM_EVC_MCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_MCAST_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  PT_LOG_TRACE(LOG_CTX_EVC,"Multicast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_MCAST, PTIN_SYSTEM_EVC_MCAST_VLAN_MIN, i-1);
+  PT_LOG_INFO(LOG_CTX_EVC,"Multicast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_MCAST, PTIN_SYSTEM_EVC_MCAST_VLAN_MIN, i-1);
 
   /* IPTV services */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST]);
@@ -10783,7 +10785,20 @@ static void ptin_evc_vlan_pool_init(void)
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  PT_LOG_TRACE(LOG_CTX_EVC,"Broadcast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_BCAST, PTIN_SYSTEM_EVC_BCAST_VLAN_MIN, i-1);
+  PT_LOG_INFO(LOG_CTX_EVC,"Broadcast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_BCAST, PTIN_SYSTEM_EVC_BCAST_VLAN_MIN, i-1);
+#else
+  /* Both Unicast and IPTV services */
+  dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU]);
+
+  /* Unicast services */
+  for (i=PTIN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_CPU_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
+  {
+    vlans_pool[i].vid = i;
+    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU], (dl_queue_elem_t*)&vlans_pool[i]);
+  }
+
+  PT_LOG_INFO(LOG_CTX_EVC,"CPU vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU, PTIN_VLAN_MIN, i-1);
+#endif
 
   /* Bitstream with no MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM]);
@@ -10798,7 +10813,7 @@ static void ptin_evc_vlan_pool_init(void)
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  PT_LOG_TRACE(LOG_CTX_EVC,"Bitstream vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_BITSTREAM, PTIN_SYSTEM_EVC_BITSTR_VLAN_MIN, i-1);
+  PT_LOG_INFO(LOG_CTX_EVC,"Bitstream vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_BITSTREAM, PTIN_SYSTEM_EVC_BITSTR_VLAN_MIN, i-1);
 
   /* QUATTRO P2P vlans */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -10808,7 +10823,7 @@ static void ptin_evc_vlan_pool_init(void)
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  PT_LOG_TRACE(LOG_CTX_EVC,"QUATTRO vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, i-1);
+  PT_LOG_INFO(LOG_CTX_EVC,"QUATTRO vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, i-1);
 #endif
 
   /* Reset 'evcId reference from internal vlan' array*/
@@ -10850,6 +10865,10 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
   /* CPU port is on? */
   else if ((evc_flags & PTIN_EVC_MASK_CPU_TRAPPING) || (evc_flags & PTIN_EVC_MASK_MC_IPTV))
   {
+/* on TC16SXG the services are configured in a different manner due to MPM ports.
+   As a Example Unicast Stacked use one VLAN per client. On that boards was choose to have
+   the same pool for all the EVC with CPU trap*/
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
     if (!(evc_flags & PTIN_EVC_MASK_MC_IPTV))
     {
       *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST];
@@ -10861,6 +10880,10 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
       *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST];
       PT_LOG_TRACE(LOG_CTX_EVC, "CPU_BCAST Free Vlan Queue selected!");
     }
+#else
+      *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_CPU];
+      PT_LOG_TRACE(LOG_CTX_EVC, "CPUFree Vlan Queue selected!");
+#endif
   }
   /* Finally Bitstream services */
   else
