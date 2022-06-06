@@ -1942,13 +1942,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-      /* On TC16SXG P2P have different xlate operations,
-        due to the port virtualization and ASPEN limitations*/
-      ivid = pclientFlow->uni_ivid;
-#else
       ivid = 0;
-#endif
     }
   }
 
