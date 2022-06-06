@@ -42,7 +42,7 @@
 
 #define CONCAT_QUAL_PATH(dir, type, porto) ( (((dir)<<31) & 0x80000000) | (((type)<<28) & 0x70000000) | (((porto)<<14) & 0x0FFFC000) )
 
-#define RFC2819_INVALID_VALUE 0xFFFFFFFFFFFFFFFF
+#define RFC2819_INVALID_VALUE 0xFFFFFFFFFFFFFFFFLL
 
 //Estrutura que suporta a analise qualidade (performance)                                        
 typedef struct {
