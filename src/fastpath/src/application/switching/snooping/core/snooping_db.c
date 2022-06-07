@@ -2691,7 +2691,7 @@ L7_RC_t snoopL3GroupPtinPortAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_a
         rc = ptin_multicast_MCEvc_id_port_add(ptin_port, multicast_group, serviceId);
         if ( rc != L7_SUCCESS )
         {
-          PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add L3 Egress serviceId:%d to multicastGroup:0x%08x (rc%u)", serviceId, multicast_group, rc);
+          PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add L3 Egress serviceId:%d to multicastGroup:0x%08x ptin_port %d (rc%u)", serviceId, multicast_group, ptin_port, rc);
           goto ERROR;
         }
 #else

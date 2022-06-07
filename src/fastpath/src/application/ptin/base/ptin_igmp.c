@@ -7400,7 +7400,7 @@ L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 ptin_port, L7_u
   if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, ptin_port, &igmp_idx) != L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"No IGMP instance associated to McastEvcId %u", McastEvcId);
+      PT_LOG_ERR(LOG_CTX_IGMP,"No IGMP instance associated to McastEvcId %u ptin_port %d", McastEvcId, ptin_port);
     return L7_FAILURE;
   }
 
@@ -7432,6 +7432,19 @@ L7_RC_t ptin_multicast_MCEvc_id_port_remove(L7_uint32 ptin_port,
   L7_uint32 iptv_evc_id;
   L7_int l3_intf_id = -1;
   L7_RC_t rc;
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+   if ((MCastId > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) && 
+       PTIN_PORT_IS_PON_GPON_TYPE(ptin_port)) 
+   {
+       MCastId = MCastId - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+   }
+   else if ((MCastId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) && 
+            PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
+   {
+       MCastId = MCastId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+   }
+#endif
 
   if (ptin_igmp_UcastEvcId_get(MCastId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
   {
@@ -7472,6 +7485,19 @@ L7_RC_t ptin_multicast_MCEvc_id_port_add(L7_uint32 ptin_port,
   L7_uint32 iptv_evc_id;
   L7_int l3_intf_id = -1;
   L7_RC_t rc;
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+   if ((MCastId > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) && 
+       PTIN_PORT_IS_PON_GPON_TYPE(ptin_port)) 
+   {
+       MCastId = MCastId - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+   }
+   else if ((MCastId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) && 
+            PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
+   {
+       MCastId = MCastId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+   }
+#endif
 
   if (ptin_igmp_UcastEvcId_get(MCastId, ptin_port, &iptv_evc_id) != L7_SUCCESS)
   {
