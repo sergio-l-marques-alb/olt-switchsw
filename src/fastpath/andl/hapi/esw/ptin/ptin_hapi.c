@@ -409,6 +409,7 @@ L7_RC_t ptin_hapi_hash_init(void)
     rc = L7_FAILURE;
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate1, 2) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthEgressVlanTranslate1 switch_control to 2");
@@ -432,6 +433,7 @@ L7_RC_t ptin_hapi_hash_init(void)
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthVlanTranslate2 switch_control to 2");
     rc = L7_FAILURE;
   }
+#endif
 
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   L7_uint32 i, banks;
