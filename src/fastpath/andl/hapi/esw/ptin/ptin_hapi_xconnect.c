@@ -48,16 +48,16 @@ L7_RC_t ptin_hapi_bridge_init(void)
       PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling shared vlan at unit %d: error=%d (%s)", unit, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    /* the switch on tc16sxg inicializes with default l2 entries to trap packets (slow protocol range) to CPU*/
+    error = bcm_l2_cache_delete_all(unit);
+    if ( error != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing deleting l2 cache: error=%d (%s)", error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+#endif
   }
-
-  #if 0
-  error = ptin_hapi_maclimit_init();
-  if ( error != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing MAC learning control: error=%d (%s)", error, bcm_errmsg(error));
-    return L7_FAILURE;
-  }
-  #endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_init returned success");
 
