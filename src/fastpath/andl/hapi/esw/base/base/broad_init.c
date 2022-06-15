@@ -860,13 +860,13 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 #endif
 
   /* PTin added */
-  #if 1
+#if (PTIN_BOARD_IS_STANDALONE | PTIN_BOARD_IS_MATRIX)
   result = hapiBroadSystemInstallPtin_preInit();
   if(L7_SUCCESS != result)
   {
     return result;
   }
-  #endif
+#endif
 
   PT_LOG_INFO(LOG_CTX_STARTUP,"Default rules initialization finished! (result=%d)",result);
 
