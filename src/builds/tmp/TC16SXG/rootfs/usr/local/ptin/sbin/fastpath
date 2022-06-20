@@ -71,9 +71,9 @@ startup()
     echo "Starting switchdrvr..."
     $app_path 0>/dev/null &
 
-    # Wait 300 seconds for FP to boot up
+    # Wait 200 seconds for FP to boot up
     echo "Waiting for switchdrvr to be ready..."
-    $cli ping 15 20
+    $cli ping 10 20
 
     # Redirect output to the default pipes
 #    exec 1>&- 2>&-
