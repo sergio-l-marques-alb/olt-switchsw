@@ -68,7 +68,7 @@
 #ifdef L7_STACKING_PACKAGE
  #define PLAT_MAX_FDB_MAC_ENTRIES                  32768
 #else
- #if (PLAT_BCM_CHIP == L7_BCM_KATANA2)
+ #if (PLAT_BCM_CHIP == L7_BCM_KATANA2 || PLAT_BCM_CHIP == L7_BCM_TRIDENT3_X3)
  #define PLAT_MAX_FDB_MAC_ENTRIES                  65536
  #else
  #define PLAT_MAX_FDB_MAC_ENTRIES                  32768
