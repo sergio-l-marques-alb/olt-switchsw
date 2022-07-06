@@ -11616,40 +11616,50 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   }
   if (igmp_stats->client.mask & MSG_CLIENT_INTF_MASK)
   {
+    uint8_t evc_type;
+
     client.ptin_intf.intf_type  = igmp_stats->client.intf.intf_type;
     client.ptin_intf.intf_id    = igmp_stats->client.intf.intf_id;
     client.ptin_port            = ptintf2port(client.ptin_intf.intf_type,
                                               client.ptin_intf.intf_id); 
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-  }
 
-  /* Change the outer vlan when given */
-  if (client.outerVlan != 0)
-  {
-    /* Adjust outer VID considering the port virtualization scheme */
-    if (ptin_intf_portGem2virtualVid(client.ptin_port,
-                                     client.outerVlan,
-                                     &client.outerVlan) != L7_SUCCESS)
+    rc = ptin_evc_check_evctype(aux_mcEvcId, &evc_type);
+    if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
-                 client.innerVlan);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
+                 aux_mcEvcId);
       return L7_FAILURE;
     }
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.outerVlan = %u", client.outerVlan);
+
+    /* Change the outer vlan when given */
+    if (evc_type == PTIN_EVC_TYPE_STD_P2P)
+    {
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(client.ptin_port,
+                                       client.outerVlan,
+                                       &client.outerVlan) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+        return L7_FAILURE;
+      }
+      PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.outerVlan = %u", client.outerVlan);
+    }
+    else
+    {
+      /* Adjust outer VID considering the port virtualization scheme */
+      if (ptin_intf_portGem2virtualVid(client.ptin_port,
+                                       client.innerVlan,
+                                       &client.innerVlan) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                   client.innerVlan);
+        return L7_FAILURE;
+      }
+      PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.innerVlan = %u", client.innerVlan);
+    } 
   }
-  else
-  {
-    /* Adjust outer VID considering the port virtualization scheme */
-    if (ptin_intf_portGem2virtualVid(client.ptin_port,
-                                     client.innerVlan,
-                                     &client.innerVlan) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
-                 client.innerVlan);
-      return L7_FAILURE;
-    }
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.innerVlan = %u", client.innerVlan);
-  } 
 
   /* Get statistics */
   rc = ptin_igmp_stat_client_get(aux_mcEvcId,&client,&stats);
@@ -14790,7 +14800,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       PT_LOG_DEBUG(LOG_CTX_MSG, " SVID extracted! (Using Service VLAN %u)", profile->outer_vlan_lookup);
     }
 
-    /* CVID, Note: On P2P services this client_vlan  is the NNI-CTAG and on MAC bridge this is the UNI-CTAG.
+    /* CVID, Note: On P2P services this client_vlan is the NNI-CTAG and on MAC bridge this is the UNI-CTAG.
        Both of then cannot be virtualized*/
     if ((mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
         (msgBwProfile->client_vlan > 0 && msgBwProfile->client_vlan < 4096))
