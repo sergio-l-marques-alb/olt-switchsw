@@ -946,25 +946,26 @@ void ptin_rfc2819_task( void )
 
   /* Loop */
   while (1) {
-    //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...");
+    PT_LOG_TRACE(LOG_CTX_RFC2819, "ptin_rfc2819_task running...");
 
     time(&tm);
     memcpy(&tm_time, localtime(&tm), sizeof(tm_time));        
 
     tgl_clock   = 0;
 
+    PT_LOG_TRACE(LOG_CTX_RFC2819, "Actual minute %d, old minute %d",tm_time.tm_min, old_min);
     if ((tm_time.tm_min != old_min)) {
         
         old_min = tm_time.tm_min;
 
-        //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...1 min");
+        PT_LOG_TRACE(LOG_CTX_RFC2819, "ptin_rfc2819_task running...1 min");
         if ((tm_time.tm_min%15)==0) {
-            //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...15 min");
+            PT_LOG_TRACE(LOG_CTX_RFC2819, "ptin_rfc2819_task running...15 min");
             tgl_clock |= PERIODO_15MIN;
         }
 
         if(tm_time.tm_mday!=old_day) {
-            //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...24 hours");
+            PT_LOG_TRACE(LOG_CTX_RFC2819, "ptin_rfc2819_task running...24 hours");
             old_day=tm_time.tm_mday;
             tgl_clock |= PERIODO_24HORAS;
         }      
@@ -976,15 +977,18 @@ void ptin_rfc2819_task( void )
       if (RFC2819_probes_Rx[Port].conf.estado == 0 &&
           RFC2819_probes_Tx[Port].conf.estado == 0)
       {
+        PT_LOG_TRACE(LOG_CTX_RFC2819, "Rx or Tx probes disable for port %d", Port);
         continue;
       }
 
       //load counters every 15min period. 
       // We don't need to load every second because we only need to proccess counters in periods of 15min/24hours.
       if ((tgl_clock & PERIODO_15MIN)!=0) {  
+        PT_LOG_DEBUG(LOG_CTX_RFC2819, "Load counter for port %d",Port);
         ptin_rfc2819_load_counters(Port);
       }
 
+      PT_LOG_DEBUG(LOG_CTX_RFC2819, "Register 15min buffer, for port %d",Port);
       ptin_rfc2819_proc(RFC2819_BUFFER_15MIN, RFC2819_BUFFER_24HOURS, &RFC2819_probes_Rx[Port], &tm_time, tgl_clock);
       ptin_rfc2819_proc(RFC2819_BUFFER_15MIN, RFC2819_BUFFER_24HOURS, &RFC2819_probes_Tx[Port], &tm_time, tgl_clock);        
     }
