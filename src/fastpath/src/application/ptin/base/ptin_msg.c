@@ -18502,142 +18502,226 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
 
     #if(PTIN_BOARD == PTIN_BOARD_CXO640G) 
 
-    L7_int32 port1 = -1,lag_id = -1;
-    L7_int16 slot_ret,port_ret;
-    first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
-		port1 = (ring_buffer.path >> 14) & 0xFFF;
-    ptin_intf_port2SlotPort(port1, &slot_ret, &port_ret, L7_NULLPTR);
+        L7_int32 port1 = -1,lag_id = -1;
+        L7_int16 slot_ret,port_ret;
+        first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
+    		port1 = (ring_buffer.path >> 14) & 0xFFF;
+        ptin_intf_port2SlotPort(port1, &slot_ret, &port_ret, L7_NULLPTR);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "slot_ret %d", slot_ret);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Port1 %d", port1);  
+        PT_LOG_DEBUG(LOG_CTX_MSG, "slot_ret %d", slot_ret);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Port1 %d", port1);  
 
-    if (slot == slot_ret && ptin_intf_port2lag(port1, &lag_id) /* exclude lags*/ )
-    {
-      PT_LOG_DEBUG(LOG_CTX_MSG, "Collecting data from Port1 %d", port1);    
-                                                                                                                 
-      buffer[*n_elements].index                 = ENDIAN_SWAP32(ring_buffer.index);                              
-      buffer[*n_elements].arg                   = ENDIAN_SWAP32(ring_buffer.arg);                                
-      buffer[*n_elements].time                  = ENDIAN_SWAP32(ring_buffer.time);                               
-      buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
-      buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
-                                                                                                                 
-      buffer[*n_elements].dropEvents            = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
-      buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
-      buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
-      buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
-      buffer[*n_elements].Multicast             = ENDIAN_SWAP64(ring_buffer.Multicast);                          
-      buffer[*n_elements].CRCAlignErrors        = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);                     
-      buffer[*n_elements].UndersizePkts         = ENDIAN_SWAP64(ring_buffer.UndersizePkts);                      
-      buffer[*n_elements].OversizePkts          = ENDIAN_SWAP64(ring_buffer.OversizePkts);                       
-      buffer[*n_elements].Fragments             = ENDIAN_SWAP64(ring_buffer.Fragments);                          
-      buffer[*n_elements].Jabbers               = ENDIAN_SWAP64(ring_buffer.Jabbers);                            
-      buffer[*n_elements].Collisions            = ENDIAN_SWAP64(ring_buffer.Collisions);                         
-      buffer[*n_elements].Utilization           = ENDIAN_SWAP64(ring_buffer.Utilization);                        
-      buffer[*n_elements].Pkts64Octets          = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);                       
-      buffer[*n_elements].Pkts65to127Octets     = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);                  
-      buffer[*n_elements].Pkts128to255Octets    = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);                 
-      buffer[*n_elements].Pkts256to511Octets    = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);                 
-      buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
-      buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
-			
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index  %lu", buffer[*n_elements].index);
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg    %lu", buffer[*n_elements].arg );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[*n_elements].time );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[*n_elements].path);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[*n_elements].dropEvents );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[*n_elements].Octets );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[*n_elements].Pkts);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[*n_elements].Broadcast);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast            %llu", buffer[*n_elements].Multicast);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors       %llu", buffer[*n_elements].CRCAlignErrors);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts        %llu", buffer[*n_elements].UndersizePkts);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts         %llu", buffer[*n_elements].OversizePkts);
-      
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments            %llu", buffer[*n_elements].Fragments );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers              %llu", buffer[*n_elements].Jabbers);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions           %llu", buffer[*n_elements].Collisions);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization          %llu", buffer[*n_elements].Utilization );   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets         %llu", buffer[*n_elements].Pkts64Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets    %llu", buffer[*n_elements].Pkts65to127Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets   %llu", buffer[*n_elements].Pkts128to255Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets   %llu", buffer[*n_elements].Pkts256to511Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets  %llu", buffer[*n_elements].Pkts512to1023Octets);   
-      PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[*n_elements].Pkts1024to1518Octets);
+        if (slot == slot_ret && ptin_intf_port2lag(port1, &lag_id) /* exclude lags*/ )
+        {
+          PT_LOG_DEBUG(LOG_CTX_MSG, "Collecting data from Port1 %d", port1);    
+                                                                                                                     
+          buffer[*n_elements].index                 = ENDIAN_SWAP32(ring_buffer.index);                              
+          buffer[*n_elements].arg                   = ENDIAN_SWAP32(ring_buffer.arg);                                
+          buffer[*n_elements].time                  = ENDIAN_SWAP32(ring_buffer.time);                               
+          buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
+          buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
+                                                                                                                     
+          buffer[*n_elements].dropEvents            = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
+          buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
+          buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
+          buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
+          buffer[*n_elements].Multicast             = ENDIAN_SWAP64(ring_buffer.Multicast);                          
+          buffer[*n_elements].CRCAlignErrors        = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);                     
+          buffer[*n_elements].UndersizePkts         = ENDIAN_SWAP64(ring_buffer.UndersizePkts);                      
+          buffer[*n_elements].OversizePkts          = ENDIAN_SWAP64(ring_buffer.OversizePkts);                       
+          buffer[*n_elements].Fragments             = ENDIAN_SWAP64(ring_buffer.Fragments);                          
+          buffer[*n_elements].Jabbers               = ENDIAN_SWAP64(ring_buffer.Jabbers);                            
+          buffer[*n_elements].Collisions            = ENDIAN_SWAP64(ring_buffer.Collisions);                         
+          buffer[*n_elements].Utilization           = ENDIAN_SWAP64(ring_buffer.Utilization);                        
+          buffer[*n_elements].Pkts64Octets          = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);                       
+          buffer[*n_elements].Pkts65to127Octets     = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);                  
+          buffer[*n_elements].Pkts128to255Octets    = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);                 
+          buffer[*n_elements].Pkts256to511Octets    = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);                 
+          buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
+          buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
+    			
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index  %lu", buffer[*n_elements].index);
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg    %lu", buffer[*n_elements].arg );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[*n_elements].time );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[*n_elements].path);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[*n_elements].dropEvents );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[*n_elements].Octets );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[*n_elements].Pkts);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[*n_elements].Broadcast);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast            %llu", buffer[*n_elements].Multicast);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors       %llu", buffer[*n_elements].CRCAlignErrors);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts        %llu", buffer[*n_elements].UndersizePkts);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts         %llu", buffer[*n_elements].OversizePkts);
+          
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments            %llu", buffer[*n_elements].Fragments );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers              %llu", buffer[*n_elements].Jabbers);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions           %llu", buffer[*n_elements].Collisions);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization          %llu", buffer[*n_elements].Utilization );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets         %llu", buffer[*n_elements].Pkts64Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets    %llu", buffer[*n_elements].Pkts65to127Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets   %llu", buffer[*n_elements].Pkts128to255Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets   %llu", buffer[*n_elements].Pkts256to511Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets  %llu", buffer[*n_elements].Pkts512to1023Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[*n_elements].Pkts1024to1518Octets);
 
-      if (first_reg<0) 
-      break;
+          if (first_reg<0) 
+          {
+              break;
+          }
 
-      (*n_elements)++;
-      continue;  
+          (*n_elements)++;
+          continue;  
 
 
-      }
-   
-     if (first_reg<0) 
-     break;
+        }
+       
+        if (first_reg<0) 
+        {
+             break;
+        }
 
-     continue;  
+        continue; 
+
+    #elif (PTIN_BOARD == PTIN_BOARD_CXO160G) 
+        L7_int32 port_aux = -1;
+        first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
+        port_aux = (ring_buffer.path >> 14) & 0xFFF;
+        
+        if ( ( (slot == 1) && ( (port_aux==0) || (port_aux==1) ) ) || ( (slot == 5) && ( (port_aux==2) || (port_aux==3) ) ) ) 
+        {
+          PT_LOG_DEBUG(LOG_CTX_MSG, "Collecting data from slot %d, Port %d", slot, port_aux);    
+
+          buffer[*n_elements].index                 = ENDIAN_SWAP32(ring_buffer.index);                              
+          buffer[*n_elements].arg                   = ENDIAN_SWAP32(ring_buffer.arg);                                
+          buffer[*n_elements].time                  = ENDIAN_SWAP32(ring_buffer.time);                               
+          buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
+          buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
+
+          buffer[*n_elements].dropEvents            = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
+          buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
+          buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
+          buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
+          buffer[*n_elements].Multicast             = ENDIAN_SWAP64(ring_buffer.Multicast);                          
+          buffer[*n_elements].CRCAlignErrors        = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);                     
+          buffer[*n_elements].UndersizePkts         = ENDIAN_SWAP64(ring_buffer.UndersizePkts);                      
+          buffer[*n_elements].OversizePkts          = ENDIAN_SWAP64(ring_buffer.OversizePkts);                       
+          buffer[*n_elements].Fragments             = ENDIAN_SWAP64(ring_buffer.Fragments);                          
+          buffer[*n_elements].Jabbers               = ENDIAN_SWAP64(ring_buffer.Jabbers);                            
+          buffer[*n_elements].Collisions            = ENDIAN_SWAP64(ring_buffer.Collisions);                         
+          buffer[*n_elements].Utilization           = ENDIAN_SWAP64(ring_buffer.Utilization);                        
+          buffer[*n_elements].Pkts64Octets          = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);                       
+          buffer[*n_elements].Pkts65to127Octets     = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);                  
+          buffer[*n_elements].Pkts128to255Octets    = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);                 
+          buffer[*n_elements].Pkts256to511Octets    = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);                 
+          buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
+          buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
+
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index  %lu", buffer[*n_elements].index);
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg    %lu", buffer[*n_elements].arg );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[*n_elements].time );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[*n_elements].path);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[*n_elements].dropEvents );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[*n_elements].Octets );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[*n_elements].Pkts);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[*n_elements].Broadcast);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast            %llu", buffer[*n_elements].Multicast);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors       %llu", buffer[*n_elements].CRCAlignErrors);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts        %llu", buffer[*n_elements].UndersizePkts);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts         %llu", buffer[*n_elements].OversizePkts);
+
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments            %llu", buffer[*n_elements].Fragments );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers              %llu", buffer[*n_elements].Jabbers);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions           %llu", buffer[*n_elements].Collisions);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization          %llu", buffer[*n_elements].Utilization );   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets         %llu", buffer[*n_elements].Pkts64Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets    %llu", buffer[*n_elements].Pkts65to127Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets   %llu", buffer[*n_elements].Pkts128to255Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets   %llu", buffer[*n_elements].Pkts256to511Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets  %llu", buffer[*n_elements].Pkts512to1023Octets);   
+          PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[*n_elements].Pkts1024to1518Octets);
+
+          if (first_reg<0) 
+          {
+              break;
+          }
+
+          (*n_elements)++;
+          continue;  
+
+        }
+        else {
+            PT_LOG_DEBUG(LOG_CTX_MSG, "Ignore slot %d, Buffer[%d].Port %d register", slot, *n_elements, port_aux);    
+        }
+
+        if (first_reg<0) 
+        {
+            break;
+        }
+
+        continue; 
   
     #else 
                                                                                                        
-    first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
+        first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
 
-    buffer[*n_elements].index                 = ENDIAN_SWAP32(ring_buffer.index);                              
-    buffer[*n_elements].arg                   = ENDIAN_SWAP32(ring_buffer.arg);                                
-    buffer[*n_elements].time                  = ENDIAN_SWAP32(ring_buffer.time);                               
-    buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
-    buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
-                                                                                                           
-    buffer[*n_elements].dropEvents            = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
-    buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
-    buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
-    buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
-    buffer[*n_elements].Multicast             = ENDIAN_SWAP64(ring_buffer.Multicast);                          
-    buffer[*n_elements].CRCAlignErrors        = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);                     
-    buffer[*n_elements].UndersizePkts         = ENDIAN_SWAP64(ring_buffer.UndersizePkts);                      
-    buffer[*n_elements].OversizePkts          = ENDIAN_SWAP64(ring_buffer.OversizePkts);                       
-    buffer[*n_elements].Fragments             = ENDIAN_SWAP64(ring_buffer.Fragments);                          
-    buffer[*n_elements].Jabbers               = ENDIAN_SWAP64(ring_buffer.Jabbers);                            
-    buffer[*n_elements].Collisions            = ENDIAN_SWAP64(ring_buffer.Collisions);                         
-    buffer[*n_elements].Utilization           = ENDIAN_SWAP64(ring_buffer.Utilization);                        
-    buffer[*n_elements].Pkts64Octets          = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);                       
-    buffer[*n_elements].Pkts65to127Octets     = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);                  
-    buffer[*n_elements].Pkts128to255Octets    = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);                 
-    buffer[*n_elements].Pkts256to511Octets    = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);                 
-    buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
-    buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
+        buffer[*n_elements].index                 = ENDIAN_SWAP32(ring_buffer.index);                              
+        buffer[*n_elements].arg                   = ENDIAN_SWAP32(ring_buffer.arg);                                
+        buffer[*n_elements].time                  = ENDIAN_SWAP32(ring_buffer.time);                               
+        buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
+        buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
+                                                                                                               
+        buffer[*n_elements].dropEvents            = ENDIAN_SWAP64(ring_buffer.dropEvents);                             
+        buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
+        buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
+        buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
+        buffer[*n_elements].Multicast             = ENDIAN_SWAP64(ring_buffer.Multicast);                          
+        buffer[*n_elements].CRCAlignErrors        = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);                     
+        buffer[*n_elements].UndersizePkts         = ENDIAN_SWAP64(ring_buffer.UndersizePkts);                      
+        buffer[*n_elements].OversizePkts          = ENDIAN_SWAP64(ring_buffer.OversizePkts);                       
+        buffer[*n_elements].Fragments             = ENDIAN_SWAP64(ring_buffer.Fragments);                          
+        buffer[*n_elements].Jabbers               = ENDIAN_SWAP64(ring_buffer.Jabbers);                            
+        buffer[*n_elements].Collisions            = ENDIAN_SWAP64(ring_buffer.Collisions);                         
+        buffer[*n_elements].Utilization           = ENDIAN_SWAP64(ring_buffer.Utilization);                        
+        buffer[*n_elements].Pkts64Octets          = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);                       
+        buffer[*n_elements].Pkts65to127Octets     = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);                  
+        buffer[*n_elements].Pkts128to255Octets    = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);                 
+        buffer[*n_elements].Pkts256to511Octets    = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);                 
+        buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
+        buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index  %lu", buffer[*n_elements].index);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg    %lu", buffer[*n_elements].arg );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[*n_elements].time );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[*n_elements].path);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[*n_elements].dropEvents );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[*n_elements].Octets );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[*n_elements].Pkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[*n_elements].Broadcast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast            %llu", buffer[*n_elements].Multicast);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors       %llu", buffer[*n_elements].CRCAlignErrors);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts        %llu", buffer[*n_elements].UndersizePkts);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts         %llu", buffer[*n_elements].OversizePkts);
-   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments            %llu", buffer[*n_elements].Fragments );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers              %llu", buffer[*n_elements].Jabbers);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions           %llu", buffer[*n_elements].Collisions);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization          %llu", buffer[*n_elements].Utilization );   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets         %llu", buffer[*n_elements].Pkts64Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets    %llu", buffer[*n_elements].Pkts65to127Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets   %llu", buffer[*n_elements].Pkts128to255Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets   %llu", buffer[*n_elements].Pkts256to511Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets  %llu", buffer[*n_elements].Pkts512to1023Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[*n_elements].Pkts1024to1518Octets);	  
-    
-    if (first_reg<0) 
-      break;
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index  %lu", buffer[*n_elements].index);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg    %lu", buffer[*n_elements].arg );   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time   %lu", buffer[*n_elements].time );   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path   %lu", buffer[*n_elements].path);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %lu", buffer[*n_elements].cTempo);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].dropEvents           %llu", buffer[*n_elements].dropEvents );   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets               %llu", buffer[*n_elements].Octets );   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts                 %llu", buffer[*n_elements].Pkts);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast            %llu", buffer[*n_elements].Broadcast);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast            %llu", buffer[*n_elements].Multicast);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors       %llu", buffer[*n_elements].CRCAlignErrors);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts        %llu", buffer[*n_elements].UndersizePkts);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts         %llu", buffer[*n_elements].OversizePkts);
+       
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments            %llu", buffer[*n_elements].Fragments );   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers              %llu", buffer[*n_elements].Jabbers);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions           %llu", buffer[*n_elements].Collisions);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization          %llu", buffer[*n_elements].Utilization );   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets         %llu", buffer[*n_elements].Pkts64Octets);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets    %llu", buffer[*n_elements].Pkts65to127Octets);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets   %llu", buffer[*n_elements].Pkts128to255Octets);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets   %llu", buffer[*n_elements].Pkts256to511Octets);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets  %llu", buffer[*n_elements].Pkts512to1023Octets);   
+        PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %llu", buffer[*n_elements].Pkts1024to1518Octets);	  
+        
+        if (first_reg<0) {
+          break;
+        }
 
-    (*n_elements)++;
-     continue;	
+        (*n_elements)++;
+         continue;	
                     
     #endif
   }  
@@ -18750,13 +18834,13 @@ L7_RC_t ptin_msg_config_rfc2819_monitoring(msg_rfc2819_admin_t *config)
     PT_LOG_DEBUG(LOG_CTX_MSG, "%d", ptin_fpga_mx_is_matrix_in_workingslot()); 
 
     //Check if is a working CXO160G
-    if((config->Port == 0 || config->Port == 1) && (ptin_fpga_mx_is_matrix_in_workingslot() == 1))
+    if((config->Port == 0 || config->Port == 1) /*&& (ptin_fpga_mx_is_matrix_in_workingslot() == 1)*/)
     {
       PT_LOG_DEBUG(LOG_CTX_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
       return ptin_rfc2819_config_probe(config->Port, config->Admin);
     }
     //Check if is a protection CXO160G
-    if((config->Port == 2 || config->Port == 3) && (ptin_fpga_mx_is_matrix_in_workingslot() == 0))
+    if((config->Port == 2 || config->Port == 3) /*&& (ptin_fpga_mx_is_matrix_in_workingslot() == 0)*/)
     {
       int aux_port;
       aux_port = config->Port - 2; //In CXO160G check if the manager send slot match with the slot port
