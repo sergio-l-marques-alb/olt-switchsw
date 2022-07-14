@@ -2301,6 +2301,12 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
     return L7_FAILURE;
   }
 
+  /* To overcome returning Error when evc is not configured*/
+  if( ptin_evc_is_in_use(evc_idx) == FALSE )
+  {
+      return L7_SUCCESS;
+  }
+
   /* Check if EVC is active, and if interface is part of the EVC */
   if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
