@@ -855,6 +855,7 @@ typedef enum
 
 typedef struct {
   L7_int32   ptin_port;                 // Single interface
+  L7_int32   vport;                     // Virtual port (gport)              
   L7_uint64  ptin_port_bmp;             // List of Interfaces
   L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
@@ -1062,7 +1063,8 @@ typedef struct {
   L7_uint16  outer_vlan_egress;         // SVlan (0 value means no appliance)
   L7_uint16  inner_vlan_ingress;        // CVlan (0 value means no appliance)
   L7_uint16  inner_vlan_egress;         // CVlan (0 value means no appliance)
-  L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
+  L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)                                      //
+  L7_uint32          vport;                            //L7_uint64
   L7_uint8   macAddr[L7_MAC_ADDR_LEN];  // MAC Address to apply policer
   ptin_bw_meter_t meter;                // Meter data
   L7_int     policer_id;                // BW policer id 
@@ -1073,6 +1075,7 @@ typedef struct {
 typedef struct {
   L7_int             operation;         // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
   L7_uint64          port_bmp;          // List of ports to apply profile
+  L7_uint32          vport;                            //L7_uint64
   ptin_bw_profile_t  profile;           // Profile data
   ptin_bw_meter_t    meter;             // Meter info
   ptin_bw_policy_t  *policy_ptr;        // Policy pointer
