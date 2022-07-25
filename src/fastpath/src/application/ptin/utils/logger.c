@@ -127,13 +127,20 @@ int swdrv_logger_init(void)
         return 1;
     }
 
+
     /* Open/create the log files */
     i =sizeof(fc.filename)-1;    
-    fc.filename[i]      =0;
+    fc.filename[i]      = 0;
     strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT, i);
-    fc.max_size         =5242880; //5 Mbytes;
-    fc.nr_files         =30;
-    fc.use_compression  =1;
+    fc.use_compression  = 1;
+#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+    fc.max_size         = 1048576; //1 Mbytes;
+    fc.nr_files         = 15;
+#else
+    fc.max_size         = 5242880; //5 Mbytes;
+    fc.nr_files         = 30;
+#endif
+
     if (0 != logger_file_open(&fc, &default_file_id))
     {
         printf("Error: logger_file_open(%s, 1200, &default_file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT, ret);
