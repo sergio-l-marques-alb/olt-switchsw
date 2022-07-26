@@ -1099,6 +1099,8 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
   ptin_evc_intfCfg_t intfCfg;
 #endif
 
+  PT_LOG_ERR(LOG_CTX_PPPOE,"Adding PPPoE at evc_idx=%u, uni_ovid=%u, uni_ivid=%u", evc_idx, uni_ovid, uni_ivid);
+
   /* Validate arguments */
   if (client_cfg == L7_NULLPTR || PPPOE_CLIENT_MASK_UPDATE(client_cfg->mask) == 0x00)
   {
