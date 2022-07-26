@@ -45,7 +45,7 @@ log_ctx_entry_t contexts[LOG_CONTEXT_LAST] =
     {"ERPS"       , "ERPS"    , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
     {"DAI"        , "DAI"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
     {"EVENTS"     , "EVENT"   , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
-    {"SDK"        , "SDK"     , LOG_SEV_DEBUG, LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
+    {"SDK"        , "SDK"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
     {"STARTUP"    , "START"   , LOG_SEV_TRACE, LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
     {"OPENSAF"    , "OPENSA"  , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
     {"QOS"        , "QOS"     , LOG_SEV_INFO , LOG_COLOR_DEFAULT, LOG_MODE_FILE, 0},
@@ -129,9 +129,6 @@ int swdrv_logger_init(void)
 
 
     /* Open/create the log files */
-    i =sizeof(fc.filename)-1;    
-    fc.filename[i]      = 0;
-    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT, i);
     fc.use_compression  = 1;
 #if (PTIN_BOARD == PTIN_BOARD_TG16G)
     fc.max_size         = 1048576; //1 Mbytes;
@@ -141,27 +138,28 @@ int swdrv_logger_init(void)
     fc.nr_files         = 30;
 #endif
 
+    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT, sizeof(fc.filename)-1);
     if (0 != logger_file_open(&fc, &default_file_id))
     {
         printf("Error: logger_file_open(%s, 1200, &default_file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT, ret);
         return 2;
     }
 
-    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT2, i);
+    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT2, sizeof(fc.filename)-1);
     if (0 != logger_file_open(&fc, &file_id2))
     {
         printf("Error: logger_file_open(%s, 1200, &file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT2, ret);
         return 3;
     }
 
-    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT3, i);
+    strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT3, sizeof(fc.filename)-1);
     if (0 != logger_file_open(&fc, &file_id3))
     {
         printf("Error: logger_file_open(%s, 1200, &file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT3, ret);
         return 4;
     }
 
-    strncpy(fc.filename, EVENT_RATE_MON_OUTPUT_FILE_DEFAULT, i);
+    strncpy(fc.filename, EVENT_RATE_MON_OUTPUT_FILE_DEFAULT, sizeof(fc.filename)-1);
     if (0 != logger_file_open(&fc, &file_rate_mon_id))
     {
         printf("Error: logger_file_open(%s, 1200, &file_id) ret=%d\n", EVENT_RATE_MON_OUTPUT_FILE_DEFAULT, ret);
