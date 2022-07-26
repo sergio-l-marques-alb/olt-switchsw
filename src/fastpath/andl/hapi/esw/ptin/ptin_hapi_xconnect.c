@@ -227,9 +227,6 @@ L7_RC_t ptin_hapi_bridge_vlan_cosq_set(L7_uint16 vlanId, l7_cosq_set_t queueSet)
     /* Run all units */
     BCM_UNIT_ITER(unit)
     {
-      /* Get current control definitions for this vlan */
-      bcm_vlan_control_vlan_t_init(&control);
-
       /* COS queue destination */
       switch (queueSet)
       {
