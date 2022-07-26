@@ -886,12 +886,30 @@ static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, 
     return L7_SUCCESS;
   }
 
-  PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
-                             " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=0x%08x",
-               binding->key.macAddr.addr[0], binding->key.macAddr.addr[1], binding->key.macAddr.addr[2],
-               binding->key.macAddr.addr[3], binding->key.macAddr.addr[4], binding->key.macAddr.addr[5],
-               binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
-               binding->ipAddr.addr.ipv4.s_addr);
+  if (key->ipType == L7_AF_INET) 
+  {
+      PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                                 " ptin_port=%u, intIfNum=%u, innerVlanId=%u, ipAddr=0x%08x",
+                   binding->key.macAddr.addr[0], binding->key.macAddr.addr[1], binding->key.macAddr.addr[2],
+                   binding->key.macAddr.addr[3], binding->key.macAddr.addr[4], binding->key.macAddr.addr[5],
+                   binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
+                   binding->ipAddr.addr.ipv4.s_addr);
+  }
+  else if (key->ipType == L7_AF_INET6) 
+  {
+      PT_LOG_TRACE(LOG_CTX_DHCP, "Binding To Update: MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                                 " ptin_port=%u, intIfNum=%u, innerVlanId=%u, "
+                                 "ipAddr=%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X",
+                   binding->key.macAddr.addr[0], binding->key.macAddr.addr[1], binding->key.macAddr.addr[2],
+                   binding->key.macAddr.addr[3], binding->key.macAddr.addr[4], binding->key.macAddr.addr[5],
+                   binding->key.vlanId, binding->ptin_port, binding->intIfNum,  binding->innerVlanId,
+                   binding->ipAddr.addr.ipv6.in6.addr8[0], binding->ipAddr.addr.ipv6.in6.addr8[1], binding->ipAddr.addr.ipv6.in6.addr8[2],
+                   binding->ipAddr.addr.ipv6.in6.addr8[3],binding->ipAddr.addr.ipv6.in6.addr8[4],binding->ipAddr.addr.ipv6.in6.addr8[5],
+                   binding->ipAddr.addr.ipv6.in6.addr8[6],binding->ipAddr.addr.ipv6.in6.addr8[7],binding->ipAddr.addr.ipv6.in6.addr8[8],
+                   binding->ipAddr.addr.ipv6.in6.addr8[9],binding->ipAddr.addr.ipv6.in6.addr8[10],binding->ipAddr.addr.ipv6.in6.addr8[11],
+                   binding->ipAddr.addr.ipv6.in6.addr8[12],binding->ipAddr.addr.ipv6.in6.addr8[13],binding->ipAddr.addr.ipv6.in6.addr8[14],
+                   binding->ipAddr.addr.ipv6.in6.addr8[15]);
+  }
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->leaseStatus    = messageType;
@@ -1107,8 +1125,24 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
   key.vlanId = vlanId;
   key.ipType = L7_AF_INET6;
+
   if (dsBindingTreeSearch(&key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
+  {
     return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_DHCP, " Entry Found : MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u, type=%u"
+                             "ipAddr=%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X",
+               binding->key.macAddr.addr[0], binding->key.macAddr.addr[1], binding->key.macAddr.addr[2],
+               binding->key.macAddr.addr[3], binding->key.macAddr.addr[4], binding->key.macAddr.addr[5], 
+               binding->key.vlanId, binding->key.ipType,
+               binding->ipAddr.addr.ipv6.in6.addr8[0], binding->ipAddr.addr.ipv6.in6.addr8[1], binding->ipAddr.addr.ipv6.in6.addr8[2],
+               binding->ipAddr.addr.ipv6.in6.addr8[3], binding->ipAddr.addr.ipv6.in6.addr8[4], binding->ipAddr.addr.ipv6.in6.addr8[5],
+               binding->ipAddr.addr.ipv6.in6.addr8[6], binding->ipAddr.addr.ipv6.in6.addr8[7], binding->ipAddr.addr.ipv6.in6.addr8[8],
+               binding->ipAddr.addr.ipv6.in6.addr8[9], binding->ipAddr.addr.ipv6.in6.addr8[10], binding->ipAddr.addr.ipv6.in6.addr8[11],
+               binding->ipAddr.addr.ipv6.in6.addr8[12],binding->ipAddr.addr.ipv6.in6.addr8[13], binding->ipAddr.addr.ipv6.in6.addr8[14],
+               binding->ipAddr.addr.ipv6.in6.addr8[15]);
+
 
   if (binding->bindingType == DS_BINDING_STATIC)
   {
@@ -1145,6 +1179,19 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
     #endif
   }
   
+
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Adding Entry : MAC=%02x:%02x:%02x:%02x:%02x:%02x; vlanId=%u"
+                             "ipAddr=%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X",
+               macAddr->addr[0], macAddr->addr[1], macAddr->addr[2],
+               macAddr->addr[3], macAddr->addr[4], macAddr->addr[5], vlanId,
+               ipAddr->addr.ipv6.in6.addr8[0], ipAddr->addr.ipv6.in6.addr8[1], ipAddr->addr.ipv6.in6.addr8[2],
+               ipAddr->addr.ipv6.in6.addr8[3], ipAddr->addr.ipv6.in6.addr8[4], ipAddr->addr.ipv6.in6.addr8[5],
+               ipAddr->addr.ipv6.in6.addr8[6], ipAddr->addr.ipv6.in6.addr8[7], ipAddr->addr.ipv6.in6.addr8[8],
+               ipAddr->addr.ipv6.in6.addr8[9], ipAddr->addr.ipv6.in6.addr8[10], ipAddr->addr.ipv6.in6.addr8[11],
+               ipAddr->addr.ipv6.in6.addr8[12],ipAddr->addr.ipv6.in6.addr8[13], ipAddr->addr.ipv6.in6.addr8[14],
+               ipAddr->addr.ipv6.in6.addr8[15]);
+
+
   memcpy(&binding->ipAddr, ipAddr, sizeof(L7_inet_addr_t));
   if ( vlanId != (L7_ushort16)-1 )
   {

@@ -807,6 +807,8 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
 #endif
       {
         /* Find client index, and validate it */
+        PT_LOG_NOTICE(LOG_CTX_DHCP,"Find Client (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u mask=%x)",
+                  pduInfo->intIfNum, client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, vlanId, client.outerVlan, client.innerVlan, client.mask);
         if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS || client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
         {
           if (ptin_debug_dhcp_snooping)
@@ -2873,10 +2875,9 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
         }
         case L7_DHCP6_OPT_PREFIX_DELEGA:
         {
-
-					 /* The IP adress is11 bytes after after the prefix option in DHCP packet */
-					 L7_uchar8* aux = relay_op_header_ptr + osapiNtohs(dhcp_op_header->option_len) - 12; 
-					 inetAddressSet(L7_AF_INET6, aux, &client_ip_addr);
+           /* The IP adress is 11 bytes after after the prefix option in DHCP packet */
+           L7_uchar8* aux = relay_op_header_ptr + osapiNtohs(dhcp_op_header->option_len) - 12; 
+           inetAddressSet(L7_AF_INET6, aux, &client_ip_addr);
            lease_time           = osapiNtohl(*(L7_uint32*) (relay_op_header_ptr + sizeof(L7_dhcp6_option_packet_t) + IPV6_ADDRESS_LEN + sizeof(L7_int32)));
            frame_len           -= sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
            relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
@@ -2888,6 +2889,8 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
            break; 
      }
    }
+
+
 
    //Check if the server reply did not have any options
    if(!op_interfaceid_ptr && !op_remoteid_ptr)
@@ -2916,6 +2919,16 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
         PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received DHCPv6 message with invalid fields");
       return L7_SUCCESS;
    }
+
+
+   //Check if Client IP Address is . Can we receive a server message without a valid Client Ip Address????
+   //if ( inetIsInAddressAny(&client_ip_addr) ) 
+   //{
+   //    if (ptin_debug_dhcp_snooping)
+   //    {
+   //        PT_LOG_WARN(LOG_CTX_DHCP, "Message from server with IP zeroes. Drop the packet???");
+   //    }
+   //}
 
    //Change ethernet priority bit
    if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)

@@ -2171,16 +2171,16 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
     table[index].outer_vlan     = dsBinding.key.vlanId;
     table[index].inner_vlan     = dsBinding.innerVlanId;
     memcpy(table[index].macAddr,dsBinding.key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-   if ( dsBinding.ipFamily == L7_AF_INET)
-   {
-      table[index].ipAddr.family = 0;
-      table[index].ipAddr.addr.ipv4 = dsBinding.ipAddr;
-   }
-   else if ( dsBinding.ipFamily == L7_AF_INET6)
-   {
-      table[index].ipAddr.family = 1;
-      memcpy(table[index].ipAddr.addr.ipv6, dsBinding.ipv6Addr, 16*sizeof(L7_uchar8));
-   }
+    if (dsBinding.key.ipType == L7_AF_INET)
+    {
+       table[index].ipAddr.family = 0;
+       table[index].ipAddr.addr.ipv4 = dsBinding.ipAddr;
+    }
+    else if ( dsBinding.key.ipType == L7_AF_INET6)
+    {
+       table[index].ipAddr.family = 1;
+       memcpy(table[index].ipAddr.addr.ipv6, dsBinding.ipv6Addr, 16*sizeof(L7_uchar8));
+    }
 
     table[index].remLeave       = dsBinding.remLease;
     table[index].bindingType    = dsBinding.bindingType;
@@ -4211,7 +4211,9 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
       dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to evc_idx=%u (intVlan=%u)",evc_idx,intVlan);
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to evc_idx=%u (intVlan=%u) and dhcp_idx=%u", evc_idx, intVlan, dhcp_idx);
+    }
     return L7_FAILURE;
   }
 
@@ -4354,7 +4356,7 @@ L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_uint8
       PT_LOG_ERR(LOG_CTX_DHCP,"Error configuring vlan %u for packet trapping", vlan);
       return L7_FAILURE;
     }
-    PT_LOG_TRACE(LOG_CTX_DHCP,"Success configuring vlan %u for packet trapping", vlan);
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Success configuring vlan %u for packet trapping, enable=%u", vlan, enable);
   }
 
   return L7_SUCCESS;
@@ -5529,4 +5531,40 @@ void ptin_dhcp_stat_client_dump(L7_uint16 evc_id, L7_uint16 ptin_port, L7_uint16
 
 }
 
+void ptin_dhcp_biding_table_dump(void)
+{
+  dhcpSnoopBinding_t  dsBinding;
+  L7_uint32           i=1;
 
+  memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
+    while(usmDbDsBindingGetNext(&dsBinding)==L7_SUCCESS)
+    {
+        printf("Entry %u:", i);
+        printf("  macAddr     %02X:%02X:%02X:%02X:%02X:%02X:", 
+               dsBinding.key.macAddr[0], dsBinding.key.macAddr[1], dsBinding.key.macAddr[2], 
+               dsBinding.key.macAddr[3], dsBinding.key.macAddr[4], dsBinding.key.macAddr[5]);
+        printf("  vlanId      %u:", dsBinding.key.vlanId);
+        printf("  ipType      %u:", dsBinding.key.ipType);
+        printf("  innerVlanId %u:", dsBinding.innerVlanId);
+        if ( dsBinding.key.ipType == L7_AF_INET)
+        {
+            printf("    %x:", dsBinding.ipAddr);
+        }
+        else if (dsBinding.key.ipType == L7_AF_INET6) 
+        {
+            printf("  ipAddr     = %02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X",
+                    dsBinding.ipv6Addr[0], dsBinding.ipv6Addr[1], dsBinding.ipv6Addr[2],
+                    dsBinding.ipv6Addr[3], dsBinding.ipv6Addr[4], dsBinding.ipv6Addr[5],
+                    dsBinding.ipv6Addr[6], dsBinding.ipv6Addr[7], dsBinding.ipv6Addr[8],
+                    dsBinding.ipv6Addr[9], dsBinding.ipv6Addr[10], dsBinding.ipv6Addr[11],
+                    dsBinding.ipv6Addr[12],dsBinding.ipv6Addr[13], dsBinding.ipv6Addr[14],
+                    dsBinding.ipv6Addr[15]);
+        }
+        printf("  intIfNum     %u:", dsBinding.intIfNum);
+        printf("  ptin_port    %u:", dsBinding.ptin_port);
+        printf("  remLease     %u:", dsBinding.remLease);
+        printf("  leaseStatus  %u:", dsBinding.leaseStatus);
+        printf("  bindingType  %u:", dsBinding.bindingType);
+    }
+
+}
