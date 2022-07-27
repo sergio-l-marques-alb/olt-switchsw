@@ -483,23 +483,32 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
          PT_LOG_DEBUG(LOG_CTX_PPPOE,
                       "PPPoE Binding table: interface=%u, inner_vlan=%u ",
                       binding_table_data->interface, binding_table_data->inner_vlan);
+
+         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
+         client.outerVlan = vlanId;
+         client.innerVlan = (innerVlanId > 0 && innerVlanId < 4096) ? innerVlanId : 0;
+         client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+         client.mask |= (innerVlanId > 0 && innerVlanId < 4096) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
+
+         if (ptin_pppoe_clientIndex_get(binding_table_data->interface, vlanId, &client, &clientidx)!=L7_SUCCESS ||   
+             clientidx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
+         {
+           if (ptin_debug_pppoe_snooping)
+             PT_LOG_WARN(LOG_CTX_PPPOE,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
+                         binding_table_data->interface, client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, vlanId);
+           clientidx = (L7_uint) -1;
+         }
+         pppoeFrameMsg.client_idx  = clientidx;
       }
-
-      client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
-      client.outerVlan = vlanId;
-      client.innerVlan = (innerVlanId > 0 && innerVlanId < 4096) ? innerVlanId : 0;
-      client.mask  = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-      client.mask |= (innerVlanId > 0 && innerVlanId < 4096) ? PTIN_CLIENT_MASK_FIELD_INNERVLAN : 0;
-
-      if (ptin_pppoe_clientIndex_get(binding_table_data->interface, vlanId, &client, &clientidx)!=L7_SUCCESS ||   
-          clientidx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
+      else
       {
-        if (ptin_debug_pppoe_snooping)
-          PT_LOG_WARN(LOG_CTX_PPPOE,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
-                      binding_table_data->interface, client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, vlanId);
-        clientidx = (L7_uint) -1;
+         pppoeFrameMsg.client_idx  = *client_idx;
+         if (ptin_debug_pppoe_snooping)
+           PT_LOG_ERR(LOG_CTX_PPPOE, "PPPoE: Message received for an unknown client (macAddr: %02X:%02X:%02X:%02X:%02X:%02X, rootVlan:%u).",
+                      binding_table_key.macAddr[0],binding_table_key.macAddr[1],binding_table_key.macAddr[2],binding_table_key.macAddr[3],binding_table_key.macAddr[4],binding_table_key.macAddr[5],
+                      binding_table_key.rootVlan);
       }
-      pppoeFrameMsg.client_idx  = clientidx;
+
   }
   else
   {
