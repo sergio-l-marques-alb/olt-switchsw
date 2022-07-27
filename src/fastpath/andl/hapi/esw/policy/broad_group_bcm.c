@@ -1155,11 +1155,8 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
       //printf("%s(%d) Group %d, entry=%d, Policy-%d, rv=%d\r\n",__FUNCTION__,__LINE__,group, entry, policy,rv);
       if (BCM_E_NONE != rv)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-          sysapiPrintf("- priority set failed\n");
-        _policy_sem_give();
-        (void)l7_bcm_policy_destroy(unit, policy);
-        return rv;
+       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+         sysapiPrintf("- priority set failed\n");
       }
 
       /* For VLAN based policies activate/deactivate the rule based rule status*/
