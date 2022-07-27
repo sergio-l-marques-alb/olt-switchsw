@@ -187,7 +187,6 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   L7_uint32 len, ethHeaderSize;
   L7_uchar8 *data;
   L7_uint16 vlanId, innerVlanId = 0;
-  ptin_client_id_t client;
 
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
 
@@ -320,9 +319,10 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   /* Only search and validate client for non Matrix (CXP360G, etc) and untrusted interfaces */
 #if ( ! PTIN_BOARD_IS_MATRIX )
 
-//  if (!_pppoeVlanIsIntfRoot(pduInfo->vlanId, pduInfo->intIfNum))
-  {
+ {
+  ptin_client_id_t client;
 
+//  if (!_pppoeVlanIsIntfRoot(pduInfo->vlanId, pduInfo->intIfNum))
     /* Client information */
     client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
     client.outerVlan = vlanId;
