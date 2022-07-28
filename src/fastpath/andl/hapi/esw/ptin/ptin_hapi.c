@@ -410,25 +410,25 @@ L7_RC_t ptin_hapi_hash_init(void)
   }
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate1, 4) != BCM_E_NONE)
+  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate1, 6) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthEgressVlanTranslate1 switch_control to 2");
     rc = L7_FAILURE;
   }
 
-  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate2, 4) != BCM_E_NONE)
+  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthEgressVlanTranslate2, 6) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthEgressVlanTranslate2 switch_control to 2");
     rc = L7_FAILURE;
   }
 
-  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthVlanTranslate1, 4) != BCM_E_NONE)
+  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthVlanTranslate1, 6) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthVlanTranslate1 switch_control to 2");
     rc = L7_FAILURE;
   }
 
-  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthVlanTranslate2, 4) != BCM_E_NONE)
+  if (bcm_switch_control_set(0, bcmSwitchHashMultiMoveDepthVlanTranslate2, 6) != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcmSwitchHashMultiMoveDepthVlanTranslate2 switch_control to 2");
     rc = L7_FAILURE;
