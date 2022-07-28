@@ -2987,11 +2987,11 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Increment server tx counters   
    if (ptin_debug_dhcp_snooping)
    {
-       //PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", ptin_port, vlanId);
-       PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_FORWARDED ptin_port=%u pduInfo->vlanId=%u", ptin_port, vlanId);
+       PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", ptin_port_client, vlanId);
+       PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_FORWARDED ptin_port=%u pduInfo->vlanId=%u", ptin_port_client, vlanId);
    }
-   //ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
-   ptin_dhcp_stat_increment_field(ptin_port, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
+   ptin_dhcp_stat_increment_field(ptin_port_client, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+   ptin_dhcp_stat_increment_field(ptin_port_client, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
    
 
    //Remove the entry in the binding table if the client has previously sent a release
