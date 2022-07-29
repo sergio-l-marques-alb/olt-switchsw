@@ -2377,7 +2377,6 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
   ptin_client_id_t    client_info;
   L7_RC_t rc;
 
-  PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Processing client request");
 
   /*Get ptin_port from client_idx*/
   rc = ptin_dhcp_clientData_get(vlanId, client_idx, &client_info);
@@ -2392,6 +2391,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
   ptin_port = client_info.ptin_port;
 
+  PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Processing client request on ptin_port=%d", ptin_port);
   #if 0
   dhcp_header_ptr = frame + sysNetDataOffsetGet(frame) + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
   packet_type_debug( ptin_port , vlanId , DHCPV6_PROTOCOL , (int)(*dhcp_header_ptr) );
@@ -2447,10 +2447,12 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
   //Get DHCP Options for this client
   //If the port through which the message was received is configured as untrusted and the packet is a RELAY-FORW, drop it
-  if((dhcp_msg_type==L7_DHCP6_RELAY_FORW) && (!_dsVlanIntfTrustGet(vlanId, ptin_port)))
+  if((dhcp_msg_type==L7_DHCP6_RELAY_FORW) && (!_dsVlanIntfTrustGet(vlanId, intIfNum)))
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Discarded RELAY-FORW message received on untrusted port");
+    {
+      PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Discarded RELAY-FORW message received on untrusted port=%d",intIfNum);
+    }
     return L7_SUCCESS;
   }
 
