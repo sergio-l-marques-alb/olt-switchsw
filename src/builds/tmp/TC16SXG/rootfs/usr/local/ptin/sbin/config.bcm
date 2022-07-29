@@ -3,7 +3,7 @@
 cancun_dir=/usr/local/ptin/sbin
 vlan_xlate_1_mem_entries=16384
 vlan_xlate_2_mem_entries=0
-egr_vlan_xlate_1_mem_entries=8192
+egr_vlan_xlate_1_mem_entries=16384
 egr_vlan_xlate_2_mem_entries=0
 
 #custom_feature_cancun_dir=/usr/local/ptin/sbin/
