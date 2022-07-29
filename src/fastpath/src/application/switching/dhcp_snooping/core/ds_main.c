@@ -807,7 +807,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
 #endif
       {
         /* Find client index, and validate it */
-        PT_LOG_NOTICE(LOG_CTX_DHCP,"Find Client (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u mask=%x)",
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Find Client (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u mask=%x)",
                   pduInfo->intIfNum, client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, vlanId, client.outerVlan, client.innerVlan, client.mask);
         if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS || client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
         {

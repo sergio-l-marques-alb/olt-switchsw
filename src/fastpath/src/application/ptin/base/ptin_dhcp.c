@@ -2203,15 +2203,23 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding )
 {
   L7_enetMacAddr_t   macAddr;
 
-  // Find This entry
-  if (usmDbDsBindingGet(dsBinding)!=L7_SUCCESS) {
-    PT_LOG_ERR(LOG_CTX_DHCP, "This entry does not exist");
-    return L7_FAILURE;
-  }
+  PT_LOG_NOTICE(LOG_CTX_DHCP, "ipType=%u, vlanId=%u, MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+                              , dsBinding->key.ipType, dsBinding->key.vlanId,
+                dsBinding->key.macAddr[0], dsBinding->key.macAddr[1], dsBinding->key.macAddr[2],
+                dsBinding->key.macAddr[3], dsBinding->key.macAddr[4], dsBinding->key.macAddr[5]);
+
+
+//  // Find This entry
+//  if (usmDbDsBindingGet(dsBinding)!=L7_SUCCESS) 
+//  {
+//      PT_LOG_ERR(LOG_CTX_DHCP, "This entry does not exist");
+//      return L7_FAILURE;
+//  }
 
   // Remove this entry
   memcpy(macAddr.addr,dsBinding->key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-  if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) {
+  if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) 
+  {
     PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry");
     return L7_FAILURE;
   }
@@ -2405,7 +2413,6 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   if (stat_client!=L7_NULLPTR)
   {
     osapiSemaTake(ptin_dhcp_stats_sem,-1);
-#if 1 /* Daniel - Disabled this for now, as both APIs do not match. Hence, I cannot simply use memcpy */
     stat_client->dhcp_rx_intercepted                         = clientInfo->client_stats.dhcp_rx_intercepted;
     stat_client->dhcp_rx                                     = clientInfo->client_stats.dhcp_rx;
     stat_client->dhcp_rx_filtered                            = clientInfo->client_stats.dhcp_rx_filtered;
@@ -2424,9 +2431,25 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
     stat_client->dhcp_rx_client_pkts_onTrustedIntf           = clientInfo->client_stats.dhcp_rx_client_pkts_onTrustedIntf;
     stat_client->dhcp_rx_client_pkts_withOps_onUntrustedIntf = clientInfo->client_stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
     stat_client->dhcp_rx_server_pkts_onUntrustedIntf         = clientInfo->client_stats.dhcp_rx_server_pkts_onUntrustedIntf;
-#else
-    memcpy(stat_client, &clientInfo->client_stats, sizeof(ptin_DHCP_Statistics_t));
-#endif
+
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_intercepted                          %u",stat_client->dhcp_rx_intercepted);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx                                      %u",stat_client->dhcp_rx);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_filtered                             %u",stat_client->dhcp_rx_filtered);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_tx_forwarded                            %u",stat_client->dhcp_tx_forwarded);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_tx_failed                               %u",stat_client->dhcp_tx_failed);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_client_requests_without_options      %u",stat_client->dhcp_rx_client_requests_without_options);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_tx_client_requests_with_option82        %u",stat_client->dhcp_tx_client_requests_with_option82);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_tx_client_requests_with_option37        %u",stat_client->dhcp_tx_client_requests_with_option37);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_tx_client_requests_with_option18        %u",stat_client->dhcp_tx_client_requests_with_option18);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_server_replies_with_option82         %u",stat_client->dhcp_rx_server_replies_with_option82);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_server_replies_with_option37         %u",stat_client->dhcp_rx_server_replies_with_option37);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_server_replies_with_option18         %u",stat_client->dhcp_rx_server_replies_with_option18);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_tx_server_replies_without_options       %u",stat_client->dhcp_tx_server_replies_without_options);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_client_pkts_onTrustedIntf            %u",stat_client->dhcp_rx_client_pkts_onTrustedIntf);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_client_pkts_withOps_onUntrustedIntf  %u",stat_client->dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+    PT_LOG_DEBUG(LOG_CTX_DHCP,"dhcp_rx_server_pkts_onUntrustedIntf          %u",stat_client->dhcp_rx_server_pkts_onUntrustedIntf);
+
+
     osapiSemaGive(ptin_dhcp_stats_sem);
   }
 

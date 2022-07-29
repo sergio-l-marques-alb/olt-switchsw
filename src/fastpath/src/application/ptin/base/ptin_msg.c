@@ -10325,7 +10325,8 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
 {
   L7_uint16           i;
   dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
-  L7_RC_t             rc_Ipv4, rc_Ipv6;
+  L7_RC_t             rc_Ipv4, rc_Ipv6, rc;
+  L7_ushort16         vlanId;
 
   if (numEntries > 128)  numEntries = 128;
 
@@ -10346,16 +10347,35 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
                  table[i].bind_entry.macAddr[5]);
     PT_LOG_DEBUG(LOG_CTX_MSG,"family = %u", ENDIAN_SWAP8(table[i].bind_entry.ipAddr.family));
 
+    rc = ptin_evc_intRootVlan_get(ENDIAN_SWAP32(table[i].bind_entry.evc_idx), &vlanId);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", ENDIAN_SWAP32(table[i].bind_entry.evc_idx));
+      continue;
+    }
+
+
     memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
     memcpy(dsBindingIpv4.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-    dsBindingIpv4.key.ipType = L7_AF_INET;  //(table[i].bind_entry.ipAddr.family==0) ;//? (L7_AF_INET) : (L7_AF_INET6);
+    dsBindingIpv4.key.ipType = L7_AF_INET;
+    dsBindingIpv4.key.vlanId = vlanId;  
+
+    PT_LOG_DEBUG(LOG_CTX_MSG,"key v4 ipType=%u, vlanId=%u MacAddr=%02X:%02X:%02X:%02X:%02X:%02X", 
+                 dsBindingIpv4.key.ipType, dsBindingIpv4.key.vlanId,
+                 dsBindingIpv4.key.macAddr[0],dsBindingIpv4.key.macAddr[1],dsBindingIpv4.key.macAddr[2],
+                 dsBindingIpv4.key.macAddr[3],dsBindingIpv4.key.macAddr[4],dsBindingIpv4.key.macAddr[5]);
 
     memset(&dsBindingIpv6,0x00,sizeof(dhcpSnoopBinding_t));
     memcpy(dsBindingIpv6.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-    dsBindingIpv6.key.ipType = L7_AF_INET6;  //(table[i].bind_entry.ipAddr.family==0) ;//? (L7_AF_INET) : (L7_AF_INET6);
+    dsBindingIpv6.key.ipType = L7_AF_INET6;
+    dsBindingIpv6.key.vlanId = vlanId;  
+
+    PT_LOG_DEBUG(LOG_CTX_MSG,"key v6 ipType=%u, vlanId=%u MacAddr=%02X:%02X:%02X:%02X:%02X:%02X", 
+                 dsBindingIpv6.key.ipType, dsBindingIpv6.key.vlanId,
+                 dsBindingIpv6.key.macAddr[0],dsBindingIpv6.key.macAddr[1],dsBindingIpv6.key.macAddr[2],
+                 dsBindingIpv6.key.macAddr[3],dsBindingIpv6.key.macAddr[4],dsBindingIpv6.key.macAddr[5]);
 
     // Remove IPv6 and IPv4 entry
-
     rc_Ipv4 = ptin_dhcp82_bindtable_remove(&dsBindingIpv4);
     rc_Ipv6 = ptin_dhcp82_bindtable_remove(&dsBindingIpv6);
 
