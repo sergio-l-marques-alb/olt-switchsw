@@ -10774,7 +10774,7 @@ static void ptin_evc_vlan_pool_init(void)
   for (i=PTIN_SYSTEM_EVC_MCAST_VLAN_MIN; i<=PTIN_SYSTEM_EVC_MCAST_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
-    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t*)&vlans_pool[i]);
+    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t *)&vlans_pool[i]);  
   }
   PT_LOG_INFO(LOG_CTX_EVC,"Multicast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_MCAST, PTIN_SYSTEM_EVC_MCAST_VLAN_MIN, i-1);
 
@@ -10794,6 +10794,12 @@ static void ptin_evc_vlan_pool_init(void)
   for (i=PTIN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_CPU_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
+    if((i == PTIN_ASPEN2CPU_A_VLAN)||
+       (i == PTIN_ASPEN2CPU_B_VLAN))
+    {
+        continue;
+    }
+
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU], (dl_queue_elem_t*)&vlans_pool[i]);
   }
 
