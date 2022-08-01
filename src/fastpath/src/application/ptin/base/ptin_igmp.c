@@ -7434,15 +7434,30 @@ L7_RC_t ptin_multicast_MCEvc_id_port_remove(L7_uint32 ptin_port,
   L7_RC_t rc;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-   if ((MCastId > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) && 
-       PTIN_PORT_IS_PON_GPON_TYPE(ptin_port)) 
+   L7_BOOL is_mac_bridge;
+
+   rc = ptin_evc_mac_bridge_check(MCastId, &is_mac_bridge);
+   if ( rc != L7_SUCCESS )
    {
-       MCastId = MCastId - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+     PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicastGroup, rc);      
+     return L7_FAILURE;
    }
-   else if ((MCastId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) && 
-            PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
+
+   /* On P2P services there are two EVC MC and two EVC IGMP (one for XGS and other for GPON).
+      This condition below must be check to ensure that we use the right MC EVC.
+      On MAC bridge services there is one IGMP EVC for both XGS and GPON MC EVC, so the condition is not needed*/
+   if (is_mac_bridge == 0) 
    {
+     if ((MCastId > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) &&
+          PTIN_PORT_IS_PON_GPON_TYPE(ptin_port)) 
+     {
+       MCastId = MCastId - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+     }
+     else if ((MCastId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) && 
+               PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port))
+     {
        MCastId = MCastId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+     }
    }
 #endif
 
