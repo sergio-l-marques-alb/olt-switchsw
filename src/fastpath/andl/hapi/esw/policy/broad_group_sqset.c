@@ -552,7 +552,9 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
   bcmFieldQualifyOuterVlan,
   bcmFieldQualifyInnerVlan,     /* PTin added: FP */
   bcmFieldQualifyDrop,          /* PTin added: FP */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   bcmFieldQualifyDstVlanGports,
+#endif
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
      PTIN_BOARD == PTIN_BOARD_TA48GE  || \

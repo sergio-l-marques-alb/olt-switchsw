@@ -317,6 +317,11 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   profile = &bwPolicer->profile;
   meter   = &bwPolicer->meter;
 
+  /* Force vport to 0 for board that don't support bw profiles on ingress looking to dst vport */
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
+  profile->vport = 0;
+#endif
+
   PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
   PT_LOG_TRACE(LOG_CTX_HAPI, "usp       = {%d,%d,%d}", usp->unit, usp->slot, usp->port);
   PT_LOG_TRACE(LOG_CTX_HAPI," ptin_ports= 0x%llx",profile->ptin_port_bmp);
