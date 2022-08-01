@@ -215,7 +215,7 @@ void ptin_rfc2819_clear_buffers(void)
  * @author clemos (2/23/2015)
  * ----------------------------------------------------------------------
  */
-void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
+void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual, time_t reg_time)
 {
 
 
@@ -224,7 +224,7 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
 
   aux_qual_RFC2819.arg                  =   qual->conf.slot;
   aux_qual_RFC2819.path                 =   qual->conf.path;
-  aux_qual_RFC2819.time                 =   time(NULL);
+  aux_qual_RFC2819.time                 =   reg_time;
   aux_qual_RFC2819.cTempo               =   qual->status[RFC2819_ACTUAL].cTempo;
 
   if (PTIN_RFC2819_MASK_DROPEVENTS & qual->mask) {
@@ -399,14 +399,14 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
  * @author clemos (2/23/2015)
  * ----------------------------------------------------------------------
  */
-void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
+void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual, time_t reg_time)
 {    
   if (/*(slot==0) || */(slot>=MAX_QUAL_RFC2819_BUFFERS))
     return;
 
-  aux_qual_RFC2819.arg                  = qual->conf.slot;
+  aux_qual_RFC2819.arg                 = qual->conf.slot;
   aux_qual_RFC2819.path                = qual->conf.path;
-  aux_qual_RFC2819.time                = time(NULL);
+  aux_qual_RFC2819.time                = reg_time;
   aux_qual_RFC2819.cTempo              = qual->status[RFC2819_PER24HORAS].cTempo;
 
   if (PTIN_RFC2819_MASK_DROPEVENTS & qual->mask) {
@@ -1169,6 +1169,8 @@ void ptin_rfc2819_disable(T_QUALIDADE_RFC2819 *param)
  */
 void ptin_rfc2819_proc(L7_uint8 buffer_15min, L7_uint8 buffer_24horas, T_QUALIDADE_RFC2819 *param, struct tm *data_hora, L7_int tgl_time)
 {
+  time_t reg_time;
+
   if (param->conf.estado==0) {
     return;    
   }
@@ -1183,9 +1185,11 @@ void ptin_rfc2819_proc(L7_uint8 buffer_15min, L7_uint8 buffer_24horas, T_QUALIDA
     param->reg_data.hora = data_hora->tm_hour;
     param->reg_data.min  = data_hora->tm_min;
 
+    data_hora->tm_sec = 0;
+    reg_time = mktime(data_hora);
 
     //Regista os 15 minutos
-    ptin_rfc2819_regista_15min(buffer_15min,(void *)param);        
+    ptin_rfc2819_regista_15min(buffer_15min,(void *)param, reg_time);        
 
     param->status[RFC2819_PER24HORAS].cTempo              +=   param->status[RFC2819_ACTUAL].cTempo              ;
     param->status[RFC2819_PER24HORAS].dropEvents          +=   param->status[RFC2819_ACTUAL].dropEvents          ;
@@ -1213,7 +1217,7 @@ void ptin_rfc2819_proc(L7_uint8 buffer_15min, L7_uint8 buffer_24horas, T_QUALIDA
     if ((param->reg_data.hora==0) && (param->reg_data.min)==0) 
     {
       //Regista as 24 horas
-      ptin_rfc2819_regista_24horas(buffer_24horas,(void *)param); 
+      ptin_rfc2819_regista_24horas(buffer_24horas,(void *)param, reg_time); 
 
       param->status[RFC2819_PER24HORAS].cTempo            = 0;  
       param->status[RFC2819_PER24HORAS].dropEvents        = 0;  

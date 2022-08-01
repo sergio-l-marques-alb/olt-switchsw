@@ -126,9 +126,9 @@ extern void ptin_rfc2819_init_buffers(void);
 
 extern void ptin_rfc2819_clear_buffers(void);
 
-extern void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual);
+extern void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual, time_t reg_time);
 
-extern void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual);
+extern void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual, time_t reg_time);
 
 extern void ptin_rfc2819_init_probes(void);
 
