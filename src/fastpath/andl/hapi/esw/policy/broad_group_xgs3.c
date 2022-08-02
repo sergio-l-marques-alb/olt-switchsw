@@ -1763,16 +1763,6 @@ static int _policy_super_qset_init_ifp(int unit)
   rv = _policy_super_qset_add(unit, &systemQsetVlanQoSDef, applicable_policy_types);
   PT_LOG_TRACE(LOG_CTX_STARTUP,"Added vlanQoSQsetDef qset: rv=%d", rv);
 
-  /* Only for Trident3x3: for QoS queues assignment */
-  if (SOC_IS_HELIX5(unit))
-  {
-     /* Dedicated group for QoS queues assignment */
-     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-     applicable_policy_types[BROAD_POLICY_TYPE_QOS_QUEUES] = L7_TRUE;
-     rv = _policy_super_qset_add(unit, &systemQsetQoSqueuesDef, applicable_policy_types);
-     PT_LOG_TRACE(LOG_CTX_STARTUP,"Added systemQsetQoSqueuesDef qset: rv=%d", rv);
-  }
-
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
@@ -4611,18 +4601,13 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
             group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio   = lowPrioGroup + 10;
             group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].group_prio = lowPrioGroup + 9;
 
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 11;
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = lowPrioGroup + 12;
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].group_prio  = lowPrioGroup + 11;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 9;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = lowPrioGroup + 10;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].group_prio  = lowPrioGroup + 9;
 
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio          = lowPrioGroup + 13;
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio         = lowPrioGroup + 14;
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio       = lowPrioGroup + 13;
-
-            /* QoS Queue assignment */
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrioGroup + 15;
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = lowPrioGroup + 16;
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrioGroup + 15;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio          = lowPrioGroup + 11;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio         = lowPrioGroup + 12;
+            group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio       = lowPrioGroup + 11;
         }
         else
         {

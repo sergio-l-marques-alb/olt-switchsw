@@ -863,7 +863,8 @@ typedef struct {
   L7_uint16  inner_vlan_ingress;        // CVlan (0 value means no appliance)               
   L7_uint16  inner_vlan_egress;         // CVlan (0 value means no appliance)
   L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
-  L7_uint8   macAddr[L7_MAC_ADDR_LEN];  // MAC Address to apply policer
+  L7_uint8   queue_type;                //  0 - WIRED/DEFAULT  1 - WIRELESS                      
+  L7_uint8   macAddr[L7_MAC_ADDR_LEN];  //  MAC Address to apply policer
 } ptin_bw_profile_t;
 
 typedef struct {

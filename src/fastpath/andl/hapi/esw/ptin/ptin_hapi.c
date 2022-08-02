@@ -5942,8 +5942,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     L7_uint8            queue_index, tc;
     L7_RC_t rc = L7_SUCCESS;
 
-    /* Create policy to give more priority to BL packets */
-    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_QOS_QUEUES);
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
@@ -5977,7 +5976,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
         queue_index = queueSet*8 + tc;
 
         /* Define qualifiers and actions */
-        rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+        rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
         if (rc != L7_SUCCESS)  break;
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2INTF_ID, (L7_uchar8 *)&l2intf_data, (L7_uchar8 *)&l2intf_mask);
         if (rc != L7_SUCCESS)  break;

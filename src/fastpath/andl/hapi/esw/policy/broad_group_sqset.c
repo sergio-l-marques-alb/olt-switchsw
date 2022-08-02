@@ -457,10 +457,6 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL4DstPort,
   bcmFieldQualifyEtherType,
   bcmFieldQualifyIpProtocol,
-#ifdef L7_IPV6_PACKAGE
-  bcmFieldQualifyL3DestRouteHit,
-  bcmFieldQualifyL3DestHostHit,
-#endif
   bcmFieldQualifyIpType,
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
  /* PTin added: SDK 6.3.0 */
@@ -477,17 +473,17 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
   #endif
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  bcmFieldQualifyDstVlanGports,
+  bcmFieldQualifyIntPriority,
+#endif
+
 #if (PTIN_BOARD_IS_GPON)
   bcmFieldQualifyPacketRes,
   bcmFieldQualifyDstIp,
 #endif
 #if (!PTIN_BOARD_IS_LINECARD)
   bcmFieldQualifyDstIp6,        /* PTin added: FP */
-#endif
-
-#ifdef L7_IPV6_PACKAGE
-  bcmFieldQualifyTunnelType,
-  bcmFieldQualifyLoopbackType,
 #endif
   bcmFieldQualifyStageIngress
 };
@@ -546,7 +542,7 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 #else
   bcmFieldQualifyInPorts,
 #endif
-#if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_TG16GF && PTIN_BOARD != PTIN_BOARD_AG16GA != PTIN_BOARD_TC16SXG)
+#if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_TG16GF && PTIN_BOARD != PTIN_BOARD_AG16GA)
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
 #endif
   bcmFieldQualifyOuterVlan,
@@ -559,7 +555,8 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
      PTIN_BOARD == PTIN_BOARD_TA48GE  || \
      PTIN_BOARD == PTIN_BOARD_OLT1T0  || \
-     PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+     PTIN_BOARD == PTIN_BOARD_OLT1T0F || \
+     PTIN_BOARD == PTIN_BOARD_TC16SXG)
   bcmFieldQualifyIntPriority,   /* PTin added: FP */
 #else
  /* PTin added: SDK 6.3.0 */
@@ -587,6 +584,10 @@ bcm_field_qualify_t systemQsetStats[] =  /* System requirement */
   bcmFieldQualifyInPorts,
 #endif
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  bcmFieldQualifyDstVlanGports,
+  bcmFieldQualifyIntPriority,
+#endif
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
   bcmFieldQualifyOuterVlan,

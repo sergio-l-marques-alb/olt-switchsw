@@ -684,9 +684,26 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     if (result != L7_SUCCESS)
     {
       hapiBroadPolicyCreateCancel();
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleNonConfActionAdd");
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleActionAdd");
       return result;
     }
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG) 
+    if ((profile->vport != 0) && 
+        (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT)) 
+    {
+      L7_uint32 queue_index;
+      /* configure the correct queue on TC16SXG when a policer is configured because the policer will override the queue rule*/
+      queue_index = profile->queue_type + profile->cos;
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_UCOSQ, queue_index, 0, 0);
+      if (result != L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleActionAdd");
+        return result;
+      }
+    }
+#endif
   }
 
   /* Only configure local policer, if policer id was given */
