@@ -283,6 +283,7 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
   /* NOTE: RTAG7 port flow hashing is available on select platforms */
   if (!soc_feature(unit, soc_feature_port_flow_hash))
   {
+    PT_LOG_INFO(LOG_CTX_STARTUP, "soc_feature_port_flow_hash not supported");
     return L7_SUCCESS; /* Nothing to be configured */
   }
 
@@ -314,9 +315,9 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
    */
   arg = (BCM_HASH_FIELD_IP4SRC_HI | BCM_HASH_FIELD_IP4SRC_LO |
          BCM_HASH_FIELD_IP4DST_HI | BCM_HASH_FIELD_IP4DST_LO |
-         BCM_HASH_FIELD_VLAN | BCM_HASH_FIELD_SRCL4 |
-         BCM_HASH_FIELD_DSTL4 | BCM_HASH_FIELD_PROTOCOL |
-         BCM_HASH_FIELD_SRCPORT | BCM_HASH_FIELD_SRCMOD); 
+         BCM_HASH_FIELD_VLAN      | BCM_HASH_FIELD_SRCL4     |
+         BCM_HASH_FIELD_DSTL4     | BCM_HASH_FIELD_PROTOCOL  |
+         BCM_HASH_FIELD_SRCPORT   | BCM_HASH_FIELD_SRCMOD); 
 
   rv = bcm_switch_control_set(unit, bcmSwitchHashIP4Field0, arg);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
@@ -335,9 +336,9 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
    */
   arg = (BCM_HASH_FIELD_IP6SRC_HI | BCM_HASH_FIELD_IP6SRC_LO |
          BCM_HASH_FIELD_IP6DST_HI | BCM_HASH_FIELD_IP6DST_LO |
-         BCM_HASH_FIELD_VLAN | BCM_HASH_FIELD_SRCL4 |
-         BCM_HASH_FIELD_DSTL4 | BCM_HASH_FIELD_NXT_HDR |
-         BCM_HASH_FIELD_SRCPORT | BCM_HASH_FIELD_SRCMOD);
+         BCM_HASH_FIELD_VLAN      | BCM_HASH_FIELD_SRCL4     |
+         BCM_HASH_FIELD_DSTL4     | BCM_HASH_FIELD_NXT_HDR   |
+         BCM_HASH_FIELD_SRCPORT   | BCM_HASH_FIELD_SRCMOD);
 
   rv = bcm_switch_control_set(unit, bcmSwitchHashIP6Field0, arg);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
@@ -365,13 +366,11 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
 
   /* Unknown packet types */
   arg = (BCM_HASH_FIELD_SRCMOD | BCM_HASH_FIELD_SRCPORT) ;
-
   rv = bcm_switch_control_set(unit, bcmSwitchHashHG2UnknownField0, arg);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
   {
     return L7_FAILURE;
   }
-
 
   /* For T2, MIM/MPLS fields can be selected too. */
 
@@ -379,8 +378,26 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
    * RTAG7 mode can compute 2 sets of hash at the same time. 
    * Configure only HASH_A. HASH_B is not used.
    */
-  arg = BCM_HASH_FIELD_CONFIG_CRC16XOR8;
+  arg = BCM_HASH_FIELD_CONFIG_CRC32LO;
   rv = bcm_switch_control_set(unit, bcmSwitchHashField0Config, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  arg = BCM_HASH_FIELD_CONFIG_CRC16;
+  rv = bcm_switch_control_set(unit, bcmSwitchHashField0Config, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  rv = bcm_switch_control_set(unit, bcmSwitchHashField0PreProcessEnable, TRUE);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+  rv = bcm_switch_control_set(unit, bcmSwitchHashField1PreProcessEnable, TRUE);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
   {
     return L7_FAILURE;
@@ -471,7 +488,10 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
     return L7_FAILURE;
   }
 
-  arg |= (BCM_HASH_CONTROL_ECMP_ENHANCE);
+  arg |= (BCM_HASH_CONTROL_TRUNK_NUC_ENHANCE |
+          BCM_HASH_CONTROL_TRUNK_NUC_SRC     |
+          BCM_HASH_CONTROL_TRUNK_NUC_DST     |
+          BCM_HASH_CONTROL_TRUNK_NUC_MODPORT);
 
   rv = bcm_switch_control_set(unit, bcmSwitchHashControl, arg);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
