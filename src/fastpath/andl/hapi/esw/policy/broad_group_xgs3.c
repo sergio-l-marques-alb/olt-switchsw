@@ -934,7 +934,7 @@ int _policy_super_qset_find_match(int                  unit,
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
           sysapiPrintf("%s(%d) Different width for qset %d (sqsetwidth=%u VS qsetwidth=%u): Continuing...\n", __FUNCTION__, __LINE__, i,
                        super_qset_table[unit][i].sqsetWidth, qsetWidth);
-        continue;
+         continue;
       }
 
       /* consider the UDF when searching for a super qset */
@@ -2965,7 +2965,7 @@ static int _policy_group_alloc_group(int                             unit,
     {
       /* Enforce physical boundary conditions. */
       if (*group % sqsetInfo.status.slice_width_physical == 0)
-      {
+      { 
         if (!(group_table[unit][entryPtr->policyStage][*group].flags & GROUP_USED))
         {
           rv = bcm_field_group_create_mode(unit, sqsetInfo.qsetAgg, gprio, bcmFieldGroupModeAuto, &gid);
@@ -4556,17 +4556,6 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = lowPrioGroup + 5;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = lowPrioGroup + 4;
 
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = lowPrioGroup + 5;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrioGroup + 4;
-
-          /* PTin added: policer */
-          #if 0
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio      = lowPrioGroup + 5;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio     = lowPrioGroup + 5;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio   = lowPrioGroup + 5;
-          #endif
-
           /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio    = lowPrioGroup + 6;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio   = lowPrioGroup + 7;
@@ -4632,10 +4621,6 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio           = lowPrioGroup + 4;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio          = lowPrioGroup + 5;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio        = lowPrioGroup + 4;
-
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].lowPrio    = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].highPrio   = lowPrioGroup + 5;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS_QUEUES].group_prio = lowPrioGroup + 4;
 
           /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio    = lowPrioGroup + 6;
@@ -4789,7 +4774,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       /* PTin added: new switch 56843 (Trident) */
       else if (SOC_IS_TRIDENT(unit))
       {
-          total_slices = 10;
+          total_slices = 12;
       }
       /* PTin end */
       else
