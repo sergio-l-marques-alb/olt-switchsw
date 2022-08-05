@@ -386,6 +386,8 @@ L7_RC_t ptin_evc_allclientsflows_remove( L7_uint evc_id );                      
 L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id );        /* Used by ptin_evc_destroy */
 L7_RC_t ptin_evc_client_remove( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint cvlan );
 
+L7_RC_t ptin_evc_allclientsflows_dump( L7_uint evc_id );
+
 void ptin_evc_clean_counters_enable( L7_BOOL enable );
 void ptin_evc_clean_profiles_enable( L7_BOOL enable );
 
@@ -8033,6 +8035,77 @@ void ptin_evc_clean_profiles_enable( L7_BOOL enable )
   ptin_clean_profiles = enable;
 }
 
+
+
+/**
+ * Dump all clients/flows for a specific evc
+ * 
+ * @param evc_id : evc index 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_allclientsflows_dump( L7_uint evc_id )
+{
+    L7_uint     intf_idx;
+    L7_RC_t     rc = L7_SUCCESS;
+    struct  ptin_evc_client_s *pclientFlow;
+
+    /* Validate arguments */
+    if (evc_id>=PTIN_SYSTEM_N_EVCS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments");
+      return L7_FAILURE;
+    }
+
+    if (!evcs[evc_id].in_use)
+      return L7_SUCCESS;
+
+    /* Run all interfaces */
+    for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
+    {
+        if (!evcs[evc_id].intf[intf_idx].in_use)
+            continue;
+
+        /* Get all clients */
+        pclientFlow = L7_NULLPTR;
+
+        if( dl_queue_get_head(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t **) &pclientFlow) != NOERR)
+            continue;
+
+        while ( pclientFlow != L7_NULLPTR)
+        {   
+            printf("Evc_idx           %u \n", evc_id);
+            printf("intf_idx          %u \n", intf_idx);
+            printf("Flow                 \n");
+            printf("in_use            %u \n", pclientFlow->in_use);
+            printf("int_ovid          %u \n", pclientFlow->int_ovid);
+            printf("int_ivid          %u \n", pclientFlow->int_ivid);
+            printf("uni_ovid          %u \n", pclientFlow->uni_ovid);
+            printf("uni_ivid          %u \n", pclientFlow->uni_ivid);
+            printf("action_outer_vlan %u \n", pclientFlow->action_outer_vlan);
+            printf("action_inner_vlan %u \n", pclientFlow->action_inner_vlan);
+            printf("client_vid        %u \n", pclientFlow->client_vid);
+            printf("flood_vlan        %u %u %u %u %u %u %u %u\n", 
+                         pclientFlow->flood_vlan[0],pclientFlow->flood_vlan[1],pclientFlow->flood_vlan[2],
+                         pclientFlow->flood_vlan[3],pclientFlow->flood_vlan[4],pclientFlow->flood_vlan[5],
+                         pclientFlow->flood_vlan[6],pclientFlow->flood_vlan[7]);
+            printf("virtual_gport     %u \n", pclientFlow->virtual_gport);
+            printf("l2intf_id         %u \n", pclientFlow->l2intf_id);
+            printf("flags             %u \n", pclientFlow->flags);
+            printf("macLearnMax       %u \n", pclientFlow->macLearnMax);
+            printf("onuId             %u \n", pclientFlow->onuId);
+            printf("mask              %u \n", pclientFlow->mask);
+            printf("maxChannels       %u \n", pclientFlow->maxChannels);
+
+            pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[intf_idx].clients, (dl_queue_elem_t *) pclientFlow);
+        }
+
+    }
+
+    return rc;
+}
+
+
 /**
  * Remove all clients/flows for a specific evc
  * 
@@ -8744,12 +8817,14 @@ L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin
   }
   else
   {
+    PT_LOG_ERR(LOG_CTX_EVC,"EVC unstacked Not Supported");
     return L7_NOT_SUPPORTED;
   }
 
   /* No client found? */
   if (pclient == L7_NULLPTR)
   {
+    PT_LOG_ERR(LOG_CTX_EVC,"No client found");
     return L7_NOT_EXIST;
   }
 
@@ -8759,6 +8834,7 @@ L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin
   /* No next client/flow? */
   if (client_next == L7_NULLPTR)
   {
+    PT_LOG_ERR(LOG_CTX_EVC,"No next client/flow?");
     return L7_NO_VALUE;
   }
 

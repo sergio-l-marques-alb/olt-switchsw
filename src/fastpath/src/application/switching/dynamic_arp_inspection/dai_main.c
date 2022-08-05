@@ -1482,8 +1482,7 @@ void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     else if(filterRc == DAI_FILTER_NONE)
     {
       /* Filter ARP packets based on match in DHCP Snooping bindings database */
-      if (daiFrameDHCPSnoopingDbFilter(intIfNum, vlanId,
-                                     frame, dataLen) == L7_TRUE)
+      if (daiFrameDHCPSnoopingDbFilter(intIfNum, vlanId, frame, dataLen) == L7_TRUE)
       {
         if (ptin_debug_dai_snooping)
           PT_LOG_DEBUG(LOG_CTX_DAI, "ARP packet dropped after DHCP snooping validation");
@@ -1636,6 +1635,7 @@ L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   memcpy(dsBinding.key.macAddr, arp_pkt->arp_sha, L7_ENET_MAC_ADDR_LEN);
   /*IPv4*/
   dsBinding.key.ipType = L7_AF_INET;
+  dsBinding.key.vlanId = vlanId;
 
   if(dsFuncTable.dsBindingGet == L7_NULL)
   {
@@ -1643,12 +1643,14 @@ L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
      * We need to drop the packets in this case, since we
      * depend on the validation of ARP packets on DHCP Snooping
      * binding entries when we reach here. */
+    PT_LOG_DEBUG(LOG_CTX_DAI, "DHCP Snooping component doesn't seem to be present");
     return L7_TRUE;
   }
 
   if(dsFuncTable.dsBindingGet(&dsBinding) != L7_SUCCESS)
   {
     /* No entry exists for the sender MAC. Filter the frame */
+    PT_LOG_DEBUG(LOG_CTX_DAI, "No entry exists for the sender MAC. Filter the frame");
     daiLogAndDropPacket(frame, vlanId, intIfNum, DHCP_SNOOP_DB_MATCH_FAILURE);
     return L7_TRUE;
   }
@@ -1666,12 +1668,14 @@ L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
     {
       /* Entry exists for the MAC, but the tuple is mismatched.
        * Filter the frame */
+      PT_LOG_DEBUG(LOG_CTX_DAI, "Entry exists for the MAC, but the tuple is mismatched");
       daiLogAndDropPacket(frame, vlanId, intIfNum, DHCP_SNOOP_DB_MATCH_FAILURE);
       return L7_TRUE;
     }
   }
 
   /* It shouldn't reach here */
+  PT_LOG_DEBUG(LOG_CTX_DAI, "It shouldn't reach here");
   return L7_TRUE;
 }
 
@@ -1998,6 +2002,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   L7_uint16           extIVlan = 0;
   #endif
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 ptin_port;
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -2033,6 +2038,8 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   if (ptin_debug_dai_snooping)
     PT_LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, l2intf_id=%u", intIfNum, vlanId, innerVlanId, l2intf_id);
 
+  ptin_port = intIfNum2port(intIfNum, 0);
+
   /* QUATTRO service? */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   if (l2intf_id != 0)
@@ -2047,15 +2054,13 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     number_of_vlans = 1;
   }
   /* Quattro VLAN, but no l2intf_id? (flooding) */
-  /* FIXME TC16SXG: intIfNum->ptin_port */
-  else if (ptin_evc_is_quattro_fromIntVlan(vlanId) && !ptin_evc_intf_isRoot(vlanId, intIfNum))
+  else if (ptin_evc_is_quattro_fromIntVlan(vlanId) && !ptin_evc_intf_isRoot(vlanId, ptin_port))
   {
     ptin_HwEthEvcFlow_t l2intf_flow;
 
     /* Get list of vlans (outer+inner) to be flooded */
-    /* FIXME TC16SXG: intIfNum->ptin_port */
     for (memset(&l2intf_flow, 0x00, sizeof(l2intf_flow));
-         ptin_evc_vlan_client_next(vlanId, intIfNum, &l2intf_flow, &l2intf_flow) == L7_SUCCESS && number_of_vlans < 16;
+         ptin_evc_vlan_client_next(vlanId, ptin_port, &l2intf_flow, &l2intf_flow) == L7_SUCCESS && number_of_vlans < 16;
          number_of_vlans++)
     {
       vlanId_list[number_of_vlans][0] = l2intf_flow.uni_ovid;
@@ -2069,13 +2074,12 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     L7_BOOL   is_stacked;
     L7_uint8  port_type;
 
-    /* FIXME TC16SXG: intIfNum->ptin_port */
-    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, vlanId, innerVlanId, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS ||
+    if (ptin_evc_extVlans_get_fromIntVlan(ptin_port, vlanId, innerVlanId, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS ||
         ptin_evc_check_is_stacked_fromIntVlan(vlanId, &is_stacked) != L7_SUCCESS ||
-        ptin_evc_intf_type_get(vlanId, intIfNum, &port_type) != L7_SUCCESS)
+        ptin_evc_intf_type_get(vlanId, ptin_port, &port_type) != L7_SUCCESS)
     {
       if (ptin_debug_dai_snooping)
-        PT_LOG_ERR(LOG_CTX_DAI, "Error obtaining UNI VLANs from IntIfNum %u, VLANs %u+%u", intIfNum, vlanId, innerVlanId);
+        PT_LOG_ERR(LOG_CTX_DAI, "Error obtaining UNI VLANs from ptin_port %u, VLANs %u+%u", ptin_port, vlanId, innerVlanId);
       return L7_FAILURE;
     }
     /* No inner VLAN for root interfaces of unstacked services */
