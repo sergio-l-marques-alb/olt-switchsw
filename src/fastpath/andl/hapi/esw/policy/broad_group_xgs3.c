@@ -4744,7 +4744,7 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       }
       else if (SOC_IS_HELIX5(unit)) /* Trident3x3 switch: 18 groups */
       {
-        total_slices = 18;
+        total_slices = 24;
       }
       else if ((SOC_IS_FIREBOLT(unit)  || 
           SOC_IS_FIREBOLT2(unit) ||
