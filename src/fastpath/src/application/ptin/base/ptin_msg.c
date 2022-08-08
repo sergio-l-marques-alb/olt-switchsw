@@ -9715,6 +9715,23 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
           dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
 #endif
 
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_intercepted                          %u", stats.dhcp_rx_intercepted);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx                                      %u", stats.dhcp_rx);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_filtered                             %u", stats.dhcp_rx_filtered);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_forwarded                            %u", stats.dhcp_tx_forwarded);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_failed                               %u", stats.dhcp_tx_failed);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_client_requests_without_options      %u", stats.dhcp_rx_client_requests_without_options);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_client_requests_with_option82        %u", stats.dhcp_tx_client_requests_with_option82);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_client_requests_with_option37        %u", stats.dhcp_tx_client_requests_with_option37);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_client_requests_with_option18        %u", stats.dhcp_tx_client_requests_with_option18);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_replies_with_option82         %u", stats.dhcp_rx_server_replies_with_option82);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_replies_with_option37         %u", stats.dhcp_rx_server_replies_with_option37);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_replies_with_option18         %u", stats.dhcp_rx_server_replies_with_option18);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_server_replies_without_options       %u", stats.dhcp_tx_server_replies_without_options);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_client_pkts_onTrustedIntf            %u", stats.dhcp_rx_client_pkts_onTrustedIntf);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_client_pkts_withOps_onUntrustedIntf  %u", stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+          PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_pkts_onUntrustedIntf          %u", stats.dhcp_rx_server_pkts_onUntrustedIntf);
+
         }
         shift_index++;
       }
@@ -9821,7 +9838,24 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 #if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
     dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
 #endif
+
   }
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_intercepted                          %u", stats.dhcp_rx_intercepted);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx                                      %u", stats.dhcp_rx);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_filtered                             %u", stats.dhcp_rx_filtered);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_forwarded                            %u", stats.dhcp_tx_forwarded);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_failed                               %u", stats.dhcp_tx_failed);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_client_requests_without_options      %u", stats.dhcp_rx_client_requests_without_options);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_client_requests_with_option82        %u", stats.dhcp_tx_client_requests_with_option82);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_client_requests_with_option37        %u", stats.dhcp_tx_client_requests_with_option37);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_client_requests_with_option18        %u", stats.dhcp_tx_client_requests_with_option18);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_replies_with_option82         %u", stats.dhcp_rx_server_replies_with_option82);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_replies_with_option37         %u", stats.dhcp_rx_server_replies_with_option37);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_replies_with_option18         %u", stats.dhcp_rx_server_replies_with_option18);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_tx_server_replies_without_options       %u", stats.dhcp_tx_server_replies_without_options);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_client_pkts_onTrustedIntf            %u", stats.dhcp_rx_client_pkts_onTrustedIntf);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_client_pkts_withOps_onUntrustedIntf  %u", stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"dhcp_rx_server_pkts_onUntrustedIntf          %u", stats.dhcp_rx_server_pkts_onUntrustedIntf);
 
   return L7_SUCCESS;
 }
@@ -10260,7 +10294,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   // Validate page index
   if ((page*128)>dhcp_bindtable_entries)
   {
-    PT_LOG_ERR(LOG_CTX_MSG,"Requested page exceeds binding table size (table size=%u, page=%u)",dhcp_bindtable_entries,page);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Requested page exceeds binding table size (table size=%u, page=%u)",dhcp_bindtable_entries,page);
     return L7_FAILURE;
   }
 

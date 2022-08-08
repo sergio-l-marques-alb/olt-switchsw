@@ -3078,12 +3078,12 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, ptin_port_bmp_t *intf
   if (intfList == L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_WARN(LOG_CTX_DHCP,"Will not return data");
+      PT_LOG_PEDANTIC(LOG_CTX_DHCP,"Will not return data");
     return L7_SUCCESS;
   }
 
   if (ptin_debug_dhcp_snooping)
-    PT_LOG_WARN(LOG_CTX_DHCP,"eEVC %u, has %u ports", evc_id_ext, evcConf.n_intf);
+      PT_LOG_PEDANTIC(LOG_CTX_DHCP, "eEVC %u, has %u ports", evc_id_ext, evcConf.n_intf);
 
   /* Clear output mask ports */
   memset(intfList, 0x00, sizeof(ptin_port_bmp_t));
@@ -3094,19 +3094,19 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, ptin_port_bmp_t *intf
     ptin_port = evcConf.intf[i].intf.value.ptin_port;
 
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_WARN(LOG_CTX_DHCP,"Processing port %u", evcConf.intf[i].intf.value.ptin_port);
+      PT_LOG_PEDANTIC(LOG_CTX_DHCP,"Processing port %u", evcConf.intf[i].intf.value.ptin_port);
 
     /* Mark interface as trusted, if it is */
     if (PTINPORT_BITMAP_IS_SET(dhcp_intf_trusted, ptin_port))
     {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u is trusted", ptin_port);
+        PT_LOG_PEDANTIC(LOG_CTX_DHCP,"ptin_port %u is trusted", ptin_port);
       PTINPORT_BITMAP_SET(*intfList, ptin_port);
     }
     else
     {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u is UNtrusted", ptin_port);
+        PT_LOG_PEDANTIC(LOG_CTX_DHCP,"ptin_port %u is UNtrusted", ptin_port);
     }
   }
 

@@ -1857,6 +1857,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_RC_t             rc = L7_FAILURE;
 #ifdef L7_DHCP_L2_RELAY_PACKAGE
   dsRelayAgentInfo_t  relayAgentInfo;
+  dsRelayAgentInfo_t  relayAgentInfo_counters;
   L7_ushort16         vlanIdFwd = 0;
 #endif
   dhcpSnoopBinding_t  dhcp_binding;
@@ -2143,6 +2144,23 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
           return L7_FAILURE;
         }
       }
+
+      ethHdrLen  = sysNetDataOffsetGet(frame);
+      ipHeader   = (L7_ipHeader_t*)(frame + ethHdrLen);
+      ipHdrLen   = dsIpHdrLen(ipHeader);
+      udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
+      dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+      ipPktLen   = osapiNtohs(ipHeader->iph_len);
+      dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
+
+      /* Extract if the packets had options or not */
+      if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen, L7_FALSE, &relayAgentInfo_counters) != L7_SUCCESS)
+      {
+        if (ptin_debug_dhcp_snooping)
+          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error while getting relay agent info");
+        return L7_FAILURE;
+      }
+
     }
     /* all filterations for client requests are done even before the
        frame is posted to DHCP task. So the client frame here may or may not
@@ -2266,6 +2284,28 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsFrameForward(intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx, relayOptIntIfNum) == L7_SUCCESS)
   {
     dsInfo->debugStats.msgsForwarded++;
+
+    if (dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
+    {
+
+        if ((relayAgentInfo_counters.circuitIdFlag == L7_TRUE) || (relayAgentInfo_counters.remoteIdFlag == L7_TRUE))
+        {
+            if (ptin_debug_dhcp_snooping)
+            {
+                PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITH_OPTION82 ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(relayOptIntIfNum, 0), vlanId);
+            }
+            ptin_dhcp_stat_increment_field(intIfNum2port(relayOptIntIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITH_OPTION82);
+        }
+        else
+        {
+            if (ptin_debug_dhcp_snooping)
+            {
+                PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(relayOptIntIfNum, 0), vlanId);
+            }
+            ptin_dhcp_stat_increment_field(intIfNum2port(relayOptIntIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+        }
+
+    }
   }
   else
   {
@@ -5803,10 +5843,11 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
         dsInfo->debugStats.serverOption82Tx++;
         if (ptin_debug_dhcp_snooping)
         {
-            PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(relayOptIntIfNum, 0), vlanId);
+            //PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(relayOptIntIfNum, 0), vlanId);
             PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_dhcp_stat_increment_field DHCP_STAT_FIELD_TX_FORWARDED ptin_port=%u pduInfo->vlanId=%u", intIfNum2port(relayOptIntIfNum, 0), vlanId);
         }
-        ptin_dhcp_stat_increment_field(intIfNum2port(relayOptIntIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
+        
+        //ptin_dhcp_stat_increment_field(intIfNum2port(relayOptIntIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
         ptin_dhcp_stat_increment_field(intIfNum2port(relayOptIntIfNum, 0), vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED); 
          
         return L7_SUCCESS;

@@ -8817,14 +8817,14 @@ L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"EVC unstacked Not Supported");
+    PT_LOG_DEBUG(LOG_CTX_EVC,"EVC unstacked Not Supported");
     return L7_NOT_SUPPORTED;
   }
 
   /* No client found? */
   if (pclient == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"No client found");
+    PT_LOG_DEBUG(LOG_CTX_EVC, "No client found");
     return L7_NOT_EXIST;
   }
 
@@ -8834,7 +8834,7 @@ L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin
   /* No next client/flow? */
   if (client_next == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"No next client/flow?");
+    PT_LOG_DEBUG(LOG_CTX_EVC,"No next client/flow?");
     return L7_NO_VALUE;
   }
 
