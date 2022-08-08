@@ -15005,34 +15005,79 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
  */
 static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_evcStats_profile_t *evcStats_profile)
 {
-  L7_int    ptin_port;
+    L7_int    ptin_port;
 
-  /* Validate arguments */
-  if (msg_evcStats == L7_NULLPTR || evcStats_profile == L7_NULLPTR)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG,"Null arguments");
-    return L7_FAILURE;
-  }
-
-  /* Source interface */
-  if (msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_INTF)
-  {
-    /* Get ptin_port */
-    if (ptin_msg_ptinPort_get(msg_evcStats->intf.intf_type, msg_evcStats->intf.intf_id, &ptin_port) != L7_SUCCESS)
+    /* Validate arguments */
+    if (msg_evcStats == L7_NULLPTR || evcStats_profile == L7_NULLPTR)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
+      PT_LOG_ERR(LOG_CTX_MSG,"Null arguments");
       return L7_FAILURE;
     }
-    evcStats_profile->ptin_port = ptin_port;
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf extracted!");
-  }
 
+    evcStats_profile->outer_vlan_lookup  = 0;
+    evcStats_profile->outer_vlan_ingress = 0;
+    evcStats_profile->outer_vlan_egress  = 0;
+    evcStats_profile->inner_vlan_ingress  = 0;
+    evcStats_profile->inner_vlan_egress = 0;
+
+    /* Source interface */
+    if (msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_INTF)
+    {
+        uint8_t evc_type;
+        L7_RC_t rc;
+
+        /* Get ptin_port */
+        if (ptin_msg_ptinPort_get(msg_evcStats->intf.intf_type, msg_evcStats->intf.intf_id, &ptin_port) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
+          return L7_FAILURE;
+        }
+        evcStats_profile->ptin_port = ptin_port;
+        PT_LOG_DEBUG(LOG_CTX_MSG," Intf extracted!");
+
+        rc = ptin_evc_check_evctype(msg_evcStats->evc_id, &evc_type);
+        if (rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Invalid EVC id %u",
+                     msg_evcStats->evc_id);
+          return L7_FAILURE;
+        }
+
+        /* Change the outer vlan when given */
+        if (evc_type == PTIN_EVC_TYPE_STD_P2P)
+        {
+          /* Adjust outer VID considering the port virtualization scheme */
+          if (ptin_intf_portGem2virtualVid(evcStats_profile->ptin_port,
+                                           msg_evcStats->service_vlan,
+                                           &evcStats_profile->outer_vlan_lookup) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                       msg_evcStats->service_vlan);
+            return L7_FAILURE;
+          }
+          PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.outerVlan = %u", evcStats_profile->outer_vlan_lookup);
+        }
+        else
+        {
+          /* Adjust outer VID considering the port virtualization scheme */
+          if (ptin_intf_portGem2virtualVid(evcStats_profile->ptin_port,
+                                           msg_evcStats->client_vlan,
+                                           &evcStats_profile->inner_vlan_ingress) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u",
+                       msg_evcStats->client_vlan);
+            return L7_FAILURE;
+          }
+          PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.innerVlan = %u", evcStats_profile->inner_vlan_ingress);
+        } 
+    }
+
+#if 0
   /* SVID */
   evcStats_profile->outer_vlan_lookup  = 0;
   evcStats_profile->outer_vlan_ingress = 0;
   evcStats_profile->outer_vlan_egress  = 0;
-  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_SVLAN) &&
-      (msg_evcStats->service_vlan > 0 && msg_evcStats->service_vlan < 4096))
+  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_SVLAN) && (msg_evcStats->service_vlan > 0 && msg_evcStats->service_vlan < 4096))
   {
     evcStats_profile->outer_vlan_lookup = msg_evcStats->service_vlan;
     PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
@@ -15053,6 +15098,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
     /*evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;*/
     PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
   }
+#endif
 
   /* Channel IP */
   evcStats_profile->dst_ip = 0;
