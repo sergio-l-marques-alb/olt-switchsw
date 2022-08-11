@@ -15066,6 +15066,11 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
                        msg_evcStats->service_vlan);
             return L7_FAILURE;
           }
+     
+#if(PTIN_BOARD == PTIN_BOARD_TC16SXG)
+          /*only needed for P2P services*/
+          evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;
+#endif
           PT_LOG_DEBUG(LOG_CTX_MSG, "  New Client.outerVlan = %u", evcStats_profile->outer_vlan_lookup);
         }
         else
