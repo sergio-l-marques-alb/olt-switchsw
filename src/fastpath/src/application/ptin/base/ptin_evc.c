@@ -433,7 +433,7 @@ static L7_RC_t ptin_evc_etree_intf_add(L7_uint evc_id, L7_uint ptin_port);
 static L7_RC_t ptin_evc_etree_intf_remove(L7_uint evc_id, L7_uint ptin_port);
 static L7_RC_t ptin_evc_etree_intf_remove_all(L7_uint evc_id);
 
-static void    ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems);
+//static void    ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems);
 static void    ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue_elem_t **pelem);
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_elem_t **pelem);
@@ -10717,7 +10717,7 @@ static L7_RC_t ptin_evc_etree_intf_remove_all(L7_uint evc_id)
  * @param intf_list (output) Array with the root/leaf list
  * @param n_elems   (output) Nr of elems of list array
  */
-static void ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems)
+void ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems)
 {
   L7_uint i;
 

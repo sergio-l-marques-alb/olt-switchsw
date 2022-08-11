@@ -1076,6 +1076,18 @@ extern L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L
  */
 extern L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_group);
 
+
+
+/**
+ * Gets the list of root/leaf interfaces of an EVC
+ * 
+ * @param evc_id 
+ * @param mef_type  PTIN_EVC_INTF_ROOT / PTIN_EVC_INTF_LEAF 
+ * @param intf_list (output) Array with the root/leaf list
+ * @param n_elems   (output) Nr of elems of list array
+ */
+extern void    ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint intf_list[], L7_uint *n_elems);
+
 /**
  * Get L3 Intf Sem
  * 

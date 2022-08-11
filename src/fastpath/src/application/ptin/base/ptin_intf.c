@@ -3004,8 +3004,10 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
   else
   {
     /* Get ptin_port*/
-    if ((rc=ptin_intf_intIfNum2port(intIfNum, INVALID_SWITCH_VID, &ptin_port))!=L7_SUCCESS)/* FIXME TC16SXG */
+    if ((rc=ptin_intf_intIfNum2port(intIfNum, INVALID_SWITCH_VID, &ptin_port))!=L7_SUCCESS)
+    {
       return rc;
+    }
 
     /* Validate ptin_port */
     if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
@@ -3018,7 +3020,7 @@ L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_intf)
     /* Convert ptin_port to type+id format */
     if (ptin_intf_port2ptintf(ptin_port, ptin_intf)!=L7_SUCCESS)
     {
-      //PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
       return L7_FAILURE;
     }
   }

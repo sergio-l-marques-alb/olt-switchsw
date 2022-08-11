@@ -4861,6 +4861,17 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
     /* Copy MAC list to output message */
     for (i=0; i<numEntries; i++)
     {
+      PT_LOG_DEBUG(LOG_CTX_MSG,"entryId      = %u",entries_list[i].entryId);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"evcId        = %u",entries_list[i].evcId);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"vlanId       = %u",entries_list[i].vlanId);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"addr         = %02X:%02X:%02X:%02X:%02X:%02X",
+                   entries_list[i].addr[0], entries_list[i].addr[1], entries_list[i].addr[2],
+                   entries_list[i].addr[3], entries_list[i].addr[4], entries_list[i].addr[5]);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"intf_type    = %u", entries_list[i].intf.intf_type);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"intf_id      = %u", entries_list[i].intf.intf_id);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"gem_id       = %u",entries_list[i].gem_id);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"static_entry = %u",entries_list[i].static_entry);
+
       memcpy(mac_table->entry[i].addr, entries_list[i].addr, sizeof(L7_uint8)*6);
       mac_table->entry[i].evcId          = entries_list[i].evcId;
       if ( (entries_list[i].vlanId == PTIN_VLAN_INBAND)) 

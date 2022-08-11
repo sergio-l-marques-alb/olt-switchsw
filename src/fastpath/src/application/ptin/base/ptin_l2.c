@@ -275,6 +275,23 @@ L7_RC_t ptin_l2_mac_table_load(void)
       continue;
     }
 
+    // Extract vlan and validate it
+    vlan = osapiNtohs((L7_uint16) *((L7_uint16 *) &fdbEntry.dot1dTpFdbAddress[0]));
+    if ((vlan>4095)
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+        || (vlan==PTIN_ASPEN2CPU_A_VLAN) || (vlan==PTIN_ASPEN2CPU_B_VLAN)
+#endif
+        ) 
+    {
+      PT_LOG_TRACE(LOG_CTX_L2, "Invalid vlanid (%u) on index %u",vlan,index);
+      //rc = L7_FAILURE;
+      continue;
+    }
+
+    evc_ext_id = -1;
+    ptin_evc_get_evcIdfromIntVlan(vlan, &evc_ext_id);
+
+
     /* Convert to ptin interface format */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (intfType==L7_VLAN_PORT_INTF)
@@ -302,25 +319,43 @@ L7_RC_t ptin_l2_mac_table_load(void)
       if (ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort,&ptin_intf)!=L7_SUCCESS)
       {
         PT_LOG_WARN(LOG_CTX_L2,"Invalid intIfNum=%u",fdbEntry.dot1dTpFdbPort);
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+        {
+            L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
+            L7_uint   n_intf;
+            L7_uint32 evc_id;
+
+            /* Convert to internal evc id */
+            if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
+              return L7_SUCCESS;
+            }
+
+            /* Get all leaf interfaces... */
+            ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+
+            /* Usually there's only one interface. Pick the first one*/
+            if (n_intf > 0) 
+            {
+                ptin_intf.intf_type = 0;
+                ptin_intf.intf_id = intf_list[0];
+            }
+
+            //dl_queue_get_head(&evcs[evc_id].intf[intf_list[0]].clients, (dl_queue_elem_t **) &pclientFlow);
+            //
+            //for (j=0; j < evcs[evc_id].intf[intf_list[0]].clients.n_elems && pclientFlow != L7_NULLPTR; j++) 
+            //{
+            //    (void) ptin_intf_virtualVid2GemVid(pclientFlow->uni_ovid, &gem_id);
+            //}
+        }
+#else
         continue;
+#endif
       }
     }
 
-    // Extract vlan and validate it
-    vlan = osapiNtohs((L7_uint16) *((L7_uint16 *) &fdbEntry.dot1dTpFdbAddress[0]));
-    if ((vlan>4095)
-#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-        || (vlan==PTIN_ASPEN2CPU_A_VLAN) || (vlan==PTIN_ASPEN2CPU_B_VLAN)
-#endif
-        ) 
-    {
-      PT_LOG_TRACE(LOG_CTX_L2, "Invalid vlanid (%u) on index %u",vlan,index);
-      //rc = L7_FAILURE;
-      continue;
-    }
-
-    evc_ext_id = -1;
-    ptin_evc_get_evcIdfromIntVlan(vlan, &evc_ext_id);
 
     // Fill mac-table entry
     mac_table[index].entryId      = index;
