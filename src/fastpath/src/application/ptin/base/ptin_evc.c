@@ -13109,7 +13109,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_egress = 0;
     profile->inner_vlan_egress = 0;
-    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
+    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id) || IS_EVC_STD_P2P(evc_id))
     #endif
     {
       profile->outer_vlan_egress = evcs[evc_id].intf[ptin_port].out_vlan;
