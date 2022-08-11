@@ -2396,7 +2396,7 @@ L7_uint32 hapiBroadMaxPolicies()
 
   return max_policies;
   #else
-  return 2048;
+  return 4096;
   #endif
 }
 
@@ -2460,7 +2460,7 @@ L7_uint32 hapiBroadMaxPoliciesPerBcmUnit()
 
   return max_policies_per_bcm_unit;
   #else
-  return 2048;
+  return 4096;
   #endif
 }
 
