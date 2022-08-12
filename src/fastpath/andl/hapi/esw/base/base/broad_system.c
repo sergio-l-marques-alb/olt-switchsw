@@ -3083,7 +3083,7 @@ typedef struct
 static L7_BOOL ptin_trap_policy_global_enable[PTIN_PACKET_LAST];
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-#define PTIN_TRAP_POLICY_MAX_VLANS 2048
+#define PTIN_TRAP_POLICY_MAX_VLANS 4096
 #else
 #define PTIN_TRAP_POLICY_MAX_VLANS 100
 #endif
