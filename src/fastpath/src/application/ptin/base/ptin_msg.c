@@ -10390,15 +10390,26 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
                  table[i].bind_entry.macAddr[3],
                  table[i].bind_entry.macAddr[4],
                  table[i].bind_entry.macAddr[5]);
+
     PT_LOG_DEBUG(LOG_CTX_MSG,"family = %u", ENDIAN_SWAP8(table[i].bind_entry.ipAddr.family));
 
-    rc = ptin_evc_intRootVlan_get(ENDIAN_SWAP32(table[i].bind_entry.evc_idx), &vlanId);
-    if (rc != L7_SUCCESS)
+    vlanId = ENDIAN_SWAP16(table[i].bind_entry.outer_vlan);
+    if ( vlanId > 4095) 
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", ENDIAN_SWAP32(table[i].bind_entry.evc_idx));
-      continue;
-    }
 
+        rc = ptin_evc_intRootVlan_get(ENDIAN_SWAP32(table[i].bind_entry.evc_idx), &vlanId);
+        if (rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", ENDIAN_SWAP32(table[i].bind_entry.evc_idx));
+          continue;
+        }
+    }
+    else
+    {
+        ptin_evc_get_intVlan_fromNNIvlan(vlanId, &vlanId, 0);
+
+        PT_LOG_TRACE(LOG_CTX_MSG,"Vlan to be used will be the provided one: %u",vlanId);
+    }
 
     memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
     memcpy(dsBindingIpv4.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);

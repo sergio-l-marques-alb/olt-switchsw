@@ -2203,21 +2203,20 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding )
 {
   L7_enetMacAddr_t   macAddr;
 
-  PT_LOG_NOTICE(LOG_CTX_DHCP, "ipType=%u, vlanId=%u, MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+  // Find This entry
+  if (usmDbDsBindingGet(dsBinding)!=L7_SUCCESS) 
+  {
+      PT_LOG_TRACE(LOG_CTX_DHCP, "This entry does not exist");
+      return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_DHCP, "Remove DHCP entry ipType=%u, vlanId=%u, MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
                               , dsBinding->key.ipType, dsBinding->key.vlanId,
                 dsBinding->key.macAddr[0], dsBinding->key.macAddr[1], dsBinding->key.macAddr[2],
                 dsBinding->key.macAddr[3], dsBinding->key.macAddr[4], dsBinding->key.macAddr[5]);
 
-
-//  // Find This entry
-//  if (usmDbDsBindingGet(dsBinding)!=L7_SUCCESS) 
-//  {
-//      PT_LOG_ERR(LOG_CTX_DHCP, "This entry does not exist");
-//      return L7_FAILURE;
-//  }
-
   // Remove this entry
-  memcpy(macAddr.addr,dsBinding->key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+  memcpy(macAddr.addr, dsBinding->key.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
   if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) 
   {
     PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry");
