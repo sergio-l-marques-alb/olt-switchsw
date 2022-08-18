@@ -55,6 +55,10 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
     return L7_FAILURE;
   }
 
+  PT_LOG_TRACE(LOG_CTX_L2, "Processing vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x, intIfNum %u, vport 0x%x, intf_type %u",
+            vlanId, macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5],
+            intIfNum, l2intf_id, intf_type);
+
   /* This routine only applies to virtual ports */
   if (intf_type != L7_VLAN_PORT_INTF)
   {
@@ -118,6 +122,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 l2
     /* If no policer associated, there is nothing to be done! */
     if (!l2intf_entry.policer.in_use || l2intf_entry.policer.meter.cir == (L7_uint32)-1)
     {
+      PT_LOG_TRACE(LOG_CTX_L2, "If no policer associated, there is nothing to be done!");
       return L7_SUCCESS;
     }
 
@@ -316,11 +321,8 @@ L7_RC_t ptin_l2_mac_table_load(void)
     else
   #endif
     {
-      if (ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort,&ptin_intf)!=L7_SUCCESS)
-      {
-        PT_LOG_WARN(LOG_CTX_L2,"Invalid intIfNum=%u",fdbEntry.dot1dTpFdbPort);
-
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+        if (fdbEntry.dot1dTpFdbPort <= PTIN_SYSTEM_N_PONS_PHYSICAL)
         {
             L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
             L7_uint   n_intf;
@@ -329,12 +331,16 @@ L7_RC_t ptin_l2_mac_table_load(void)
             /* Convert to internal evc id */
             if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
             {
-              PT_LOG_ERR(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
+              PT_LOG_ERR(LOG_CTX_L2, "eEVC %u not existent", evc_ext_id);
               return L7_SUCCESS;
             }
 
+            PT_LOG_TRACE(LOG_CTX_L2, "evc_id %u", evc_id);
+
             /* Get all leaf interfaces... */
             ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
+
+            PT_LOG_TRACE(LOG_CTX_L2, "n_intf %u", n_intf);
 
             /* Usually there's only one interface. Pick the first one*/
             if (n_intf > 0) 
@@ -343,6 +349,8 @@ L7_RC_t ptin_l2_mac_table_load(void)
                 ptin_intf.intf_id = intf_list[0];
             }
 
+            PT_LOG_TRACE(LOG_CTX_L2, "ptin_intf = %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+
             //dl_queue_get_head(&evcs[evc_id].intf[intf_list[0]].clients, (dl_queue_elem_t **) &pclientFlow);
             //
             //for (j=0; j < evcs[evc_id].intf[intf_list[0]].clients.n_elems && pclientFlow != L7_NULLPTR; j++) 
@@ -350,10 +358,18 @@ L7_RC_t ptin_l2_mac_table_load(void)
             //    (void) ptin_intf_virtualVid2GemVid(pclientFlow->uni_ovid, &gem_id);
             //}
         }
+        else
+        {
+            rc = ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort, &ptin_intf);
+        }
+
 #else
-        continue;
+        rc = ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort, &ptin_intf);
+        if (rc != L7_SUCCESS) 
+        {
+            continue;
+        }
 #endif
-      }
     }
 
 
