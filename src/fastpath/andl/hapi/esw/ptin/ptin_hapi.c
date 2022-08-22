@@ -5961,9 +5961,10 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       {
         BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, L2INTF_ID_MAX_PER_QUEUE);
       }
-      else  /* Wired Queues */
+      else  /* Wired Queues, no need to associate the Wired queues.
+               By default the 0-7 queues to 0-7 tc is done by the switch */
       {
-        BCM_GPORT_VLAN_PORT_ID_SET(l2intf_data, 1);
+        continue;
       }
 
       /* Run all 8 wired + 8 wireless queues */
@@ -5980,7 +5981,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
         if (rc != L7_SUCCESS)  break;
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_L2INTF_ID, (L7_uchar8 *)&l2intf_data, (L7_uchar8 *)&l2intf_mask);
         if (rc != L7_SUCCESS)  break;
-        if (tc < 7) /* Don't apply this qualifier for TC 8: This will be the default for queue for TC>=7 */
+        if (tc <= 7) /* Don't apply this qualifier for TC 8: This will be the default for queue for TC>=7 */
         {
           rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&intpri_data, (L7_uchar8 *)&intpri_mask);
           if (rc != L7_SUCCESS)  break;

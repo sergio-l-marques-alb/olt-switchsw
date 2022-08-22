@@ -712,7 +712,7 @@ L7_RC_t ptin_hapi_l2intf_create(ptin_dapi_port_t *dapiPort,
     vlan_port.flags |= BCM_VLAN_PORT_WITH_ID;
     BCM_GPORT_VLAN_PORT_ID_SET(vlan_port.vlan_port_id, (*virtual_gport & 0x1ffff));
 
-    PT_LOG_INFO(LOG_CTX_HAPI, "Goin to use vport=0x%x", vlan_port.vlan_port_id);
+    PT_LOG_INFO(LOG_CTX_HAPI, "Going to use vport=0x%x", vlan_port.vlan_port_id);
   }
   
   /* Get given MC group id */
