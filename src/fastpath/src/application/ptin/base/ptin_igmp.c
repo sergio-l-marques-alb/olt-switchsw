@@ -11870,6 +11870,12 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
     return L7_FAILURE;
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  if (evc_idx > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
+  {
+    evc_idx = evc_idx - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
+  }
+#endif
   /* Request evc statistics to MGMD */
   mgmdStatsReqMsg.portId    = ptin_port+1;
   mgmdStatsReqMsg.serviceId = evc_idx;
