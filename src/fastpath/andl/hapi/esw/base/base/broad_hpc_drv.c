@@ -342,6 +342,19 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
   {
     return L7_FAILURE;
   }
+  
+  /* Added for packets with the same SRC and DST L4 port */
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP4TcpUdpPortsEqualField0, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP4TcpUdpPortsEqualField1, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
 
   /* For IPv6 packets, choose the five-tuples of IP packet along with
    * source and destination port
@@ -375,6 +388,19 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
     return L7_FAILURE;
   }
 
+  /* Added for packets with the same SRC and DST L4 port */
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP6TcpUdpPortsEqualField0, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  rv = bcm_switch_control_set(unit, bcmSwitchHashIP6TcpUdpPortsEqualField1, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
   /* Unknown packet types */
   arg = (BCM_HASH_FIELD_SRCMOD | BCM_HASH_FIELD_SRCPORT) ;
   rv = bcm_switch_control_set(unit, bcmSwitchHashHG2UnknownField0, arg);
@@ -387,7 +413,6 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
 
   /* Now, select the hashing algorithm. 
    * RTAG7 mode can compute 2 sets of hash at the same time. 
-   * Configure only HASH_A. HASH_B is not used.
    */
   arg = BCM_HASH_FIELD_CONFIG_CRC32LO;
   rv = bcm_switch_control_set(unit, bcmSwitchHashField0Config, arg);
@@ -396,8 +421,22 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
     return L7_FAILURE;
   }
 
-  arg = BCM_HASH_FIELD_CONFIG_CRC16;
-  rv = bcm_switch_control_set(unit, bcmSwitchHashField0Config, arg);
+  arg = BCM_HASH_FIELD_CONFIG_CRC32LO;
+  rv = bcm_switch_control_set(unit, bcmSwitchHashField0Config1, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  arg = BCM_HASH_FIELD_CONFIG_CRC16CCITT;
+  rv = bcm_switch_control_set(unit, bcmSwitchHashField1Config, arg);
+  if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
+  {
+    return L7_FAILURE;
+  }
+
+  arg = BCM_HASH_FIELD_CONFIG_CRC16CCITT;
+  rv = bcm_switch_control_set(unit, bcmSwitchHashField1Config1, arg);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
   {
     return L7_FAILURE;
