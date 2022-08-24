@@ -11929,7 +11929,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   ptin_intf.intf_id   = igmp_stats->intf.intf_id;
 
   /* Get statistics */
-  if ( aux_mcEvcId ==(L7_uint16)-1)
+  if (aux_mcEvcId ==(L7_uint16)-1)
   {
     rc = ptin_igmp_stat_intf_get(&ptin_intf,&stats);
 
