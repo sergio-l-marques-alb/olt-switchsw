@@ -246,6 +246,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
   L7_INTF_TYPES_t   intfType;
   L7_RC_t           rc = L7_SUCCESS;
   L7_uint32         evc_ext_id;
+  L7_uint32         evc_id;
 
   PT_LOG_INFO(LOG_CTX_L2, "Loading MAC table...");
 
@@ -326,7 +327,6 @@ L7_RC_t ptin_l2_mac_table_load(void)
         {
             L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
             L7_uint   n_intf;
-            L7_uint32 evc_id;
 
             /* Convert to internal evc id */
             if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
@@ -335,12 +335,8 @@ L7_RC_t ptin_l2_mac_table_load(void)
               return L7_SUCCESS;
             }
 
-            PT_LOG_TRACE(LOG_CTX_L2, "evc_id %u", evc_id);
-
             /* Get all leaf interfaces... */
             ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
-
-            PT_LOG_TRACE(LOG_CTX_L2, "n_intf %u", n_intf);
 
             /* Usually there's only one interface. Pick the first one*/
             if (n_intf > 0) 
@@ -348,8 +344,6 @@ L7_RC_t ptin_l2_mac_table_load(void)
                 ptin_intf.intf_type = 0;
                 ptin_intf.intf_id = intf_list[0];
             }
-
-            PT_LOG_TRACE(LOG_CTX_L2, "ptin_intf = %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
 
             //dl_queue_get_head(&evcs[evc_id].intf[intf_list[0]].clients, (dl_queue_elem_t **) &pclientFlow);
             //
@@ -364,6 +358,20 @@ L7_RC_t ptin_l2_mac_table_load(void)
         }
 
 #else
+        L7_uint16         cvlan;
+
+        /* Convert to internal evc id */
+        if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_L2, "eEVC %u not existent", evc_ext_id);
+          return L7_SUCCESS;
+        }
+
+        ptin_evc_getCVlan_fromIntVlan(evc_id, vlan, &cvlan);
+
+        gem_id = cvlan;
+        PT_LOG_TRACE(LOG_CTX_L2, "gem_id(cvlan) %u ", vlan);
+
         rc = ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort, &ptin_intf);
         if (rc != L7_SUCCESS) 
         {

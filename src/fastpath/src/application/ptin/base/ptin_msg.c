@@ -10368,82 +10368,53 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
  */
 L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_uint16 numEntries)
 {
-  L7_uint16           i;
-  dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
-  L7_RC_t             rc_Ipv4, rc_Ipv6, rc;
-  L7_ushort16         vlanId;
+    L7_uint16 i;
+    ptin_DHCP_binding_remove_entry_t ptin_DHCP_binding_remove_entry;
 
-  if (numEntries > 128)  numEntries = 128;
-
-  PT_LOG_DEBUG(LOG_CTX_MSG,"NumEntries=%u", numEntries);
-
-  for (i=0; i<numEntries ; i++)
-  {
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Evc_idx=%u",    ENDIAN_SWAP32(table[i].bind_entry.evc_idx));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Port   = %u/%u",ENDIAN_SWAP8 (table[i].bind_entry.intf.intf_type), ENDIAN_SWAP8 (table[i].bind_entry.intf.intf_id));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"OVlan  = %u",   ENDIAN_SWAP16(table[i].bind_entry.outer_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"IVlan  = %u",   ENDIAN_SWAP16(table[i].bind_entry.inner_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",
-                 table[i].bind_entry.macAddr[0],
-                 table[i].bind_entry.macAddr[1],
-                 table[i].bind_entry.macAddr[2],
-                 table[i].bind_entry.macAddr[3],
-                 table[i].bind_entry.macAddr[4],
-                 table[i].bind_entry.macAddr[5]);
-
-    PT_LOG_DEBUG(LOG_CTX_MSG,"family = %u", ENDIAN_SWAP8(table[i].bind_entry.ipAddr.family));
-
-    vlanId = ENDIAN_SWAP16(table[i].bind_entry.outer_vlan);
-    if ( vlanId > 4095) 
+    if (numEntries > 128)
     {
-
-        rc = ptin_evc_intRootVlan_get(ENDIAN_SWAP32(table[i].bind_entry.evc_idx), &vlanId);
-        if (rc != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", ENDIAN_SWAP32(table[i].bind_entry.evc_idx));
-          continue;
-        }
-    }
-    else
-    {
-        ptin_evc_get_intVlan_fromNNIvlan(vlanId, &vlanId, 0);
-
-        PT_LOG_TRACE(LOG_CTX_MSG,"Vlan to be used will be the provided one: %u",vlanId);
+        numEntries = 128;
     }
 
-    memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
-    memcpy(dsBindingIpv4.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-    dsBindingIpv4.key.ipType = L7_AF_INET;
-    dsBindingIpv4.key.vlanId = vlanId;  
+    PT_LOG_DEBUG(LOG_CTX_MSG,"NumEntries=%u", numEntries);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG,"key v4 ipType=%u, vlanId=%u MacAddr=%02X:%02X:%02X:%02X:%02X:%02X", 
-                 dsBindingIpv4.key.ipType, dsBindingIpv4.key.vlanId,
-                 dsBindingIpv4.key.macAddr[0],dsBindingIpv4.key.macAddr[1],dsBindingIpv4.key.macAddr[2],
-                 dsBindingIpv4.key.macAddr[3],dsBindingIpv4.key.macAddr[4],dsBindingIpv4.key.macAddr[5]);
-
-    memset(&dsBindingIpv6,0x00,sizeof(dhcpSnoopBinding_t));
-    memcpy(dsBindingIpv6.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-    dsBindingIpv6.key.ipType = L7_AF_INET6;
-    dsBindingIpv6.key.vlanId = vlanId;  
-
-    PT_LOG_DEBUG(LOG_CTX_MSG,"key v6 ipType=%u, vlanId=%u MacAddr=%02X:%02X:%02X:%02X:%02X:%02X", 
-                 dsBindingIpv6.key.ipType, dsBindingIpv6.key.vlanId,
-                 dsBindingIpv6.key.macAddr[0],dsBindingIpv6.key.macAddr[1],dsBindingIpv6.key.macAddr[2],
-                 dsBindingIpv6.key.macAddr[3],dsBindingIpv6.key.macAddr[4],dsBindingIpv6.key.macAddr[5]);
-
-    // Remove IPv6 and IPv4 entry
-    rc_Ipv4 = ptin_dhcp82_bindtable_remove(&dsBindingIpv4);
-    rc_Ipv6 = ptin_dhcp82_bindtable_remove(&dsBindingIpv6);
-
-    if ((rc_Ipv4!= L7_SUCCESS) && (rc_Ipv6!=L7_SUCCESS))
+    for (i=0; i<numEntries ; i++)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error removing entry");
-      return L7_SUCCESS;
-    }
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Success removing entry");
-  }
+        PT_LOG_TRACE(LOG_CTX_MSG, "Entry %u:", i);
+        PT_LOG_TRACE(LOG_CTX_MSG, "  entry_index = %u",    ENDIAN_SWAP16(table[i].bind_entry.entry_index));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  evc_idx     = %u",    ENDIAN_SWAP32(table[i].bind_entry.evc_idx));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  intf        = %u/%u", ENDIAN_SWAP8 (table[i].bind_entry.intf.intf_type), ENDIAN_SWAP8(table[i].bind_entry.intf.intf_id));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  outer_vlan  = %u",    ENDIAN_SWAP16(table[i].bind_entry.outer_vlan));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  inner_vlan  = %u",    ENDIAN_SWAP16(table[i].bind_entry.inner_vlan));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  macAddr     = %02X:%02X:%02X:%02X:%02X:%02X", table[i].bind_entry.macAddr[0], table[i].bind_entry.macAddr[1], 
+                     table[i].bind_entry.macAddr[2], table[i].bind_entry.macAddr[3], table[i].bind_entry.macAddr[4], table[i].bind_entry.macAddr[5]);
+        PT_LOG_TRACE(LOG_CTX_MSG, "  ipAddr      = %08X",  ENDIAN_SWAP32(table[i].bind_entry.ipAddr.addr.ipv4));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  remLeave    = %u",    ENDIAN_SWAP32(table[i].bind_entry.remLeave));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  bindingType = %u",    ENDIAN_SWAP8 (table[i].bind_entry.bindingType));
+        PT_LOG_TRACE(LOG_CTX_MSG, "  family      = %u",    ENDIAN_SWAP8 (table[i].bind_entry.ipAddr.family));
 
-  return L7_SUCCESS;
+        ptin_DHCP_binding_remove_entry.evc_idx =  ENDIAN_SWAP32(table[i].bind_entry.evc_idx);  
+        ptin_DHCP_binding_remove_entry.nni_ovid = ENDIAN_SWAP16(table[i].bind_entry.outer_vlan);  
+        ptin_DHCP_binding_remove_entry.nni_ivid = ENDIAN_SWAP16(table[i].bind_entry.inner_vlan);  
+        memcpy(ptin_DHCP_binding_remove_entry.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+
+
+        PT_LOG_DEBUG(LOG_CTX_MSG,"Evc_idx= %u",   ptin_DHCP_binding_remove_entry.evc_idx);
+        PT_LOG_DEBUG(LOG_CTX_MSG,"OVlan  = %u",   ptin_DHCP_binding_remove_entry.nni_ovid);
+        PT_LOG_DEBUG(LOG_CTX_MSG,"IVlan  = %u",   ptin_DHCP_binding_remove_entry.nni_ivid);
+        PT_LOG_DEBUG(LOG_CTX_MSG,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",
+                     ptin_DHCP_binding_remove_entry.macAddr[0],
+                     ptin_DHCP_binding_remove_entry.macAddr[1],
+                     ptin_DHCP_binding_remove_entry.macAddr[2],
+                     ptin_DHCP_binding_remove_entry.macAddr[3],
+                     ptin_DHCP_binding_remove_entry.macAddr[4],
+                     ptin_DHCP_binding_remove_entry.macAddr[5]);
+
+        ptin_dhcp82_bindtable_remove_entry(&ptin_DHCP_binding_remove_entry); 
+
+    }
+
+    return L7_SUCCESS;
 }
 
 

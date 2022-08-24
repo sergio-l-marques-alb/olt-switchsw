@@ -1570,6 +1570,140 @@ L7_RC_t ptin_evc_get_intVlan_fromNNIvlan(L7_uint16 nni_ovid, L7_uint16 *intVid, 
   return L7_SUCCESS;
 }
 
+
+
+/**
+ * Get (internal) VLAN, from NNI outer and NNI Inner vlan
+ * 
+ * @param evc_id    : Internal EVC id
+ * @param intVid    : Internal VLAN id 
+ * @param nni_ivid  : client nni_ivid 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST
+ */
+L7_RC_t ptin_evc_getCVlan_fromIntVlan(L7_uint32 evc_id, L7_uint16 intVlan, L7_uint16 *nni_ivid)
+{
+    int i;
+    struct ptin_evc_client_s *pclientFlow;
+
+    if (!evcs[evc_id].in_use)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (evc_id=%u)",evc_id);
+      return L7_FAILURE;
+    }
+    /* Validate arguments */
+    if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (intVlan=%u)",intVlan);
+      return L7_FAILURE;
+    }
+
+    if (!IS_EVC_STACKED(evc_id))
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments. Only valid for stacked services");
+      return L7_FAILURE;
+    }
+
+    for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
+    {
+      if (!evcs[evc_id].intf[i].in_use)
+        continue;
+
+      if(evcs[evc_id].intf[i].clients.n_elems > 1)
+      {
+          PT_LOG_ERR(LOG_CTX_EVC,"Not supported. Only 1 client");
+          return L7_FAILURE;
+      }
+
+      PT_LOG_WARN(LOG_CTX_EVC," (evc_id=%u)",evc_id);
+      if (evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT)
+      {
+          if (evcs[evc_id].intf[i].int_vlan) 
+          {
+              *nni_ivid = evcs[evc_id].intf[i].inner_vlan;
+              PT_LOG_WARN(LOG_CTX_EVC," (nni_ivid=%u)",*nni_ivid);
+              return L7_SUCCESS;
+          }
+      }
+      else
+      {
+        /* SEM CLIENTS UP */
+        osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
+
+        pclientFlow = L7_NULLPTR;
+        dl_queue_get_head(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t **) &pclientFlow);
+
+        if ( pclientFlow != L7_NULLPTR ) 
+        {
+            *nni_ivid = pclientFlow->int_ivid;
+            PT_LOG_WARN(LOG_CTX_EVC," (nni_ivid=%u)",*nni_ivid);
+            /* SEM CLIENTS DOWN */
+            osapiSemaGive(ptin_evc_clients_sem);
+            return L7_SUCCESS;
+        }
+
+        /* SEM CLIENTS DOWN */
+        osapiSemaGive(ptin_evc_clients_sem);
+
+      }
+    }
+
+    return L7_SUCCESS;
+}
+
+
+/**
+ * Get (internal) VLAN, from NNI outer and NNI Inner vlan
+ * 
+ * @param nni_ovid  : NNI OVLAN
+ * @param nni_ivid  : NNI OVLAN
+ * @param intVid    : Internal VLAN id 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST
+ */
+L7_RC_t ptin_evc_get_intVlan_fromNNI_vlans(L7_uint16 nni_ovid, L7_uint16 nni_ivid, L7_uint16 *intVid)
+{
+    L7_uint evc_id;
+
+    /* Validate arguments */
+    if (nni_ovid == 0 || nni_ovid >= 4096)
+    {
+        PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (nni_ovid=%u)",nni_ovid);
+        return L7_FAILURE;
+    }
+    if (nni_ivid == 0 || nni_ivid >= 4096)
+    {
+        PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (nni_ivid=%u)",nni_ivid);
+        return L7_FAILURE;
+    }
+
+    /* Run all EVCs */
+    for (evc_id = 0; evc_id < PTIN_SYSTEM_N_EVCS; evc_id++)
+    {
+        /* Skip not used EVCs */
+        if (!evcs[evc_id].in_use)
+        {
+            continue;
+        }
+
+        /* check for NNI VLAN */
+        if ((evcs[evc_id].root_info.nni_ovid == nni_ovid) &&
+            (evcs[evc_id].root_info.nni_ivid == nni_ivid))
+        {
+            if (intVid != L7_NULLPTR)
+            {
+                *intVid = evcs[evc_id].rvlan;        
+                return L7_SUCCESS;
+            }
+        }
+    }
+
+    return L7_NOT_EXIST; 
+}
+
+
+
+
 /**
  * Get NNI VLAN from EVC ext id
  * 
