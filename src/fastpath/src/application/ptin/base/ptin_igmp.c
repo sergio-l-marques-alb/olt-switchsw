@@ -11855,8 +11855,7 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
   PTIN_MGMD_EVENT_t               resMsg          = {0};
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg      = {0};
   PTIN_MGMD_CTRL_STATS_REQUEST_t  mgmdStatsReqMsg = {0};
-  L7_uint16                       querier, count = 0;
-  PTIN_MGMD_CTRL_STATS_RESPONSE_t *aux; /* just to caust the data get from mgmd*/
+
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -11899,36 +11898,42 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
     return L7_FAILURE;
   }
 
-  /* Because the general querier is send on UC EVC we must have additional request to MGMD to get the queries statistics*/
-  for (querier=0; (querier<PTIN_SYSTEM_N_EVCS || count<mgmdNumberOfQueryInstances); querier++)
+#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   {
-    if (mgmdQueryInstances[querier].inUse==L7_TRUE)
+    L7_uint16                       querier, count = 0;
+    PTIN_MGMD_CTRL_STATS_RESPONSE_t *aux; /* just to caust the data get from mgmd*/
+
+    /* Because the general querier is send on UC EVC we must have additional request to MGMD to get the queries statistics*/
+    for (querier=0; (querier<PTIN_SYSTEM_N_EVCS || count<mgmdNumberOfQueryInstances); querier++)
     {
-      memset(ctrlResMsg.data, 0x00, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
-
-      mgmdStatsReqMsg.serviceId = mgmdQueryInstances[querier].UcastEvcId;
-      mgmdStatsReqMsg.portId    = ptin_port+1;
-      ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
-      ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
-      ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
-
-      PT_LOG_PEDANTIC(LOG_CTX_IGMP, "Response");
-      PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
-      PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
-      PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
-      PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Length  : %u",   ctrlResMsg.dataLength);
-
-      aux = (PTIN_MGMD_CTRL_STATS_RESPONSE_t *) &ctrlResMsg.data;
-
-      /*update retrieved values with queries values*/
-      statistics->query.generalQueryTx += aux->query.generalQueryTx;
-      statistics->igmpTx               += aux->query.generalQueryTx;
-      statistics->query.groupQueryTx   += aux->query.groupQueryTx;
-       
-      count++;
-    }      
+      if (mgmdQueryInstances[querier].inUse==L7_TRUE)
+      {
+        memset(ctrlResMsg.data, 0x00, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
+    
+        mgmdStatsReqMsg.serviceId = mgmdQueryInstances[querier].UcastEvcId;
+        mgmdStatsReqMsg.portId    = ptin_port+1;
+        ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
+        ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+        ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+    
+        PT_LOG_PEDANTIC(LOG_CTX_IGMP, "Response");
+        PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+        PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+        PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
+        PT_LOG_PEDANTIC(LOG_CTX_IGMP,  "  CTRL Length  : %u",   ctrlResMsg.dataLength);
+    
+        aux = (PTIN_MGMD_CTRL_STATS_RESPONSE_t *) &ctrlResMsg.data;
+    
+        /*update retrieved values with queries values*/
+        statistics->query.generalQueryTx += aux->query.generalQueryTx;
+        statistics->igmpTx               += aux->query.generalQueryTx;
+        statistics->query.groupQueryTx   += aux->query.groupQueryTx;
+         
+        count++;
+      }      
+    }
   }
-            
+#endif
   return L7_SUCCESS;
 }
 
