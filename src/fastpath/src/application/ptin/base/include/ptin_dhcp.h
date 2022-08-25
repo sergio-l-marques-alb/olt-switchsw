@@ -126,6 +126,16 @@ typedef struct _ptin_DHCP_Statistics_t
   L7_uint32 dhcp_rx_server_pkts_onUntrustedIntf;
 } __attribute__ ((packed)) ptin_DHCP_Statistics_t;
 
+
+typedef struct
+{
+    L7_uint32  evc_idx;
+    L7_uint16  nni_ovid;
+    L7_uint16  nni_ivid;
+    L7_uchar8  macAddr[L7_MAC_ADDR_LEN];
+}ptin_DHCP_binding_remove_entry_t;
+
+
 extern L7_BOOL ptin_debug_dhcp_snooping;
 
 /*********************************************************** 
@@ -684,6 +694,16 @@ extern L7_RC_t ptin_dhcp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 ptin_port, L7_uint16 vlan, L7_uint32 client_idx, ptin_dhcp_stat_enum_t field);
+
+/**
+ * Removes an entry from the DHCP binding table
+ * 
+ * @param ptr : DHCP bind table entry
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp82_bindtable_remove_entry(ptin_DHCP_binding_remove_entry_t *entry );
+
 
 #if 0
 /**
