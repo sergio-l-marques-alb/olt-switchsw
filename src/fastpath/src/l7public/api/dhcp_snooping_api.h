@@ -1081,6 +1081,20 @@ L7_RC_t dsBindingGet(dhcpSnoopBinding_t *dsBinding);
 L7_RC_t dsBindingGetNext(dhcpSnoopBinding_t *dsBinding);
 
 /*********************************************************************
+* @purpose  Given a DHCP snooping binding, find MAC match
+*
+* @param    dsBinding  @b((input/output))  DHCP snooping binding table entry
+*
+* @returns  L7_SUCCESS if another binding is found
+*
+* @notes    The MAC address uniquely identifies the client.
+*
+* @end
+*********************************************************************/
+L7_RC_t dsBindingSearchMAC(dhcpSnoopBinding_t *dsBinding);
+
+
+/*********************************************************************
 * @purpose  Find out if a binding exists for a given MAC address,
 *           IP address, and VLAN.
 *

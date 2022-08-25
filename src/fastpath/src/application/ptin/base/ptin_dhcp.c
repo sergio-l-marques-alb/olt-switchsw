@@ -16,6 +16,7 @@
 #include "ptin_fieldproc.h"
 
 #include "usmdb_dhcp_snooping.h"
+#include "dhcp_snooping_api.h"
 
 /********************************************* 
  * Defines
@@ -2203,9 +2204,11 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
 L7_RC_t ptin_dhcp82_bindtable_remove_entry(ptin_DHCP_binding_remove_entry_t *entry )
 {
     dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
+    dhcpSnoopBinding_t  dsBinding;
     L7_RC_t             rc_Ipv4, rc_Ipv6, rc;
     L7_ushort16         intVlan;
 
+#if 0
     if ( entry->nni_ovid > 4095) 
     {
         rc = ptin_evc_intRootVlan_get(entry->evc_idx, &intVlan);
@@ -2251,7 +2254,62 @@ L7_RC_t ptin_dhcp82_bindtable_remove_entry(ptin_DHCP_binding_remove_entry_t *ent
       return L7_FAILURE;
     }
     PT_LOG_DEBUG(LOG_CTX_DHCP,"Success removing entry");
+#else
 
+
+    if ( entry->nni_ovid < 4095) 
+    {
+        memcpy(dsBinding.key.macAddr, entry->macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+        rc = ptin_dhcp_bindtable_remove(&dsBinding, entry->nni_ovid);
+        if ( rc != L7_SUCCESS )
+        {
+          PT_LOG_ERR(LOG_CTX_DHCP,"Error removing entry");
+          return L7_FAILURE;
+        }
+    }
+    else
+    {
+        rc = ptin_evc_intRootVlan_get(entry->evc_idx, &intVlan);
+        if (rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_DHCP, "Cannot get intVlan from eEVC#%u!", entry->evc_idx);
+          return L7_FAILURE;
+        }
+
+        PT_LOG_TRACE(LOG_CTX_DHCP, "Vlan to be used will be the provided one: %u", intVlan);
+
+        memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
+        memcpy(dsBindingIpv4.key.macAddr, entry->macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+        dsBindingIpv4.key.ipType = L7_AF_INET;
+        dsBindingIpv4.key.vlanId = intVlan;  
+
+        PT_LOG_DEBUG(LOG_CTX_DHCP,"key v4 ipType=%u, vlanId=%u MacAddr=%02X:%02X:%02X:%02X:%02X:%02X", 
+                     dsBindingIpv4.key.ipType, dsBindingIpv4.key.vlanId,
+                     dsBindingIpv4.key.macAddr[0],dsBindingIpv4.key.macAddr[1],dsBindingIpv4.key.macAddr[2],
+                     dsBindingIpv4.key.macAddr[3],dsBindingIpv4.key.macAddr[4],dsBindingIpv4.key.macAddr[5]);
+
+        memset(&dsBindingIpv6,0x00,sizeof(dhcpSnoopBinding_t));
+        memcpy(dsBindingIpv6.key.macAddr, entry->macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+        dsBindingIpv6.key.ipType = L7_AF_INET6;
+        dsBindingIpv6.key.vlanId = intVlan;  
+
+        PT_LOG_DEBUG(LOG_CTX_DHCP,"key v6 ipType=%u, vlanId=%u MacAddr=%02X:%02X:%02X:%02X:%02X:%02X", 
+                     dsBindingIpv6.key.ipType, dsBindingIpv6.key.vlanId,
+                     dsBindingIpv6.key.macAddr[0],dsBindingIpv6.key.macAddr[1],dsBindingIpv6.key.macAddr[2],
+                     dsBindingIpv6.key.macAddr[3],dsBindingIpv6.key.macAddr[4],dsBindingIpv6.key.macAddr[5]);
+
+        // Remove IPv6 and IPv4 entry
+        rc_Ipv4 = ptin_dhcp82_bindtable_remove(&dsBindingIpv4);
+        rc_Ipv6 = ptin_dhcp82_bindtable_remove(&dsBindingIpv6);
+
+        if ((rc_Ipv4!= L7_SUCCESS) && (rc_Ipv6!=L7_SUCCESS))
+        {
+          PT_LOG_ERR(LOG_CTX_DHCP,"Error removing entry");
+          return L7_FAILURE;
+        }
+    }
+
+#endif
 
   return L7_SUCCESS;
 }
@@ -2285,11 +2343,83 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding )
   if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) 
   {
     PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry");
-    return L7_FAILURE;
   }
 
   return L7_SUCCESS;
 }
+
+
+/**
+ * Search the DHCP binding table and removes an entry that 
+ * matches MAC and NNi outer vlan.
+ * 
+ * @param ptr : DHCP bind table entry
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_bindtable_remove(dhcpSnoopBinding_t *dsBinding, L7_uint16 vlan)
+
+{
+    L7_enetMacAddr_t   macAddr;
+    L7_RC_t rc;
+    ptin_HwEthMef10Evc_t evcConf;
+    L7_uint16 nni_ovid;
+
+
+    rc = dsBindingSearchMAC(dsBinding);
+    if (rc != L7_SUCCESS ) 
+    {
+        PT_LOG_ERR(LOG_CTX_DHCP, "No Entry found");
+        return L7_FAILURE;
+    }
+
+    PT_LOG_WARN(LOG_CTX_DHCP, "Found entry vlan=%u, iptype=%u MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+               , dsBinding->key.vlanId, dsBinding->key.ipType,
+                dsBinding->key.macAddr[0], dsBinding->key.macAddr[1], dsBinding->key.macAddr[2],
+                dsBinding->key.macAddr[3], dsBinding->key.macAddr[4], dsBinding->key.macAddr[5]);
+
+    rc = ptin_evc_get_fromIntVlan(dsBinding->key.vlanId, &evcConf);
+    if (rc != L7_SUCCESS) 
+    {
+        PT_LOG_ERR(LOG_CTX_DHCP, "Error getting evc from IntVlan");
+        return L7_FAILURE;
+    }
+    rc = ptin_evc_get_NNIvlan_fromEvcId(evcConf.index, &nni_ovid);
+    if (rc != L7_SUCCESS) 
+    {
+        PT_LOG_ERR(LOG_CTX_DHCP, "Error getting nni_ovid from evc");
+        return L7_FAILURE;
+    }
+
+    /* Since there's no way to distinguish entry from iptype, remove both*/
+    if ( nni_ovid == vlan ) 
+    {
+        // Remove this entry
+        memcpy(macAddr.addr, dsBinding->key.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+        if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) 
+        {
+            PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry vlan=%u, iptype=%u MacAddr=%02x:%02x:%02x:%02x:%02x:%02x",
+                       dsBinding->key.vlanId, dsBinding->key.ipType,
+                       dsBinding->key.macAddr[0], dsBinding->key.macAddr[1], dsBinding->key.macAddr[2],
+                       dsBinding->key.macAddr[3], dsBinding->key.macAddr[4], dsBinding->key.macAddr[5]);
+        }
+
+        // Remove the other entry
+        dsBinding->key.ipType = (dsBinding->key.ipType == L7_AF_INET) ? L7_AF_INET6 : L7_AF_INET;
+        if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) 
+        {
+          PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry vlan=%u, iptype=%u MacAddr=%02x:%02x:%02x:%02x:%02x:%02x",
+                     dsBinding->key.vlanId, dsBinding->key.ipType,
+                     dsBinding->key.macAddr[0], dsBinding->key.macAddr[1], dsBinding->key.macAddr[2],
+                     dsBinding->key.macAddr[3], dsBinding->key.macAddr[4], dsBinding->key.macAddr[5]);
+        }
+
+    }
+
+  return L7_SUCCESS;
+}
+
+
 
 /**
  * Removes all DHCP leases belonging to the given EVC

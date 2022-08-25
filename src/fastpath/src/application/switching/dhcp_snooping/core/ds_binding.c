@@ -735,11 +735,51 @@ static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *key, L7_uint32 matchType,
   return L7_SUCCESS;
 }
 
+
+/**
+* 
+* 
+* @author x00595 (25/08/2022)
+* 
+* @param dsBinding : in/out: MAC to search within key
+* 
+* @return L7_RC_t 
+*/
+L7_RC_t dsBindingEntryGet_MACmatch(dhcpSnoopBinding_t *dsBinding )
+{
+  dsBindingTreeNode_t *pNode;
+  dsBindingTreeNode_t key;
+
+  memset((L7_uchar8 *)&key, 0, sizeof(key));
+
+  while (1)
+  {
+    pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &key, L7_MATCH_GETNEXT);
+
+    if (pNode != L7_NULLPTR)
+    {
+        if ( memcmp(&dsBinding->key.macAddr, &pNode->key.macAddr, L7_ENET_MAC_ADDR_LEN) == 0) 
+        {
+            dsBinding->key.vlanId = pNode->key.vlanId;
+            dsBinding->key.ipType = pNode->key.ipType;
+            return L7_SUCCESS;
+        }
+    }
+    else
+    {
+        break;
+    }
+  }
+
+  return L7_FAILURE;
+}
+
+
+
 L7_RC_t dsBindingNthEntryGet (dhcpSnoopBinding_t *dsBinding,
                                L7_uint32 n,
                                dsBindingType_t type )
 {
-
   dsBindingTreeNode_t *pNode;
   dsBindingTreeNode_t key;
   L7_uint32 count = 0;
