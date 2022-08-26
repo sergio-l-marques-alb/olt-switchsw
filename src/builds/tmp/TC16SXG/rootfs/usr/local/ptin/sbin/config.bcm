@@ -5,7 +5,7 @@ vlan_xlate_1_mem_entries=16384
 vlan_xlate_2_mem_entries=0
 egr_vlan_xlate_1_mem_entries=16384
 egr_vlan_xlate_2_mem_entries=0
-
+l2_mem_entries=65536
 #custom_feature_cancun_dir=/usr/local/ptin/sbin/
 
 load_firmware=0x101                           
