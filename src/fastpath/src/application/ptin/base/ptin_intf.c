@@ -413,7 +413,13 @@ L7_RC_t ptin_intf_post_init(void)
       return L7_FAILURE;
     }
 
+    /* FIXME: OLTTS-49028. We are forcing MTU to 9600 on all PON interfaces due
+       to interfaces XGSPON multiplexed interfaces (1xETH -> MPM: GPON + XGS)*/
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    mtu_size = PTIN_SYSTEM_ETH_MTU_SIZE;
+#else
     mtu_size = (PTIN_PORT_IS_PON(i)) ? PTIN_SYSTEM_PON_MTU_SIZE : PTIN_SYSTEM_ETH_MTU_SIZE;
+#endif
 
     rc = usmDbIfConfigMaxFrameSizeSet(map_port2intIfNum[i], mtu_size);
     if (rc != L7_SUCCESS)
@@ -1018,6 +1024,9 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   #endif
   }
   
+    /* FIXME: OLTTS-49028. We are forcing MTU to 9600 on all PON interfaces due
+       to interfaces XGSPON multiplexed interfaces (1xETH -> MPM: GPON + XGS)*/
+#if (PTIN_BOARD != PTIN_BOARD_TC16SXG)
   /* MaxFrame */
   #if 1
   if ((phyConf->Mask & PTIN_PHYCONF_MASK_MAXFRAME) &&
@@ -1048,6 +1057,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     PT_LOG_TRACE(LOG_CTX_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
   }
   #endif
+#endif
 
   /* Loopback */
   if ((phyConf->Mask & PTIN_PHYCONF_MASK_LOOPBACK) &&
