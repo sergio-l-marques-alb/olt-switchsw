@@ -747,28 +747,24 @@ static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *key, L7_uint32 matchType,
 */
 L7_RC_t dsBindingEntryGet_MACmatch(dhcpSnoopBinding_t *dsBinding )
 {
-  dsBindingTreeNode_t *pNode;
-  dsBindingTreeNode_t key;
+
+  dsBindingTreeNode_t *binding = NULL;
+  dsBindingTreeKey_t key;
 
   memset((L7_uchar8 *)&key, 0, sizeof(key));
-
-  while (1)
+  while (dsBindingTreeSearch(&key, L7_MATCH_GETNEXT, &binding) == L7_SUCCESS)
   {
-    pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &key, L7_MATCH_GETNEXT);
+    /* store key for use in next search */
+    memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
 
-    if (pNode != L7_NULLPTR)
+    /* If this entry has a MAC that matches the MAC provided, fill it and return */
+    if (memcmp(&dsBinding->key.macAddr, binding->key.macAddr.addr, L7_ENET_MAC_ADDR_LEN) == 0)
     {
-        if ( memcmp(&dsBinding->key.macAddr, &pNode->key.macAddr, L7_ENET_MAC_ADDR_LEN) == 0) 
-        {
-            dsBinding->key.vlanId = pNode->key.vlanId;
-            dsBinding->key.ipType = pNode->key.ipType;
-            return L7_SUCCESS;
-        }
+        dsBinding->key.vlanId = binding->key.vlanId;
+        dsBinding->key.ipType = binding->key.ipType;
+        return L7_SUCCESS;
     }
-    else
-    {
-        break;
-    }
+
   }
 
   return L7_FAILURE;
@@ -803,6 +799,7 @@ L7_RC_t dsBindingNthEntryGet (dhcpSnoopBinding_t *dsBinding,
     }
    memcpy(&key.key.macAddr, &pNode->key.macAddr, L7_ENET_MAC_ADDR_LEN);
   }
+
   if ( pNode != L7_NULLPTR)
   {
     memcpy ( &dsBinding->key.macAddr, &pNode->key.macAddr, L7_ENET_MAC_ADDR_LEN);

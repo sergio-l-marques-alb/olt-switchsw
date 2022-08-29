@@ -2408,7 +2408,7 @@ L7_RC_t ptin_dhcp_bindtable_remove(dhcpSnoopBinding_t *dsBinding, L7_uint16 vlan
         dsBinding->key.ipType = (dsBinding->key.ipType == L7_AF_INET) ? L7_AF_INET6 : L7_AF_INET;
         if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType, dsBinding->key.vlanId) != L7_SUCCESS) 
         {
-          PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry vlan=%u, iptype=%u MacAddr=%02x:%02x:%02x:%02x:%02x:%02x",
+          PT_LOG_TRACE(LOG_CTX_DHCP, "Error removing entry vlan=%u, iptype=%u MacAddr=%02x:%02x:%02x:%02x:%02x:%02x",
                      dsBinding->key.vlanId, dsBinding->key.ipType,
                      dsBinding->key.macAddr[0], dsBinding->key.macAddr[1], dsBinding->key.macAddr[2],
                      dsBinding->key.macAddr[3], dsBinding->key.macAddr[4], dsBinding->key.macAddr[5]);
