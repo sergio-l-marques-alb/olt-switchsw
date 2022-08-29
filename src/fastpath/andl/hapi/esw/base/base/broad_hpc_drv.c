@@ -414,7 +414,12 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
   /* Now, select the hashing algorithm. 
    * RTAG7 mode can compute 2 sets of hash at the same time. 
    */
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  /* this hash configuration prove to work better on cxo160g*/
+  arg = BCM_HASH_FIELD_CONFIG_CRC16CCITT;
+#else
   arg = BCM_HASH_FIELD_CONFIG_CRC32LO;
+#endif
   rv = bcm_switch_control_set(unit, bcmSwitchHashField0Config, arg);
   if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
   {
