@@ -6099,11 +6099,9 @@ L7_RC_t ptin_tap_set_tc16sxg_aspen(void)
     };
 
 
-    //for (intIfNum = 1; intIfNum <= L7_MAX_PORT_COUNT; intIfNum++)
-    for (intIfNum = 1; intIfNum <= L7_MAX_INTERFACE_COUNT; intIfNum++)
-    //for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
+    for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++)
     {
-        rc = ptin_intf_intIfNum2port(intIfNum, 0, &ptin_port);
+        rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
         if (L7_SUCCESS != rc) continue;
 
         if (!PTIN_PORT_IS_PON(ptin_port)) continue; //break;
