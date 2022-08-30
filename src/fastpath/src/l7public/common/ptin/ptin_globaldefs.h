@@ -7,6 +7,7 @@
 #define LOG_OUTPUT_FILE_DEFAULT             "/var/log/switchdrvr/switchdrvr.log"
 #define LOG_OUTPUT_FILE_DEFAULT2            "/var/log/switchdrvr/switchdrvr_sdk.log"
 #define LOG_OUTPUT_FILE_DEFAULT3            "/var/log/switchdrvr/switchdrvr_events.log"
+#define LOG_OUTPUT_FILE_MGMD                "/var/log/switchdrvr/mgmd.log"
 #define LOGPCAP_OUTPUT_FILE_DEFAULT         "/var/log/switchdrvr/logpcap.pcap"
 #define EVENT_RATE_MON_OUTPUT_FILE_DEFAULT  "/var/log/switchdrvr/rate_mon.log"
 

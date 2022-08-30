@@ -650,7 +650,7 @@ pthread_t* snoop_ptin_mgmd_thread_pointer_get(void)
 
 L7_RC_t snoop_ptin_mgmd_init(void)
 {
-  return (ptin_mgmd_init(&(snoopEB.mgmdThreadId), &mgmd_external_api, MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT));
+  return (ptin_mgmd_init(&(snoopEB.mgmdThreadId), &mgmd_external_api, MGMD_LOG_FILE, LOG_OUTPUT_FILE_MGMD));
 }
 
 int snoop_ptin_mgmd_deinit(void)
