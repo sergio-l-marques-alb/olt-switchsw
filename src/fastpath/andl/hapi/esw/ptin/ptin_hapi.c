@@ -1755,7 +1755,7 @@ L7_RC_t ptin_hapi_backplane_warpcore_reset(void)
       (LC_in_OLT1T1() && ptin_fpga_mx_get_matrixactive() == PTIN_SLOT_PROT))
   {
       /* iterate the respective bcm_ports */
-      for (i = 25; i <= 32; i++)
+      for (i = 17; i <= 24; i++)
       {
           BCM_PBMP_PORT_ADD(pbm, i);
           PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port %u added", i);
@@ -1764,7 +1764,7 @@ L7_RC_t ptin_hapi_backplane_warpcore_reset(void)
   else
   {
       /* iterate the respective bcm_ports */
-      for (i = 17; i <= 24; i++)
+      for (i = 25; i <= 32; i++)
       {
           BCM_PBMP_PORT_ADD(pbm, i);
           PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port %u added", i);
