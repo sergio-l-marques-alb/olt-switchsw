@@ -126,6 +126,7 @@
 #define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
 #define CCMSG_HW_INTF_INFO_GET              0x91E4  // struct msg_HwIntfInfo_t
 #define CCMSG_HW_INTF_STATUS                0x91E5  // struct msg_HwIntfStatus_t
+#define CCMSG_HW_BCK_LINKS_RESET            0x01E6
 
 #define CCMSG_APP_CHANGE_STDOUT             0x91F0  // (To be used with fastpath.cli)
 #define CCMSG_APP_SHELL_CMD_RUN             0x91F1  // (To be used with fastpath.cli)

@@ -1042,6 +1042,22 @@ extern L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable);
 extern
 L7_RC_t ptin_tap_set_LC_2_cxo(void);
 
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+/**
+ * Set TAP settings for interfaces CXO/matrix => LC with optimal
+ * values obtained via devshell_test.c tools 
+ * 
+ * @param slot_id 
+ * @param board_id  (the board type in this slot: TC16SXG, 
+ *                  TU40G(R)...
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id);
+#endif /* CXO640G & CXO160G */
+
+
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
 /**
  * Set TAP settings for PON interfaces SWITCH => ASPEN (MACGPON)
@@ -1062,6 +1078,15 @@ L7_RC_t ptin_tap_set_tc16sxg_aspen(void);
  * @return L7_RC_t 
  */
 extern L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup);
+
+/**
+ * Reset warpcore associated to the backplane links (TC16SXG ONLY!) 
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_bck_links_reset(void);
 
 /**
  * read linkscan status
