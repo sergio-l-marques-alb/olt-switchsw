@@ -1736,7 +1736,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
  */
 L7_RC_t ptin_hapi_backplane_warpcore_reset(void)
 {
-  L7_RC_t rc = L7_FAILURE;
+  L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   int i;

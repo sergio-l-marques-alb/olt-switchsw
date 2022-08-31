@@ -1849,6 +1849,10 @@ void ptin_control_linkStatus_monitor(void)
         /* Reset warpcore */
         ptin_control_slot_reset(port, slot_id, board_id, linkStatus_copy);
 
+        PT_LOG_INFO(LOG_CTX_CONTROL,
+                    "Configuring tap settings for local ports of slot %u",
+                    slot_id);
+
         /* Configure TAP settings */
         rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
         if (rc != L7_SUCCESS)
@@ -1859,6 +1863,11 @@ void ptin_control_linkStatus_monitor(void)
                        slot_id,
                        board_id);
         }
+
+        PT_LOG_INFO(LOG_CTX_CONTROL,
+                    "Notifying TC16SXG on slot %u for"
+                    "backplane warpcores reset",
+                    slot_id);
 
         /* Notify remote card to reset its links (TC16SXG ONLY!) */
         if (board_id == PTIN_BOARD_TYPE_TC16SXG)
