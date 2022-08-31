@@ -1521,7 +1521,7 @@ L7_RC_t ptin_evc_get_intVlan_fromNNIvlan(L7_uint16 nni_ovid, L7_uint16 *intVid, 
   /* Validate arguments */
   if (nni_ovid == 0 || nni_ovid >= 4096)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (nni_ovid=%u)",nni_ovid);
+    PT_LOG_TRACE(LOG_CTX_EVC,"Invalid arguments (nni_ovid=%u)",nni_ovid);
     return L7_FAILURE;
   }
 
@@ -1588,19 +1588,19 @@ L7_RC_t ptin_evc_getCVlan_fromIntVlan(L7_uint32 evc_id, L7_uint16 intVlan, L7_ui
 
     if (!evcs[evc_id].in_use)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (evc_id=%u)",evc_id);
+      PT_LOG_TRACE(LOG_CTX_EVC,"Invalid arguments (evc_id=%u)",evc_id);
       return L7_FAILURE;
     }
     /* Validate arguments */
     if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (intVlan=%u)",intVlan);
+      PT_LOG_TRACE(LOG_CTX_EVC,"Invalid arguments (intVlan=%u)",intVlan);
       return L7_FAILURE;
     }
 
     if (!IS_EVC_STACKED(evc_id))
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments. Only valid for stacked services");
+      PT_LOG_TRACE(LOG_CTX_EVC,"Invalid arguments. Only valid for stacked services");
       return L7_FAILURE;
     }
 
@@ -1611,17 +1611,16 @@ L7_RC_t ptin_evc_getCVlan_fromIntVlan(L7_uint32 evc_id, L7_uint16 intVlan, L7_ui
 
       if(evcs[evc_id].intf[i].clients.n_elems > 1)
       {
-          PT_LOG_ERR(LOG_CTX_EVC,"Not supported. Only 1 client");
+          PT_LOG_TRACE(LOG_CTX_EVC,"Not supported. Only 1 client");
           return L7_FAILURE;
       }
 
-      PT_LOG_WARN(LOG_CTX_EVC," (evc_id=%u)",evc_id);
       if (evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT)
       {
           if (evcs[evc_id].intf[i].int_vlan) 
           {
               *nni_ivid = evcs[evc_id].intf[i].inner_vlan;
-              PT_LOG_WARN(LOG_CTX_EVC," (nni_ivid=%u)",*nni_ivid);
+              PT_LOG_TRACE(LOG_CTX_EVC," (nni_ivid=%u)",*nni_ivid);
               return L7_SUCCESS;
           }
       }
@@ -1636,7 +1635,6 @@ L7_RC_t ptin_evc_getCVlan_fromIntVlan(L7_uint32 evc_id, L7_uint16 intVlan, L7_ui
         if ( pclientFlow != L7_NULLPTR ) 
         {
             *nni_ivid = pclientFlow->int_ivid;
-            PT_LOG_WARN(LOG_CTX_EVC," (nni_ivid=%u)",*nni_ivid);
             /* SEM CLIENTS DOWN */
             osapiSemaGive(ptin_evc_clients_sem);
             return L7_SUCCESS;
