@@ -739,8 +739,9 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
 static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
                                     L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                     L7_BOOL isDynamic, L7_uint *device_client_id_ret);
-
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
 static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *avl_infoData_clientGroup);
+#endif
 #if 0
 static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L7_BOOL remove_static);
 #endif
@@ -5876,7 +5877,8 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_NOT_EXIST;
   }
-  
+          
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
   /* Remove all child clients, belonging to this client group */
   if (ptin_igmp_device_client_clean(avl_infoData) != L7_SUCCESS)
   {
@@ -5884,6 +5886,7 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     PT_LOG_ERR(LOG_CTX_IGMP,"Could not remove child clients!");
     return L7_FAILURE;
   }
+#endif
 
   /*Release Group Client Identifier*/
   ptin_igmp_group_client_identifier_push(avl_infoData->ptin_port, avl_infoData->groupClientId);
@@ -9456,6 +9459,8 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
   return L7_SUCCESS;
 }
  
+ 
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
 /**
  * Clean child clients belonging to a client group
  * 
@@ -9498,6 +9503,7 @@ static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *clie
   return L7_SUCCESS;
 }
 
+#endif
 /**
  * Find clientGroup information in a particulat IGMP instance
  * 
