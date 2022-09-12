@@ -739,8 +739,9 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
 static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
                                     L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                     L7_BOOL isDynamic, L7_uint *client_idx_ret);
-#if 0
+
 static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *avl_infoData_clientGroup);
+#if 0
 static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L7_BOOL remove_static);
 #endif
 static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_idx, L7_BOOL remove_static, L7_BOOL force_remove);
@@ -4960,6 +4961,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
   }
   #endif
 
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
   /* Check if this key already exists */
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
 
@@ -5018,8 +5020,6 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
   #endif
              );
   }
-
-  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Check if this key already exists */
   if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
@@ -5892,7 +5892,6 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     return L7_NOT_EXIST;
   }
   
-#if 0
   /* Remove all child clients, belonging to this client group */
   if (ptin_igmp_device_client_clean(avl_infoData) != L7_SUCCESS)
   {
@@ -5900,7 +5899,6 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     PT_LOG_ERR(LOG_CTX_IGMP,"Could not remove child clients!");
     return L7_FAILURE;
   }
-#endif
 
   /*Release Group Client Identifier*/
   ptin_igmp_group_client_identifier_push(avl_infoData->igmpClientDataKey.ptin_port, avl_infoData->groupClientId);
@@ -9339,8 +9337,7 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
 
   return L7_SUCCESS;
 }
-
-#if 0
+ 
 /**
  * Clean child clients belonging to a client group
  * 
@@ -9361,7 +9358,6 @@ static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *clie
   }
 
   /* Remove all child clients, belonging to this client group */
-
   client_device = L7_NULLPTR;
   while ((client_device=igmp_clientDevice_next(clientGroup, client_device)) != L7_NULLPTR)
   {
@@ -9384,7 +9380,6 @@ static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *clie
   return L7_SUCCESS;
 }
 
-#endif
 /**
  * Find clientGroup information in a particulat IGMP instance
  * 
@@ -9541,6 +9536,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
   }
 #endif
 
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
   /* Check if this key already exists */
   avl_tree = &igmpDeviceClients.avlTree;
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
@@ -9599,8 +9595,6 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #endif
              );
   }
-
-  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Check if this key already exists */
   if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
@@ -9880,12 +9874,12 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
         PT_LOG_TRACE(LOG_CTX_IGMP,"Entry is static!");
     }
   }
-  osapiSemaGive(ptin_igmp_clients_sem);
   /* Output client index */
   if (device_client_id_ret!=L7_NULLPTR)
   {
     *device_client_id_ret = avl_infoData->deviceClientId;
   }
+  osapiSemaGive(ptin_igmp_clients_sem);
   return L7_SUCCESS;
 }
 
@@ -10455,15 +10449,6 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
       if (ptin_debug_igmp_snooping)
         PT_LOG_TRACE(LOG_CTX_IGMP,"Going to unmark ptin_port=%u client_idx=%u", ptin_port, client_idx);
 
-      /* Removed not necessary routines to managem device clients */
-      #if 0
-      /* Remove device from client group */
-      if (clientGroup != L7_NULLPTR)
-      {
-        igmp_clientDevice_remove(clientGroup, clientInfo);
-      }
-      #endif
-
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 #if PTIN_BOARD_IS_LINECARD
       {
@@ -10495,6 +10480,9 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
 
       /* Free client index */
       ptin_igmp_device_client_identifier_push(ptin_port, client_idx);
+
+      /* set to null the client Group pointer because this */
+      clientInfo->pClientGroup = L7_NULLPTR;
 
       /* Remove this client */
       if (avlDeleteEntry(&(avl_tree->igmpClientsAvlTree), (void *) avl_key)==L7_NULLPTR)
@@ -17655,7 +17643,7 @@ void ptin_igmp_device_clients_dump(void)
     /* Prepare next key */
     memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
 
-    printf("ptin_port_port=%u / clientId=%u (OnuId:%u) "           
+    printf("ptin_port_port=%u / clientId=%u (OnuId:%u, group_client:%u) "
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
            "outerVlan=%-4u  "
 #endif
@@ -17673,7 +17661,9 @@ void ptin_igmp_device_clients_dump(void)
            "#channels=%u"
 #endif
            "\r\n",
-           avl_info->ptin_port, avl_info->deviceClientId, (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->onuId : 0,           
+           avl_info->ptin_port, avl_info->deviceClientId, 
+           (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->onuId : 0, 
+           (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->groupClientId : 0,
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
            avl_info->igmpClientDataKey.outerVlan,
 #endif
