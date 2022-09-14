@@ -453,6 +453,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
 
   ipHdrLen = (buffPtr[0] & 0x0f)*4;
+  if(ipHdrLen > dataLength - sysNetDataOffsetGet(data))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid IP len");
+    return L7_FAILURE; /* In case of failure, the buffer is freed by DTL */
+  }
   /* Extract source and group address from packet */
   /* Point to the start of ethernet payload */
 
@@ -618,6 +623,13 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
 
   ipHdrLen = (buffPtr[0] & 0x0f)*4;
+
+  if(ipHdrLen > dataLength - sysNetDataOffsetGet(data))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid IP len");
+    return L7_FAILURE; /* In case of failure, the buffer is freed by DTL */
+  }
+
   /* Extract source and group address from packet */
   /* Point to the start of ethernet payload */
 

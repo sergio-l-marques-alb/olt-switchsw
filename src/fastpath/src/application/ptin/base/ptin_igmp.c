@@ -739,9 +739,6 @@ static L7_RC_t ptin_igmp_device_client_find(ptin_client_id_t *client_ref, ptinIg
 static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
                                     L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                     L7_BOOL isDynamic, L7_uint *client_idx_ret);
-#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
-static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *avl_infoData_clientGroup);
-#endif
 #if 0
 static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L7_BOOL remove_static);
 #endif
@@ -858,10 +855,6 @@ void *ptin_igmp_clients_snapshot_sem = L7_NULLPTR;
 /* Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup);
  
-#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
-/* Get the next client withing client devices queue */
-static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem);
-#endif
 /* Removed not necessary routines to managem device clients */
 #if 0
 /* Find a particular client in the client devices queue */
@@ -5892,16 +5885,6 @@ L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key)
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_NOT_EXIST;
   }
-          
-#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
-  /* Remove all child clients, belonging to this client group */
-  if (ptin_igmp_device_client_clean(avl_infoData) != L7_SUCCESS)
-  {
-    osapiSemaGive(ptin_igmp_clients_sem);
-    PT_LOG_ERR(LOG_CTX_IGMP,"Could not remove child clients!");
-    return L7_FAILURE;
-  }
-#endif
 
   /*Release Group Client Identifier*/
   ptin_igmp_group_client_identifier_push(avl_infoData->igmpClientDataKey.ptin_port, avl_infoData->groupClientId);
@@ -9341,51 +9324,7 @@ static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
   return L7_SUCCESS;
 }
  
- 
-#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
-/**
- * Clean child clients belonging to a client group
- * 
- * @param avl_infoData_parent : client group 
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-static L7_RC_t ptin_igmp_device_client_clean(ptinIgmpGroupClientInfoData_t *clientGroup)
-{
-  L7_uint ptin_port, client_idx;
-  ptinIgmpDeviceClient_t *client_device;
 
-  /* Validate arguments */
-  if (clientGroup == L7_NULLPTR)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  /* Remove all child clients, belonging to this client group */
-  client_device = L7_NULLPTR;
-  while ((client_device=igmp_clientDevice_next(clientGroup, client_device)) != L7_NULLPTR)
-  {
-    /* Validate client index */
-    if (client_device->client == L7_NULLPTR || client_device->client->deviceClientId >= PTIN_IGMP_CLIENTIDX_MAX)
-      continue;
-
-    /* Client index */
-    ptin_port  = client_device->client->ptin_port;
-    client_idx = client_device->client->deviceClientId;
-
-    if (ptin_igmp_device_client_remove(ptin_port, client_idx, L7_FALSE, L7_TRUE) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Error removing client index %u", client_idx);
-      return L7_FAILURE;
-    }
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Client index %u removed", client_idx);
-  }
-
-  return L7_SUCCESS;
-}
-
-#endif
 /**
  * Find clientGroup information in a particulat IGMP instance
  * 
@@ -14059,23 +13998,6 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
  * QUEUES MANAGEMENT FUNCTIONS
  ***********************************************************/
 
-#if (PTIN_BOARD != PTIN_BOARD_CXO640G && PTIN_BOARD != PTIN_BOARD_CXO160G)
-/**
- * Get the next client withing client devices queue
- */
-static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem)
-{
-  if (clientGroup == L7_NULLPTR)
-    return L7_NULLPTR;
-
-  /* If pelem is NULL, return head pointer */
-  if (pelem == L7_NULLPTR)
-    return(struct ptinIgmpClientDevice_s *) clientGroup->queue_clientDevices.head;
-
-  /* Otherwise, return next value */
-  return(struct ptinIgmpClientDevice_s *) pelem->next;
-}
-#endif
 /** Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup)
 {
@@ -15263,7 +15185,6 @@ void ptin_igmp_admission_control_group_clients_reset_allocation(void)
  */
 extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_clients(L7_uint32 ptin_port, L7_uint32 clientId, L7_uchar8 *clientBmpPtr)
 {
-  ptinIgmpDeviceClient_t        *client_device = L7_NULLPTR;
   ptinIgmpGroupClientInfoData_t *ptinIgmpClientGroupInfoData;
 
   /*Input Arguments Validation*/
@@ -15282,25 +15203,6 @@ extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_clients(
     PT_LOG_ERR(LOG_CTX_IGMP, "Unable to find any valid clientGroup [ptin_port:%u clientId:%u]",ptin_port, clientId);    
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_FAILURE;
-  }
-
-  while ( (client_device = igmp_clientDevice_next(ptinIgmpClientGroupInfoData, client_device)) != L7_NULLPTR)
-  {
-
-    if ( client_device->client == L7_NULLPTR || clientId == client_device->client->deviceClientId)
-    {
-      if ( client_device->client == L7_NULLPTR )
-        PT_LOG_ERR(LOG_CTX_IGMP, " ptin_port:%u clientId:%u: client_device->client:%p!!!", ptin_port, clientId, client_device->client);
-      continue;
-    }
-
-    if ( PTIN_CLIENT_IS_MASKBITSET(clientBmpPtr, client_device->client->deviceClientId) == L7_TRUE)
-    {
-      if (ptin_debug_igmp_snooping)
-        PT_LOG_DEBUG(LOG_CTX_IGMP, "This groupclient has more than one device watching this stream [ptin_port:%u clientId:%u clientId2:%u]",ptin_port, clientId, client_device->client->deviceClientId);
-      osapiSemaGive(ptin_igmp_clients_sem);
-      return L7_ALREADY_CONFIGURED;
-    }
   }
 
   osapiSemaGive(ptin_igmp_clients_sem);
