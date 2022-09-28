@@ -515,6 +515,30 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       return IPC_NO_REPLY;
     }
 
+    /* CCMSG_HW_BCK_LINKS_RESET */
+    case CCMSG_HW_BCK_LINKS_RESET:
+    {
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_BCK_LINKS_RESET (0x%04X)", msgId);
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+      /* Execute command */
+      rc = ptin_msg_bck_links_reset();
+
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error resetting backplane links");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_NO_REPLY;
+      }
+#else
+      PT_LOG_WARN(LOG_CTX_MSGHANDLER, "Unsuported operation on this card!");
+#endif
+
+      SETIPCACKOK(outbuffer);
+      return IPC_NO_REPLY;
+    }
+
     /* CCMSG_APPLICATION_RESOURCES *********************************************/
     case CCMSG_APPLICATION_RESOURCES:
     {

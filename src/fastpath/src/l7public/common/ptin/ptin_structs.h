@@ -345,15 +345,18 @@ typedef struct
 } ptin_slotmode_t;
 
 /* Hardware procedure */
-#define PTIN_HWPROC_NONE              0
-#define PTIN_HWPROC_LINKSCAN          1
-#define PTIN_HWPROC_FORCE_LINK        2
-#define PTIN_HWPROC_CLK_RECVR         3
-#define PTIN_HWPROC_VCAP_DEFVID       4
-#define PTIN_HWPROC_UC_TTL1_CPU       5
-#define PTIN_HWPROC_FRAME_OVERSIZE    6
-#define PTIN_HWPROC_WARPCORE_RESET    7
-#define PTIN_HWPROC_LINKFAULTS_ENABLE 8 /* param1=local param2=remote */
+#define PTIN_HWPROC_NONE                0
+#define PTIN_HWPROC_LINKSCAN            1
+#define PTIN_HWPROC_FORCE_LINK          2
+#define PTIN_HWPROC_CLK_RECVR           3
+#define PTIN_HWPROC_VCAP_DEFVID         4
+#define PTIN_HWPROC_UC_TTL1_CPU         5
+#define PTIN_HWPROC_FRAME_OVERSIZE      6
+#define PTIN_HWPROC_WARPCORE_RESET      7
+#define PTIN_HWPROC_BCK_WARPCORE_RESET  8
+#define PTIN_HWPROC_LINKFAULTS_ENABLE   9 /* param1=local param2=remote */
+#define PTIN_HWPROC_TX_ENABLE           10 /* param1=enable */
+
 typedef struct
 {
   DAPI_CMD_GET_SET_t  operation;

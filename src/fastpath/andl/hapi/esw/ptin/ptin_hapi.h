@@ -314,7 +314,14 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init);
+extern L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init);
+
+/**
+ * Reset warpcores of backplane links (TC16SXG ONLY!)
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_backplane_warpcore_reset(void);
 
 /**
  * get linkscan state
