@@ -1720,6 +1720,34 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
 #endif
 }
 
+
+/**
+ * Reset backplane links connected to the active fabric card (TC16SXG ONLY!)
+ * 
+ * @author Alexandre Santos (26/08/2022)
+ * 
+ * @return L7_RC_t Error code
+ */
+L7_RC_t ptin_msg_bck_links_reset(void)
+{
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+
+    L7_RC_t rc;
+
+    rc = ptin_intf_bck_links_reset();
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Backplane links reset failed! (rc=%d)", rc);
+      return rc;
+    }
+
+#endif /* PTIN_BOARD_TC16SXG */
+
+    return L7_SUCCESS;
+}
+
+
+
 /**
  * Get slot mode configuration
  * 

@@ -173,10 +173,6 @@ L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
   memset(&lagConf_data[lag_idx], 0xFF, sizeof(lagConf_data[0]));  \
 }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-L7_RC_t ptin_tap_set_cxo_2_LC(L7_uint16 slot_id, L7_uint16 board_id);
-#endif
-
 
 /**
  * Local Functions Prototypes
@@ -6975,6 +6971,53 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
 
   return L7_SUCCESS;
 }
+
+
+/**
+ * Reset warpcore associated to the backplane links (TC16SXG ONLY!) 
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_bck_links_reset(void)
+{
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+
+  ptin_hwproc_t hw_proc;
+  L7_RC_t rc = L7_SUCCESS;
+  
+  PT_LOG_NOTICE(LOG_CTX_INTF, "Resetting backplane links");
+  
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+  
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_BCK_WARPCORE_RESET;
+  
+  /* Apply procedure */
+  rc = dtlPtinHwProc(L7_ALL_INTERFACES, &hw_proc);
+  
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error applying warpcore reset of backplane links");
+    return rc;
+  }
+
+  /* Reconfigure TAP settings */
+  rc = ptin_tap_set_LC_2_cxo();
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error configuring tap settings on backplane links");
+    return rc;
+  }
+
+  PT_LOG_NOTICE(LOG_CTX_INTF, "Resetting backplane links: operation completed!");
+
+#endif /* PTIN_BOARD_TC16SXG */
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * read linkscan status

@@ -250,6 +250,15 @@ extern L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info);
 extern L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer);
 
 /**
+ * Reset backplane links connected to the active fabric card (TC16SXG ONLY!)
+ * 
+ * @author Alexandre Santos (26/08/2022)
+ * 
+ * @return L7_RC_t Error code
+ */
+extern L7_RC_t ptin_msg_bck_links_reset(void);
+
+/**
  * Get slot mode configuration
  * 
  * @param slotMode 

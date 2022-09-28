@@ -135,6 +135,8 @@ static void ptin_control_linkstatus_report(void);
 #if (PTIN_BOARD_IS_MATRIX)
 void ptin_control_switchover_monitor(void);
 
+static L7_RC_t ptin_tc16sxg_warpcores_reset(uint32_t slot_id);
+
 void ptin_control_linkStatus_monitor(void);
 void ptin_control_slot_reset(L7_uint ptin_port, L7_uint slot_id, L7_uint board_id,
                                     struct_linkStatus_t linkStatus[2]);
@@ -1537,8 +1539,55 @@ void ptin_control_switchover_monitor(void)
     osapiSemaGive(ptin_boardaction_sem);
   }
 
-#endif
+#endif /* MAP_CPLD */
 }
+
+
+/**
+ * Notify remote slot to reset backplane links (warpcores) (TC16SXG ONLY!)
+ * 
+ * @author Alexandre Santos (30/08/2022)
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_tc16sxg_warpcores_reset(uint32_t slot_id)
+{
+    int rc;
+    L7_RC_t l7_rc;
+    uint32_t ipaddr;
+
+    /* Get IP address of the remote slot */
+    l7_rc = ptin_fpga_slot_ip_addr_get(slot_id, &ipaddr);
+    if (l7_rc != L7_SUCCESS)
+    {
+        PT_LOG_ERR(LOG_CTX_CONTROL,
+                   "Failed to get ip address from slot id %u",
+                   slot_id);
+        return L7_FAILURE;
+    }
+
+    /* Send IPC message */
+    rc = send_ipc_message(IPC_HW_FP_CTRL_PORT2,
+                          ipaddr,
+                          CCMSG_HW_BCK_LINKS_RESET,
+                          NULL,
+                          NULL,
+                          0,
+                          NULL);
+    if (rc != 0)
+    {
+        PT_LOG_ERR(LOG_CTX_CONTROL,
+                   "Failed to send CCMSG_HW_BCK_LINKS_RESET message to slot %u ipaddr=0x%08X",
+                   slot_id,
+                   ipaddr);
+        return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+}
+
 
 /**
  * LinkStatus monitor (10s period)
@@ -1547,6 +1596,7 @@ void ptin_control_switchover_monitor(void)
  */
 void ptin_control_linkStatus_monitor(void)
 {
+  L7_RC_t rc;
   L7_BOOL slot_in_error;
   L7_int8 credits_to_loose;
   L7_uint32 port, index;
@@ -1710,6 +1760,39 @@ void ptin_control_linkStatus_monitor(void)
 
         /* Reset warpcore */
         ptin_control_slot_reset(port, slot_id, board_id, linkStatus_copy);
+
+        PT_LOG_INFO(LOG_CTX_CONTROL,
+                    "Configuring tap settings for local ports of slot %u",
+                    slot_id);
+
+        /* Configure TAP settings */
+        rc = ptin_tap_set_cxo_2_LC(slot_id, board_id);
+        if (rc != L7_SUCCESS)
+        {
+            PT_LOG_ERR(LOG_CTX_CONTROL,
+                       "Failed to configure TAP settings after "
+                       "warpcore reset on slot %u boardid %u",
+                       slot_id,
+                       board_id);
+        }
+
+        PT_LOG_INFO(LOG_CTX_CONTROL,
+                    "Notifying TC16SXG on slot %u for"
+                    "backplane warpcores reset",
+                    slot_id);
+
+        /* Notify remote card to reset its links (TC16SXG ONLY!) */
+        if (board_id == PTIN_BOARD_TYPE_TC16SXG)
+        {
+            rc = ptin_tc16sxg_warpcores_reset(slot_id);
+            if (rc != L7_SUCCESS)
+            {
+                PT_LOG_ERR(LOG_CTX_CONTROL,
+                           "Failed to notify TC16SXG on slot %u for"
+                           "backplane warpcores reset",
+                           slot_id);
+            }
+        }
 
         /* One more reset */
         ls_monitor_info[slot_id].resets_counter++;
@@ -2233,6 +2316,24 @@ static void ptin_control_linkstatus_report(void)
   port_list[1] = PTIN_SYSTEM_N_PONS + 1;
   port_list[2] = PTIN_SYSTEM_N_PONS + 2;
   port_list[3] = PTIN_SYSTEM_N_PONS + 3;
+#elif (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  number_of_ports = 4;
+  /* NOTE: Work and Prot CXOs are switched on OLT1T3 and OLT1T1 systems */
+  if ((LC_in_OLT1T3() && active_matrix == PTIN_SLOT_WORK) ||
+      (LC_in_OLT1T1() && active_matrix == PTIN_SLOT_PROT))
+  {
+      port_list[0] = PTIN_SYSTEM_N_PONS + 4;
+      port_list[1] = port_list[0] + 1;
+      port_list[2] = port_list[0] + 2;
+      port_list[3] = port_list[0] + 3;
+  }
+  else
+  {
+      port_list[0] = PTIN_SYSTEM_N_PONS + 12;
+      port_list[1] = port_list[0] + 1;
+      port_list[2] = port_list[0] + 2;
+      port_list[3] = port_list[0] + 3;
+  }
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
   number_of_ports = 1;
   port_list[0] = (active_matrix == PTIN_SLOT_WORK) ? (PTIN_SYSTEM_N_ETH+1) : (PTIN_SYSTEM_N_ETH);

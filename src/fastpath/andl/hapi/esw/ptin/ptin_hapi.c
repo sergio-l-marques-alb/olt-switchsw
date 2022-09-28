@@ -1627,6 +1627,149 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   return rc;
 }
 
+
+/**
+ * Reset warpcores of backplane links (TC16SXG ONLY!)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_backplane_warpcore_reset(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  int i;
+  bcm_port_t bcm_port;
+  bcm_pbmp_t pbm;
+  bcm_pbmp_t pbm_out;
+
+  PT_LOG_WARN(LOG_CTX_HAPI, "Backplane warpcore reset");
+
+  BCM_PBMP_CLEAR(pbm);
+
+  // FIXME: bcm_ports are hardcoded!!! Should be dynamically determined
+
+  /* Decide which ports to be considered (active CXO) */
+  if ((LC_in_OLT1T3() && ptin_fpga_mx_get_matrixactive() == PTIN_SLOT_WORK) ||
+      (LC_in_OLT1T1() && ptin_fpga_mx_get_matrixactive() == PTIN_SLOT_PROT))
+  {
+      /* iterate the respective bcm_ports */
+      for (i = 17; i <= 24; i++)
+      {
+          BCM_PBMP_PORT_ADD(pbm, i);
+          PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port %u added", i);
+      }
+  }
+  else
+  {
+      /* iterate the respective bcm_ports */
+      for (i = 25; i <= 32; i++)
+      {
+          BCM_PBMP_PORT_ADD(pbm, i);
+          PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port %u added", i);
+      }
+  }
+
+  /* FIXME: no mutexes used - on CXOs they are used! */
+
+  /* Detach ports */
+  if (bcm_port_detach(0, pbm, &pbm_out) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error dettaching selected ports");
+    rc = L7_FAILURE;
+  }
+  PT_LOG_INFO(LOG_CTX_HAPI, "Selected ports detached");
+
+  /* Probe ports */
+  if (bcm_port_probe(0, pbm, &pbm_out) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error probing selected ports");
+    rc = L7_FAILURE;
+  }
+  PT_LOG_INFO(LOG_CTX_HAPI, "Selected ports probed");
+
+  osapiSleepUSec(20000);
+
+  /* Reenable ports */
+  BCM_PBMP_ITER(pbm, bcm_port)
+  {
+    /* Disable ports */
+    if (bcm_port_enable_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+
+    if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error set bcm_port %u to SFI mode", bcm_port);
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u reconfigured to SFI mode", bcm_port);
+
+    /* No Pause frames */
+    if (bcm_port_pause_set(0, bcm_port, L7_DISABLE, L7_DISABLE) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_pause_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u disabled pause frames", bcm_port);
+    }
+
+    /* STP in forward mode */
+    if (bcm_port_stp_set(0, bcm_port, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u STP set to Forward", bcm_port);
+    }
+
+    /* Reconfigure framemax */
+    if (bcm_port_frame_max_set(0, bcm_port, PTIN_SYSTEM_ETH_MTU_SIZE) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_frame_max_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u Max Frame set to %u", bcm_port, PTIN_SYSTEM_ETH_MTU_SIZE);
+    }
+
+    /* Reconfigure Learning settings */
+    if (bcm_port_learn_set(0, bcm_port, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD)) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_learn_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u reconfigured to Learn ARL & FWD ", bcm_port);
+    }
+  }
+
+  if (rc == L7_SUCCESS)
+  {
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "Selected ports successfully reset");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting selected ports");
+  }
+
+  /* Wait 100ms */
+  osapiSleepMSec(100);
+
+#endif /* PTIN_BOARD_TC16SXG */
+
+  return rc;
+}
+
+
+
 /**
  * Execute a linkscan procedure
  * 
