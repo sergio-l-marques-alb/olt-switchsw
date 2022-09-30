@@ -4196,22 +4196,22 @@ L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
         ||
         L7_SUCCESS != (r2 = ptin_prot_uplink_index_find(LagIntfNum, &protIdx, &portType, L7_NULLPTR)))
     {
-        //if (TRACE_ENABLED(LOG_CTX_INTF)) {
+        if (TRACE_ENABLED(LOG_CTX_INTF)) {
           PT_LOG_ERR(LOG_CTX_INTF,
                      "Whether dot3adWhoisOwnerLag(slot %u's ptin_port %u (intIfNum %u)) or "
                      "ptin_prot_uplink_index_find(LagIntfNum %u) = %d NOK",
                      slot, ptin_port, intIfNum,
                      LagIntfNum, r2);
-        //}
+        }
 
         //Not likely as follows: until today SWDRV's prot_uplnk are over LAGs; only FWCTRL's are over physical interfaces
         r = ptin_prot_uplink_index_find(intIfNum, &protIdx, &portType, L7_NULLPTR);
         if (L7_SUCCESS != r /* || protIdx>=MAX_UPLINK_PROT*/) {
-          //if (TRACE_ENABLED(LOG_CTX_INTF)) {
+          if (TRACE_ENABLED(LOG_CTX_INTF)) {
             PT_LOG_ERR(LOG_CTX_INTF,
                        "ptin_prot_uplink_index_find(slot %u's ptin_port %u (intIfNum %u)) = %d",
                        slot, ptin_port, intIfNum, r);
-          //}
+          }
           continue;
         }
 
