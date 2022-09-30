@@ -3807,9 +3807,9 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
 {
-  L7_uint32 ptin_port, intIfNum;
+  L7_uint32 ptin_port, intIfNum, LagIntfNum=-1;
   L7_uint8  protIdx, portType;
-  L7_RC_t r;
+  L7_RC_t r, r2 = L7_SUCCESS;
 
   for (ptin_port = 0; ptin_port < ptin_sys_number_of_ports; ptin_port++) {
     L7_uint16 ports_slot;
@@ -3825,15 +3825,6 @@ L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
     if (slot!=ports_slot) continue;
     //This interface belongs to the given slot
 
-    r = ptin_prot_uplink_index_find(ptin_port, &protIdx, &portType);
-    if (L7_SUCCESS != r /* || protIdx>=MAX_UPLINK_PROT*/) {
-      if (TRACE_ENABLED(LOG_CTX_INTF)) {
-        PT_LOG_ERR(LOG_CTX_INTF, "ptin_prot_uplink_index_find() = %d", r);
-      }
-      continue;
-    }
-    //This interface belongs to an UPLINK PROTECTION instance
-
     r = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
     if (L7_SUCCESS != r) {
       {//if (TRACE_ENABLED(LOG_CTX_INTF)) {
@@ -3841,6 +3832,42 @@ L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
       }
       continue;
     }
+
+    //This interface doesn't belong to a LAG or that LAG doesn't belong to an ETH UPLNK PROT entity
+    if (L7_SUCCESS != dot3adWhoisOwnerLag(intIfNum, &LagIntfNum)
+        ||
+        L7_SUCCESS != (r2 = ptin_prot_uplink_index_find(LagIntfNum, &protIdx, &portType)))
+    {
+        //if (TRACE_ENABLED(LOG_CTX_INTF)) {
+          PT_LOG_ERR(LOG_CTX_INTF,
+                     "Whether dot3adWhoisOwnerLag(slot %u's ptin_port %u (intIfNum %u)) or "
+                     "ptin_prot_uplink_index_find(LagIntfNum %u) = %d NOK",
+                     slot, ptin_port, intIfNum,
+                     LagIntfNum, r2);
+        //}
+
+        //Not likely as follows: until today SWDRV's prot_uplnk are over LAGs; only FWCTRL's are over physical interfaces
+        r = ptin_prot_uplink_index_find(intIfNum, &protIdx, &portType);
+        if (L7_SUCCESS != r /* || protIdx>=MAX_UPLINK_PROT*/) {
+          //if (TRACE_ENABLED(LOG_CTX_INTF)) {
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "ptin_prot_uplink_index_find(slot %u's ptin_port %u (intIfNum %u)) = %d",
+                       slot, ptin_port, intIfNum, r);
+          //}
+          continue;
+        }
+
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "Reloading slot %u's ptin_port %u (intIfNum %u), protIdx %u, portType %u",
+                    slot, ptin_port, intIfNum, protIdx, portType);
+    }
+    else {
+        PT_LOG_INFO(LOG_CTX_INTF,
+                    "Reloading slot %u's ptin_port %u (intIfNum %u) from LagIntfNum %u, protIdx %u, portType %u",
+                    slot, ptin_port, intIfNum, LagIntfNum, protIdx, portType);
+    }
+
+    //@this point this interface belongs to an UPLINK PROTECTION instance
 
     r=ptin_remote_laser_control(intIfNum,
                                 //please check ptin_prot_uplink_info_get()
