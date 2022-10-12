@@ -275,6 +275,21 @@ L7_RC_t ptin_l2_mac_table_load(void)
       continue;
     }
 
+    // Extract vlan and validate it
+    vlan = osapiNtohs((L7_uint16) *((L7_uint16 *) &fdbEntry.dot1dTpFdbAddress[0]));
+    if ((vlan>4095 || vlan == 0)
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+        || (vlan==PTIN_ASPEN2CPU_A_VLAN) || (vlan==PTIN_ASPEN2CPU_B_VLAN)
+#endif
+        ) 
+    {
+      PT_LOG_TRACE(LOG_CTX_L2, "Invalid vlanid (%u) on index %u",vlan,index);
+      //rc = L7_FAILURE;
+      continue;
+    }
+
+    evc_ext_id = -1;
+    ptin_evc_get_evcIdfromIntVlan(vlan, &evc_ext_id);
     /* Convert to ptin interface format */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (intfType==L7_VLAN_PORT_INTF)
