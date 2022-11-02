@@ -869,10 +869,17 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
     cosqSchedConfig.se_gport = se_gport;
     memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
 
-    /* New procedure */
-    rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
-                                      dstPortPtr->bcm_port,
-                                      &cosqSchedConfig);
+    if (SOC_IS_HELIX5(unit)) 
+    { /* New procedure */
+      rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
+                                        dstPortPtr->bcm_port,
+                                        &cosqSchedConfig);
+    } 
+     else
+    {
+      rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcm_gport, cosqSchedConfig);
+    }
+
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       result = L7_FAILURE;
@@ -1067,10 +1074,17 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
       cosqSchedConfig.se_gport = se_gport;
       memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
 
-      /* New procedure */
-      rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
-                                        dstPortPtr->bcm_port,
-                                        &cosqSchedConfig);
+      if (SOC_IS_HELIX5(unit))
+      { /* New procedure */
+        rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
+                                          dstPortPtr->bcm_port,
+                                          &cosqSchedConfig);
+      } 
+      else 
+      {
+        rv = usl_bcmx_port_cosq_sched_set(dstPortPtr->bcm_gport, cosqSchedConfig);
+      }
+ 
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         result = L7_FAILURE;
