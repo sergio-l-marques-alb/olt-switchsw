@@ -869,7 +869,7 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
     cosqSchedConfig.se_gport = se_gport;
     memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
 
-    if (SOC_IS_HELIX5(unit)) 
+    if (SOC_IS_HELIX5(dstPortPtr->bcm_unit)) 
     { /* New procedure */
       rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
                                         dstPortPtr->bcm_port,
@@ -1074,7 +1074,7 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
       cosqSchedConfig.se_gport = se_gport;
       memcpy(&(cosqSchedConfig.flow_gport), flow_gport, sizeof(cosqSchedConfig.flow_gport));
 
-      if (SOC_IS_HELIX5(unit))
+      if (SOC_IS_HELIX5(dstPortPtr->bcm_unit))
       { /* New procedure */
         rv = usl_bcm_gport_cosq_sched_set(dstPortPtr->bcm_unit,
                                           dstPortPtr->bcm_port,
