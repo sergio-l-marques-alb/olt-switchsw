@@ -3364,24 +3364,17 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 ptin_p
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   /*On TC16SXG XGS ports must be use the service MC ID of XGS to retrieve the internal vlan 
     where the packet will be replicated*/
-  if (PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port) == L7_TRUE)
+  if ((PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port)     == L7_TRUE) &&
+      (ptin_evc_is_intf_leaf(serviceId, ptin_port) == L7_FALSE))
   {
-    /* the port is from the other EVC*/
-    if (serviceId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET &&
-       (ptin_evc_is_intf_leaf(serviceId, ptin_port) == L7_FALSE)) 
+    if (serviceId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
     {
         /* Service Id where the traffic will be replicated*/
         serviceIdIpmc = serviceId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
     }
-    else if (serviceId > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET)
-    {
-        /* this condition only happens when open static channels*/
-        serviceId = serviceId - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
-    }
   }
 #endif  
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "Received request to open a new port on "
-                             "the switch [serviceId:%u ptin_port:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", 
+  PT_LOG_DEBUG(LOG_CTX_IGMP, "Received request to open a new port on the switch [serviceId:%u ptin_port:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", 
                serviceId, ptin_port, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");
 
   /*On TC16SXG on MC services from XGS port get always the VLAN of GPON EVC (EVC with root port). 
@@ -3452,19 +3445,13 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 ptin_
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
   /*On TC16SXG XGS ports must be use the service MC ID of XGS to retrieve the internal vlan 
     where the packet will be replicated*/
-  if (PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port) == L7_TRUE)
+  if ((PTIN_PORT_IS_PON_XGSPON_TYPE(ptin_port)     == L7_TRUE) &&
+      (ptin_evc_is_intf_leaf(serviceId, ptin_port) == L7_FALSE))
   {
-    /* the port is from the other EVC*/
-    if (serviceId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET &&
-       (ptin_evc_is_intf_leaf(serviceId, ptin_port) == L7_FALSE)) 
+    if (serviceId < PTIN_SYSTEM_IGMP_EVC_MC_OFFSET) 
     {
         /* Service Id where the traffic will be replicated*/
         serviceIdIpmc = serviceId + PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
-    }
-    else if (serviceId > PTIN_SYSTEM_IGMP_EVC_MC_OFFSET)
-    {
-        /* this condition only happens when open static channels*/
-        serviceId = serviceId - PTIN_SYSTEM_IGMP_EVC_MC_OFFSET;
     }
   }
 #endif
