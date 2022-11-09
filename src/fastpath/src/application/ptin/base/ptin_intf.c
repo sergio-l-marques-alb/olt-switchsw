@@ -364,7 +364,7 @@ L7_RC_t ptin_intf_post_init(void)
     /* Uplink ports */
     if (PTIN_PORT_IS_FRONT_ETH(i))
     {
-      rc = ptin_intf_linkfaults_enable(map_port2intIfNum[i], L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+      rc = ptin_intf_linkfaults_enable(i, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Error disabling remote linkfaults for port %u (rc=%d)", i, rc);
@@ -6833,6 +6833,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
     /* If the inserted board is uplink type, ignore link faults from any of their ports */
     if (PTIN_BOARD_IS_UPLINK(board_id))
     {
+      #error ptin_intf_linkfaults_enable parameter is ptin_port, not intIfNum
       rc = ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
       if (rc != L7_SUCCESS)
       {
@@ -6845,6 +6846,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
     }
     else
     {
+      #error ptin_intf_linkfaults_enable parameter is ptin_port, not intIfNum
       (void) ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
     }
 #endif
@@ -7008,6 +7010,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
 
 #ifdef PTIN_LINKFAULTS_IGNORE /* Disable remote faults checking for all uplink ports */
     /* Restore linkfaults ignore setting */
+    #error ptin_intf_linkfaults_enable parameter is ptin_port, not intIfNum
     (void) ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
 #endif
   }
