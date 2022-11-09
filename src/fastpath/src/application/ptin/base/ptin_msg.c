@@ -13366,17 +13366,46 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* Verify plan to be followed */
   for (i = 0; i < n; i++) 
   {
+    uint8 slotId    = ENDIAN_SWAP8(cmd[i].slotId);
+    uint8 port      = ENDIAN_SWAP8(cmd[i].port);
+    uint8 protCmd   = ENDIAN_SWAP8(cmd[i].protCmd);
+
     PT_LOG_TRACE(LOG_CTX_MSG, "Received protection command: "); 
-    PT_LOG_TRACE(LOG_CTX_MSG, " slot = %u", ENDIAN_SWAP8(cmd[i].slotId));
-    PT_LOG_TRACE(LOG_CTX_MSG, " port = %u", ENDIAN_SWAP8(cmd[i].port));
-    PT_LOG_TRACE(LOG_CTX_MSG, " cmd  = %u", ENDIAN_SWAP8(cmd[i].protCmd));
+    PT_LOG_TRACE(LOG_CTX_MSG, " slot = %u", slotId);
+    PT_LOG_TRACE(LOG_CTX_MSG, " port = %u", port);
+    PT_LOG_TRACE(LOG_CTX_MSG, " cmd  = %u", protCmd);
 
     if (n > 1)
     {
-      if      ( (ENDIAN_SWAP8(cmd[i].protCmd) & 1) && i2add < 0)  i2add = i;
-      else if (!(ENDIAN_SWAP8(cmd[i].protCmd) & 1) && i2rem < 0)  i2rem = i;
+      if ( (protCmd & 1)) {
+        if (i2add < 0)  i2add = i;
+      }
+      else
+      {//if (!(protCmd & 1)) {
+        if (i2rem < 0)  i2rem = i;
+      }
+    }//if (n > 1)
+
+#if !defined(PTIN_LINKFAULTS_IGNORE) && defined(UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)
+    /* Ignore RF (802.3 PHYs' remote fault) on standby interface */
+#if 0 && (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    if (ptin_fpga_mx_is_matrixactive_rt())
+    //if (ptin_fpga_board_slot_get() == slotId) //PTIN_SYS_MX1_SLOT, PTIN_SYS_MX2_SLOT
+#endif
+    {
+      L7_uint32 ptin_port;
+
+      if (L7_SUCCESS!=ptin_intf_slotPort2port(slotId, port, &ptin_port)) {
+        PT_LOG_ERR(LOG_CTX_MSG, "Unknown interface (slot=%u/%u)", slotId, port);
+      }
+      else {
+        if (L7_SUCCESS!=ptin_intf_linkfaults_enable(ptin_port, L7_TRUE /*Local faults*/,  (protCmd & 1)? L7_TRUE: L7_FALSE /*Remote faults*/)) {
+          PT_LOG_WARN(LOG_CTX_INTF, "Not able to disable remote linkfaults");
+        }
+      }//if (L7_SUCCESS!=ptin_intf_slotPort2port(... else
     }
-  }
+#endif
+  }//for
 
   /* If provided a port to be removed, and to be added, follow plan D for those ports */
   if (i2add >= 0 && i2rem >= 0)
