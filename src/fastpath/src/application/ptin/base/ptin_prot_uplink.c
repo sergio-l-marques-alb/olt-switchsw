@@ -3758,7 +3758,7 @@ ptin_prot_uplink_info_get_nosem(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   L7_RC_t rc;
   L7_BOOL is_lag_member = L7_FALSE;
   L7_uint32 intIfNum, intIfNum_member, intIfNum_lag;
-  L7_uint32 ptin_port;
+  L7_uint32 ptin_port, ptin_port_lag;
   L7_INTF_TYPES_t sysIntfType;
   L7_uint8 protIdx, portType;
   L7_uint32 lag_is_static;
@@ -3767,6 +3767,7 @@ ptin_prot_uplink_info_get_nosem(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   intIfNum_member = 0;
   intIfNum_lag    = 0;
   lag_is_static   = 0;
+  ptin_port_lag   = 0;
 
   /* Get ptin_port */
   if (ptin_intf_typeId2port(ptin_intf->intf_type, ptin_intf->intf_id, &ptin_port) != L7_SUCCESS)
@@ -3791,6 +3792,13 @@ ptin_prot_uplink_info_get_nosem(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   {
     if (usmDbDot3adIntfIsMemberGet(1, intIfNum, &intIfNum_lag) == L7_SUCCESS)
     {
+      /* Converto to ptin_port */
+      if (ptin_intf_intIfNum2port(intIfNum_lag, 0/*Vlan*/, &ptin_port_lag) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum_lag %u to ptin_port", intIfNum_lag);
+        return L7_FAILURE;
+      }
+
       is_lag_member = L7_TRUE;
       intIfNum_member = intIfNum;
       PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to lag %u", intIfNum, intIfNum_lag);
@@ -3827,8 +3835,8 @@ ptin_prot_uplink_info_get_nosem(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   /* For the following ops, use the LAG intIfNum, instead the provided one  */
   if (is_lag_member)
   {
-    intIfNum = intIfNum_lag;
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Using intIfNum %u...", intIfNum);
+    ptin_port = ptin_port_lag;
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Using lag ptin_port %u...", ptin_port);
   }
 
   /* Search for protection group where this interface belongs */
