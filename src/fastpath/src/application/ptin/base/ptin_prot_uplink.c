@@ -287,13 +287,14 @@ L7_RC_t ptin_remote_laser_control(L7_uint16 slot, L7_uint16 port,
  * @return L7_RC_t 
  */
 L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
-                                L7_int enable,
+                                L7_int txdisable,
                                 L7_uint32 try)
 {
     msg_UplnkProtDisJustTX cfg_msg;
     L7_uint32 ipAddr = 0;
     //L7_uint32 answer, answer_size;
     int ret;
+    L7_int enable = txdisable<=0? 1:0;
 
 #if (PTIN_BOARD_IS_STANDALONE)
     ipAddr = simGetIpcIpAddr();
@@ -344,7 +345,7 @@ L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
       cfg_msg.BoardType = ENDIAN_SWAP8(0);
       cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
       cfg_msg.conf_mask = ENDIAN_SWAP16(0x1000); //Just ALS
-      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
+      cfg_msg.optico.stmALSConf  = txdisable<0? ENDIAN_SWAP8(1): ENDIAN_SWAP8(0);
 
       PT_LOG_INFO(LOG_CTX_INTF,
                   "Try %u: Disabling port %u slotId %u ALS / ipAddr 0x%08x",
@@ -562,7 +563,7 @@ L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
 #if defined (UPLNK_PROT_DISABLE_JUST_TX)
     ret = ptin_intf_tx_enable(intIfNum_member, txdisable<=0? 1:0);
 #elif defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)
-    ret = ptin_remote_PHY_control(slot, port, txdisable<=0? 1:0, 0); //try);
+    ret = ptin_remote_PHY_control(slot, port, txdisable, 0); //try);
 #else
     ret = ptin_remote_laser_control(slot, port, txdisable, 0); //try);
 #endif
