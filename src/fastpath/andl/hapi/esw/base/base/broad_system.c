@@ -1909,6 +1909,7 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   case PTIN_PACKET_MIP_TRAPPED:
     /* ARP/IP dtl0 packets */
   case PTIN_PACKET_IPDTL0:
+  case PTIN_PACKET_CANCEL_PAUSE_FRAME:
     status = hapiBroadConfigTrap(usp, &dapiCmd->cmdData.snoopConfig, L7_FALSE, dapi_g);
     break;
 
@@ -3227,6 +3228,10 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
       result = hapiBroadConfigMIPFilter(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
                                         &ptin_trap_policy[index].policyId);
       break;
+    case PTIN_PACKET_CANCEL_PAUSE_FRAME:
+      result = hapiBroadSystemCancelPauseFramesDrop(ptin_trap_policy[index].vlan, dapi_g,
+                                        &ptin_trap_policy[index].policyId);
+      break;
 
     case PTIN_PACKET_IPDTL0:
       result = hapiBroadConfigIpDtl0Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].macAddr.addr, dapi_g,
@@ -3533,7 +3538,8 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
     }
 
     /* If global enable is disabled, nothing more is to be done */
-    if (!ptin_trap_policy_global_enable[snoopConfig->packet_type])
+    if (!ptin_trap_policy_global_enable[snoopConfig->packet_type] &&
+        snoopConfig->packet_type != PTIN_PACKET_CANCEL_PAUSE_FRAME)
     {
       continue;
     }
@@ -3557,7 +3563,6 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
 
       result = hapiBroadConfigIgmpTrap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, switchFrame, dapi_g,
                                        &ptin_trap_policy[index].policyId);
-
       break;
     case PTIN_PACKET_DHCP:
       if (snoopConfig->family == L7_AF_INET6)
@@ -3589,6 +3594,10 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
       break;
     case PTIN_PACKET_IPDTL0:
       result = hapiBroadConfigIpDtl0Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].macAddr.addr, dapi_g,
+                                         &ptin_trap_policy[index].policyId);
+      break;
+    case PTIN_PACKET_CANCEL_PAUSE_FRAME:
+      result = hapiBroadSystemCancelPauseFramesDrop(ptin_trap_policy[index].vlan, dapi_g,
                                          &ptin_trap_policy[index].policyId);
       break;
     default:
@@ -7786,6 +7795,221 @@ L7_RC_t hapiBroadIsdpPolicySet(DAPI_USP_t *usp,
   return rc;
 }
 
+
+/**
+ * Create IFP rule to cancel drop of pause frame packets
+ * 
+ * @param vlanId     : VLAN ID value
+ * @param dapi_g 
+ * @param policy_id  : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadSystemCancelPauseFramesDrop(L7_uint16 vlanId, DAPI_t *dapi_g,
+                                             BROAD_POLICY_t *policy_id)
+{
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_RC_t             rc = L7_SUCCESS;
+
+
+  /* PTin added: packet trap - PAUSE's Frame */
+  /* Rate limit for PAUSE's */
+  L7_ushort16 pause_etherType = 0x8808;
+  bcm_mac_t   pause_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
+  L7_uchar8   exact_match[]  = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+
+  /* Define qualifiers and actions */
+  do
+  {
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA,   (L7_uchar8 *)  pause_dmac, exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &pause_etherType, exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_OUTER_VID, vlanId, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+  }
+  while (0);
+  /* Commit rule */
+  if (rc == L7_SUCCESS)
+  {
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule.");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  if (policy_id == L7_NULLPTR)  
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Null policy");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Save policy */
+  *policy_id = policyId;
+  PT_LOG_NOTICE(LOG_CTX_STARTUP,"Pause Frame rule added %d", policyId);
+
+  return L7_SUCCESS;
+}
+
+
+L7_RC_t hapiBroadSystemCancelPauseFramesDrop_teste(void)
+{
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_RC_t             rc = L7_SUCCESS;
+
+  /* PTin added: packet trap - PAUSE's */
+  /* Rate limit for PAUSE's */
+  L7_ushort16 pause_etherType = 0x8808;
+  bcm_mac_t   pause_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
+  L7_uchar8   exact_match[]  = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+
+  /* Define qualifiers and actions */
+  do
+  {
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA,   (L7_uchar8 *)  pause_dmac  , exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &pause_etherType, exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_OUTER_VID, 2560, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+  }
+  while (0);
+  /* Commit rule */
+  if (rc == L7_SUCCESS)
+  {
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule.");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  /* Save policy */
+  PT_LOG_NOTICE(LOG_CTX_STARTUP,"Pause Frame rule added %d", policyId);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Create IFP rule to pause frames when src equal to destination
+ * 
+ * @param vlanId     : VLAN ID value
+ * @param dapi_g 
+ * @param policy_id  : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadSystemDropLbPauseFrames(int port)
+{
+
+
+  bcm_port_t    bcm_port;
+  bcm_port_t    bcm_port_mask = (bcm_port_t) -1;
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_RC_t rc = L7_SUCCESS;
+
+
+  bcm_port = port;
+
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  
+  /* Egress stage */
+  if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating a egress policy");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rule");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)",bcm_port);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)",bcm_port);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Drop traffic */
+  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)",bcm_port);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Commit rule */
+  if ((rc=hapiBroadPolicyCommit(&policyId)) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting trap policy\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "Trap policy commited successfully (policyId=%u)\r\n",policyId);
+
+  return L7_SUCCESS;
+}
 /*********************************************************************
 *
 * @purpose Prints hapiPortPtr descriptor

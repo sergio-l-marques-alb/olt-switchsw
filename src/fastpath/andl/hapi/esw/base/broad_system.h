@@ -941,5 +941,17 @@ L7_RC_t hapiBroadIsdpPolicySet(DAPI_USP_t *usp,
  *********************************************************************/
 L7_RC_t hapiBroadIsdpStatusSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
+
+/**
+ * Create IFP rule to pause frames when src equal to destination
+ * 
+ * @param vlanId     : VLAN ID value
+ * @param dapi_g 
+ * @param policy_id  : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadSystemDropLbPauseFrames(int port);
+
 #endif
 

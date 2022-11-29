@@ -807,6 +807,16 @@ L7_RC_t hapiBroadCosChangeTrustMode(BROAD_PORT_t *hapiPortPtr,L7_uint32 newTrust
 
 L7_RC_t hapiBroadQvlanMcastFloodModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
+/**
+ * Create IFP rule to cancel drop of pause frame packets
+ * 
+ * @param vlanId     : VLAN ID value
+ * @param dapi_g 
+ * @param policy_id  : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadSystemCancelPauseFramesDrop(L7_uint16 vlanId, DAPI_t *dapi_g, BROAD_POLICY_t *policy_id);
 
 /*********************************************************************
 *

@@ -289,6 +289,7 @@ typedef struct
         L7_uint8    set_outer_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
         L7_uint8    set_inner_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
         L7_uint8    qos_queue_set[BROAD_POLICY_ACTION_LAST];  /* for QoS queue assignment (Unicast/Multicast queues) */
+        L7_uint16   ovid;
       } ifp_parms;
 
       struct

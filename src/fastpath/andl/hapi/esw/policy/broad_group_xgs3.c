@@ -318,7 +318,7 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
     },
     /* SET_OUTER_VID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRedirectVlan, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -4916,6 +4916,15 @@ int policy_group_init(int unit)
       return rv;
     }
 
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+    rv = bcm_field_control_set(unit, bcmFieldControlRedirectExcludeSrcPort, TRUE);
+    if (BCM_E_NONE != rv)
+    {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error configuring control bcmFieldControlRedirectExcludeSrcPort %d",
+                   rv);
+        return rv;
+    }
+#endif
     return rv;
 }
 
