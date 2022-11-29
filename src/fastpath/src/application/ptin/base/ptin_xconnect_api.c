@@ -4,6 +4,7 @@
 #include "ptin_globaldefs.h"
 #include "ptin_structs.h"
 #include "ptin_intf.h"
+#include "ptin_fieldproc.h"
 
 #include "dtlinclude.h"
 
@@ -1153,9 +1154,24 @@ L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L
   mode.mask                   = PTIN_BRIDGE_VLAN_MODE_MASK_CROSSCONN_EN;
 
   /* DTL call */
-  rc = dtlPtinVlanDefinitions(&mode);
+  rc = dtlPtinVlanDefinitions (&mode);
 
-  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished dtlPtinVlanDefinitions: rc=%d", rc);
+
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  if (crossconnect_apply)
+  {
+      rc = ptin_pause_frames_drop_cancel(vlanId, L7_TRUE);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "Error adding rule to cancel drop of pause frames on VLAN %d rc %d",
+                vlanId, rc);
+        return rc;
+      }
+
+      PT_LOG_INFO(LOG_CTX_API, "Frame pause frame drop cancel configured: rc=%d", rc);
+  }
+#endif
 
   return rc;
 }

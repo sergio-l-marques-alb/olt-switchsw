@@ -4229,7 +4229,20 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
       return rc;
     }
   }
-
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
+  else if (IS_EVC_BITSTREAM(evc_id) && IS_EVC_STACKED(evc_id)) 
+  {
+    rc = ptin_pause_frames_drop_cancel(int_vlan, FALSE);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "Error removing rule to cancel drop of pause frames on VLAN %d rc %d",
+              int_vlan, rc);
+      return rc;
+    }
+    
+    PT_LOG_INFO(LOG_CTX_EVC, "Frame pause frame drop cancel removed: rc=%d", rc);
+  }
+#endif 
   /* Remove all configured interfaces */
   rc = ptin_evc_intf_remove_all(evc_id);
   if (rc != L7_SUCCESS)
@@ -12669,6 +12682,7 @@ static L7_RC_t switching_etree_stacked_leaf_remove(L7_uint leaf_intf, L7_uint16 
  * Adds a bridge between a root and leaf interface of a stacked EVC 
  *  1. configures translation entries (egress+ingress) on leaf interface
  *  2. configures a cross-connection between root and leaf interface
+ *  3. on TC16SXG configure a drop cancel rule for Pause frames
  * 
  * @param root_intf     Root ptin interface #
  * @param root_int_vid  Root internal VLAN (same as leaf)

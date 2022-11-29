@@ -313,9 +313,13 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       {
         actionPtr->u.vfp_parms.set_ovid = param0;
       }
-      else
+      else if (policyStage == BROAD_POLICY_STAGE_EGRESS) 
       {
         actionPtr->u.efp_parms.set_ovid = param0;
+      }
+      else 
+      {
+          actionPtr->u.ifp_parms.ovid = param0;
       }
       break;
 

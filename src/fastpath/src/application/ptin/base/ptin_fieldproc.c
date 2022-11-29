@@ -478,6 +478,38 @@ L7_RC_t ptin_evcStats_deleteAll(ptin_evcStats_profile_t *profile)
 }
 
 /**
+ * Set a vlan rule to drop cancel pause frames
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_pause_frames_drop_cancel(L7_uint16 vlanId, L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
+  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_CANCEL_PAUSE_FRAME;
+
+  rc = dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    PT_LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
+    return rc;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying vlan enable to %u",vlanId);
+
+  return L7_SUCCESS;
+}
+
+/**
  * Set global enable for IGMP packets to go to the CPU
  * 
  * @param enable : L7_TRUE/L7_FALSE
