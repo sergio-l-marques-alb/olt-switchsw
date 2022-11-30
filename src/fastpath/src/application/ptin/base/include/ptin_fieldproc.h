@@ -305,4 +305,13 @@ extern L7_RC_t ptin_qos_vlan_ports_update(ptin_qos_vlan_t *qos);
  */
 extern L7_RC_t ptin_hw_resources_get(st_ptin_policy_resources *resources);
 
+/**
+ * Set a vlan rule to drop cancel pause frames
+ * 
+ * @param enable : L7_TRUE/L7_FALSE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_pause_frames_drop_cancel(L7_uint16 vlanId, L7_BOOL enable);
+
 #endif
