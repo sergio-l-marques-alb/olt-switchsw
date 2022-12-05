@@ -5924,8 +5924,8 @@ L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
 
   /* PTin added: packet trap - LACPdu's */
   /* Rate limit for LACPdu's */
-  L7_ushort16 lacp_etherType = 0x8808;
-  bcm_mac_t   lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x01 };
+  L7_ushort16 lacp_etherType = 0x8809;
+  bcm_mac_t   lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
   L7_uchar8   exact_match[]  = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                 FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
 
