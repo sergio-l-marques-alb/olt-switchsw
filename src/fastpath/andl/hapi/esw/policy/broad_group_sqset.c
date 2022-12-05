@@ -920,10 +920,10 @@ bcm_field_qualify_t ptinQsetEgress[] =    /* l2 */
 #else
     bcmFieldQualifyPortClass,
 #endif
-    bcmFieldQualifyInPort,
 #if (PTIN_BOARD == PTIN_BOARD_TC16SXG)
-    bcmFieldQualifyOutPort,
+    bcmFieldQualifyInPort,
 #endif
+    bcmFieldQualifyOutPort,
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyEtherType,
     bcmFieldQualifyIntPriority,
