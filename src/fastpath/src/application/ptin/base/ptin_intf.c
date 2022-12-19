@@ -6860,18 +6860,18 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 #endif
 
 /* For now, disable this piece of code */
-#if (0 /*PTIN_BOARD == PTIN_BOARD_CXO640G*/)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   if (board_id == PTIN_BOARD_TYPE_TU40G || board_id == PTIN_BOARD_TYPE_TU40GR)
   {
     L7_uint8 port;
-    L7_uint32 intIfNum;
+    L7_uint32 ptin_port;
 
     /* Run all physical ports of this uplink board */
     for (port = 0; port < 4; port++)
     {
-      if (ptin_intf_slotPort2IntIfNum(slot_id, port, &intIfNum) == L7_SUCCESS)
+      if (ptin_intf_slotPort2port(slot_id, port, &ptin_port) == L7_SUCCESS)
       {
-        ptin_prot_uplink_intf_reload(intIfNum);
+        ptin_prot_uplink_intf_reload(ptin_port);
       }
     }
   }

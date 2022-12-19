@@ -3099,11 +3099,11 @@ static L7_RC_t ptin_prot_uplink_intf_reload_nosem(L7_uint32 ptin_port)
 }
 
 
-L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 intIfNum)
+L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 ptin_port)
 {
   L7_RC_t r;
   osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
-  r = ptin_prot_uplink_intf_reload_nosem(intIfNum);
+  r = ptin_prot_uplink_intf_reload_nosem(ptin_port);
   osapiSemaGive(ptin_prot_uplink_sem);
   return r;
 }
