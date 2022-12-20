@@ -2212,11 +2212,9 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
         if (SD[PORT_WORKING])
         {
           PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: stateMachine=PROT_STATE_Normal, SD[W]=1", i);
-          if (!ptin_prot_timer_isrunning(i))
-          {
-            PT_LOG_DEBUG(LOG_CTX_INTF,"Going to start timer for protIdx %u", i);
-            ptin_prot_timer_start(i, uplinkprot[i].protParams.WaitToRestoreTimer); 
-          }
+          uplinkprotSwitchTo(i, PORT_PROTECTION, PROT_LReq_BW, __LINE__);
+          uplinkprotFsmTransition(i, PROT_STATE_Protection, __LINE__);
+          ptin_prot_timer_stop(i);
         }
       }
       else if (state_machine == PROT_STATE_Protection)
@@ -2225,11 +2223,9 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
         if (SD[PORT_PROTECTION])
         {
           PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: stateMachine=PROT_STATE_Protection, SD[P]=1", i);
-          if (!ptin_prot_timer_isrunning(i))
-          {
-            PT_LOG_DEBUG(LOG_CTX_INTF,"Going to start timer for protIdx %u", i);
-            ptin_prot_timer_start(i, uplinkprot[i].protParams.WaitToRestoreTimer); 
-          }
+          uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_BW, __LINE__);
+          uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
+          ptin_prot_timer_stop(i);
         }
         /* Check if revert (to working) should be applied */
         else if ((!SD[PORT_WORKING]) && (!SF[PORT_WORKING]) && (uplinkprot[i].protParams.revert2working))
