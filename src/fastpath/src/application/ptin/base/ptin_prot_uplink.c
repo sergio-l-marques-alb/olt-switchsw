@@ -2071,7 +2071,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
           if (!SF[PORT_PROTECTION])
           {
             /* If no SF in protection -> Instant switch to protection machine-state */
-            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Normal => PROT_STATE_Protection state (%u)", i);
+            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_WorkAdmin => PROT_STATE_Protection state (%u)", i);
             uplinkprotSwitchTo(i, PORT_PROTECTION, PROT_LReq_LINK, __LINE__);
             uplinkprotFsmTransition(i, PROT_STATE_Protection, __LINE__);
           }
@@ -2104,7 +2104,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
           if (!SF[PORT_WORKING])
           {
             /* If no SF in working -> Instant switch to Normal machine-state (Working) */
-            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Protection => PROT_STATE_Normal state (%u)", i);
+            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_ProtAdmin => PROT_STATE_Normal state (%u)", i);
             uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_LINK, __LINE__);
             uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
           }
