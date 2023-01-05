@@ -2153,10 +2153,10 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       if (portType == PORT_WORKING)
       {
         if (state_machine == PROT_STATE_Protection) {
-          if (SF[PORT_PROTECTION]) {
+          if (SF[PORT_PROTECTION] || SD[PORT_PROTECTION]) {
             /* In normal machine-state and SF in working port -> Instant switch to protection */
             PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Protection => PROT_STATE_Normal state (%u)", i);
-            uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_LINK, __LINE__);
+            uplinkprotSwitchTo(i, PORT_WORKING, SF[PORT_PROTECTION]? PROT_LReq_LINK: PROT_LReq_BW, __LINE__);
             uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
 
             ptin_prot_timer_stop(i);
@@ -2176,11 +2176,11 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       /* link up @ protection port */
       else
       {
-        if ((state_machine == PROT_STATE_Normal) && SF[PORT_WORKING])
+        if ((state_machine == PROT_STATE_Normal) && (SF[PORT_WORKING] || SD[PORT_WORKING]))
         {
           /* In normal machine-state and SF in working port -> Instant switch to protection */
           PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Normal => PROT_STATE_Protection state (%u)", i);
-          uplinkprotSwitchTo(i, PORT_PROTECTION, PROT_LReq_LINK, __LINE__);
+          uplinkprotSwitchTo(i, PORT_PROTECTION, SF[PORT_WORKING]? PROT_LReq_LINK: PROT_LReq_BW, __LINE__);
           uplinkprotFsmTransition(i, PROT_STATE_Protection, __LINE__);
 
           ptin_prot_timer_stop(i);
