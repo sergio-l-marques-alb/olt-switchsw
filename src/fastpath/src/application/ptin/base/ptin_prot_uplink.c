@@ -2209,7 +2209,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       if (state_machine == PROT_STATE_Normal)
       {
         /* Is protection port better? -> allocate timer to switch */
-        if (SD[PORT_WORKING])
+        if ((SD[PORT_WORKING] || SF[PORT_WORKING]) && !SF[PORT_PROTECTION]) /*A priori, SD[W] means no SF in any ...*/
         {
           PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: stateMachine=PROT_STATE_Normal, SD[W]=1", i);
           uplinkprotSwitchTo(i, PORT_PROTECTION, PROT_LReq_BW, __LINE__);
@@ -2220,7 +2220,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       else if (state_machine == PROT_STATE_Protection)
       {
         /* Is Working port better? -> allocate timer to switch */
-        if (SD[PORT_PROTECTION])
+        if ((SD[PORT_PROTECTION] || SF[PORT_PROTECTION]) && !SF[PORT_WORKING]) /*A priori, SD[P] means no SF in any ...*/
         {
           PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: stateMachine=PROT_STATE_Protection, SD[P]=1", i);
           uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_BW, __LINE__);
