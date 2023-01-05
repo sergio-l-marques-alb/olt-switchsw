@@ -2199,12 +2199,14 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
         break;
       }
 
+#if 0   /* Don't get this: wouldn't WTR timer in normal operation be stopped with this "if"? */
       /* Stopping timer if no alarm regarding to current por is detected */
       if ((!SF[portType] && !SD[portType]) && (uplinkprot[i].activePortType == portType) && (ptin_prot_timer_isrunning(i)))
       {
         PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: SD[%u]=0... stopping timer", portType, i);
         ptin_prot_timer_stop(i);
       }
+#endif
 
       if (state_machine == PROT_STATE_Normal)
       {
