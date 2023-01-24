@@ -99,6 +99,7 @@ typedef enum
   PTIN_DTL_MSG_TEMPERATURE_MONITOR,   /* ptin_dtl_temperature_monitor_t */
   PTIN_DTL_MSG_OAM_BCM,
   PTIN_DTL_MSG_SHAPER_SET,
+  PTIN_DTL_MSG_FWCTRL_LNKSTATUS,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -670,6 +671,10 @@ typedef struct
   L7_int       tc;              // Traffic class (-1 for all)
   l7_cosq_set_t queueSet;       // Destination queueSet
 } dtl_intf_shaper_t;
+
+typedef struct {
+  int link_status;
+} dtl_FWCTRL_lnkst;
 
 /* Struct used to configure vlan mode via DTL */
 typedef struct

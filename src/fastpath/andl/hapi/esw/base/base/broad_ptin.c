@@ -50,6 +50,7 @@ L7_RC_t broad_ptin_oam_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation,
 L7_RC_t broad_ptin_temperature_monitor(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_bcm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_prot_uplink_mon_FWCTRL_lnkst(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 
 L7_RC_t broadPtin_oam_tx(int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
@@ -71,6 +72,7 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_temperature_monitor,
   broad_ptin_oam_bcm,
   broad_ptin_shaper_set,
+  broad_ptin_prot_uplink_mon_FWCTRL_lnkst,
 };
 
 /**
@@ -546,6 +548,126 @@ L7_RC_t broad_ptin_shaper_set(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
 
   return rc;
 }
+
+/**
+ * ANDL/HAPI layer function corresponding to (APP layer) 
+ * ptin_prot_uplink_mon_FWCTRL_lnkst()+its DB function
+ *  
+ * It's rather specific, so do please check the APP layer 
+ * ptin_prot_uplink_mon_FWCTRL_lnkst() for details
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+//static L7_RC_t broad_mon_FWCTRL_lnkst_db(int _0init_1rd_2wr, bcm_port_t port, int *linkstatus); //Please check below
+
+L7_RC_t broad_ptin_prot_uplink_mon_FWCTRL_lnkst(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g) {
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  //DAPI_PORT_t       *dapiPortPtr;
+  BROAD_PORT_t      *hapiPortPtr;
+  bcm_port_t        port;
+
+  dtl_FWCTRL_lnkst  *entry;
+
+
+  // Get the port info
+  //dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
+  hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
+  port = hapiPortPtr->bcm_port;
+
+  entry = (dtl_FWCTRL_lnkst *) data;
+#if 0
+  rc = broad_mon_FWCTRL_lnkst_db(2, port, &entry->link_status);
+  if (L7_SUCCESS!=rc) {
+      PT_LOG_ERR(LOG_CTX_HAPI, "broad_mon_FWCTRL_lnkst_db()=%d", rc);
+      return L7_FAILURE;
+  }
+#endif
+  {
+    bcm_port_info_t portInfo;
+    
+    portInfo.linkstatus = entry->link_status? 1:0;
+    hapiBroadPortLinkStatusChange(hapiPortPtr->bcm_unit, port, &portInfo);
+  }
+
+  return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
+}
+
+#if 0 && (PTIN_BOARD == PTIN_BOARD_CXO160G)
+L7_RC_t broad_mon_FWCTRL_lnkst_db(int _0init_1rd_2wr, bcm_port_t port, int *linkstatus) {
+  static int _1st_time=1;
+  static struct {
+    bcm_port_t port;
+    int linkstatus;
+  } db[PTIN_SYSTEM_N_UPLINK];
+
+  unsigned int i, _1st_empty;
+
+
+  if (_1st_time || 0==_0init_1rd_2wr) {
+      memset(db, 0xff, sizeof(db));
+      _1st_time = 0;
+
+      if (0==_0init_1rd_2wr) return L7_SUCCESS;
+  }
+
+
+  if (NULL==linkstatus) return L7_ERROR;
+
+  switch (_0init_1rd_2wr) {
+  case 1:
+    for (i=0; i<PTIN_SYSTEM_N_UPLINK; i++) {
+      if (port == db[i].port) {//entry (port) found
+        *linkstatus = db[i].linkstatus;
+        return L7_SUCCESS;
+      }
+    }//for
+
+    //entry not found
+    return L7_NOT_EXIST;
+    //break;
+
+  case 2:
+    for (i=0, _1st_empty=-1; i<PTIN_SYSTEM_N_UPLINK; i++) {
+      if (port == db[i].port) { //entry (port) found
+        db[i].linkstatus = *linkstatus;
+        PT_LOG_TRACE(LOG_CTX_HAPI, "Writing port=%d *linkstatus=%d on entry i=%u", port, *linkstatus, i);
+        return L7_SUCCESS;
+      }
+      else
+      if (0xff == db[i].port /*|| 0xff == db[i].linkstatus*/) {   //empty entry
+          if (_1st_empty>=PTIN_SYSTEM_N_UPLINK) _1st_empty = i; //1st empty found, now
+      }
+    }//for
+
+    //entry not found
+    if (_1st_empty>=PTIN_SYSTEM_N_UPLINK) { //... and no empty entry
+      PT_LOG_ERR(LOG_CTX_HAPI,
+                 "Don't know how (as it shouldn't occur), but no empty entry found (PTIN_SYSTEM_N_UPLINK=%u)",
+                 PTIN_SYSTEM_N_UPLINK);
+      return L7_TABLE_IS_FULL;
+    }
+
+    db[_1st_empty].port = port;
+    db[_1st_empty].linkstatus = *linkstatus;
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Writing port=%d *linkstatus=%d on new entry _1st_empty=%u", port, *linkstatus, _1st_empty);
+    return L7_SUCCESS;
+    //break;
+
+  default: return L7_ERROR;
+  }//switch
+
+  return L7_SUCCESS;
+}
+#endif
 
 /**
  * Initialize HAPI PTin data structures

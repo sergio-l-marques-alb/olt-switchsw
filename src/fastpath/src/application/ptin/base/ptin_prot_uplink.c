@@ -26,6 +26,10 @@
 
 #include "fw_shm.h"
 
+#include "dtl_ptin.h"
+
+//#include "dapi_db.h"
+
 #define PROT_CALL_PROC_MS     10
 
 #define IS_TIMER_RUNNING(protIdx) (uplinkprot[protIdx].wait_restore_timer_CMD == WTR_CMD_START)
@@ -208,7 +212,7 @@ L7_RC_t ptin_prot_uplink_init(void)
  * @param slot
  * @param port
  * @param txdisable : L7_FALSE / L7_TRUE / -1
- *                    (-1 will enable enable ALS)
+ *                    (-1 will enable ALS)
  * 
  * @return L7_RC_t 
  */
@@ -366,6 +370,81 @@ L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
                    try, slot, ipAddr);
         return L7_FAILURE;
       }
+    }
+
+    return L7_SUCCESS;
+}
+
+
+/**
+ * Control uplink PHY 
+ * 1st ETH UPLNKPROT version would act upon laser TX; SFR asked 
+ * afterwards to act upon the PHY (maintaining optical TX power)
+ * 
+ * @param slot
+ * @param port
+ * @param txdisable : L7_FALSE / L7_TRUE
+ * 
+ * @return L7_RC_t 
+ */
+static
+L7_RC_t ptin_remote_PHY_linkst_get(L7_uint16 slot, L7_uint16 port,
+                                   int link_status[])
+{
+    msg_prot_uplink_mon_FWCTRL_lnkst_t  cfg_msg,
+                                        answer[PTIN_SYSTEM_N_UPLINK];
+                                        // A priori need just 2
+    L7_uint32 answer_size;
+    L7_uint32 ipAddr = 0;
+    int ret;
+    unsigned int i;
+
+    if (NULL==link_status) {
+      PT_LOG_ERR(LOG_CTX_INTF, "NULL==link_status (slotId:%u)", slot);
+      return L7_ERROR;
+    }
+
+#if (PTIN_BOARD_IS_STANDALONE)
+    ipAddr = simGetIpcIpAddr();
+    if (0x00 == ipAddr)
+#else
+    /* Determine the IP address of the working port/slot */
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
+#endif
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
+      return L7_ERROR;
+    }
+
+    /* Prepare message contents */
+    memset(&cfg_msg, 0x00, sizeof(msg_prot_uplink_mon_FWCTRL_lnkst_t));
+    cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
+    cfg_msg.BoardType = ENDIAN_SWAP8(0);
+    cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
+
+    PT_LOG_TRACE(LOG_CTX_INTF,
+                 "Sending message to slotId %u / ipAddr 0x%08x",
+                 slot, ipAddr);
+
+    //answer_size = sizeof(L7_uint32);
+    ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
+                           ipAddr,
+                           CHMSG_ETH_UPLNKPROT_MON_FWCTRL_LNKST,
+                           (char *) &cfg_msg,
+                           (char *) answer,
+                           sizeof(msg_prot_uplink_mon_FWCTRL_lnkst_t),
+                           &answer_size);
+
+    if (ret != 0)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,
+                 "Error communicating to slotId %u / ipAddr 0x%08x",
+                 slot, ipAddr);
+      return L7_FAILURE;
+    }
+
+    for (i=0; i<answer_size; i++) {
+        link_status[i] = answer[i].lnkst;
     }
 
     return L7_SUCCESS;
@@ -4252,6 +4331,128 @@ L7_RC_t ptin_prot_uplink_slot_reload(L7_uint16 slot)
   return L7_SUCCESS;
 }//ptin_prot_uplink_slot_reload
 #endif
+
+
+
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G /*&& defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)*/)
+void ptin_prot_uplink_mon_FWCTRL_lnkst(void) {
+  static int _1st_time=1, linkstatus[PTIN_SYSTEM_N_UPLINK];
+
+  unsigned int i;   //linkstatus index
+  int lk_st_tmp[PTIN_SYSTEM_N_UPLINK];
+  L7_uint32 ptin_port, intIfNum;
+  L7_uint16 slot, sport;
+
+  dtl_FWCTRL_lnkst entry;
+  L7_RC_t rc;
+
+
+  if (_1st_time) {
+   for (i=0; i<PTIN_SYSTEM_N_UPLINK; i++) {
+     linkstatus[i] = -1;
+   }
+    _1st_time = 0;
+  }
+
+  for (i=0; i<PTIN_SYSTEM_N_UPLINK; i++) {  //Marking "not yet filled"
+    lk_st_tmp[i] = -1;
+  }
+
+  for (ptin_port = 0, i=0;
+       ptin_port < ptin_sys_number_of_ports && i<PTIN_SYSTEM_N_UPLINK;
+       ptin_port++) {
+    // Check ptin_intf_dump()
+    slot = sport = 0;
+    rc = ptin_intf_port2SlotPort(ptin_port, &slot, &sport, L7_NULLPTR);
+    // ptin_intf_port2SlotPort() returns slot=0 for local/UPLNK ports (which you can also check running fp.dev ptin_intf_dump)...
+    if (L7_SUCCESS != rc)
+    {
+      slot  = 0;
+      sport = ptin_port;
+    }
+
+    //We just want PTIN_SYSTEM_N_UPLINK, PTIN_SYSTEM_N_LOCAL_PORTS ptin_ports
+    if (0!=slot) continue;
+
+    { //...but now we need to know not slot=0 but whether PTIN_SYS_MX1_SLOT or PTIN_SYS_MX2_SLOT!
+
+      //Due to the following faillure, for the time being we'll use this "hammer/nail" (FIXME)
+      //https://jira.ptin.corppt.com/browse/OLTTS-49822?focusedId=1793501&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-1793501
+      //Please check the other CAVEAT below
+      const
+      L7_uint16 cxo160g_slot[PTIN_SYSTEM_N_UPLINK] = {PTIN_SYS_MX1_SLOT,
+                                                      PTIN_SYS_MX1_SLOT,
+                                                      PTIN_SYS_MX2_SLOT,
+                                                      PTIN_SYS_MX2_SLOT};
+
+      PT_LOG_TRACE(LOG_CTX_INTF,
+                   "ptin_port=%u, i=%u, slot=%u, cxo160g_slot[i]=%u, sport=%u,"
+                   "    ptin_intf_port2SlotPort()=%d",
+                   ptin_port, i, slot, cxo160g_slot[i], sport, rc);
+
+      slot = cxo160g_slot[i];
+    }
+
+    //Send MSG to FWCTRL, to monitor this link @VSC8488 PHY (preferably) or the laser optical power
+    {
+      int lk_st_tmp2[PTIN_SYSTEM_N_UPLINK]; //ptin_remote_PHY_linkst_get() fills just 1 or 2 ports...
+
+      if (0 == 1+lk_st_tmp[i]) {   //Not filled yet
+        rc = ptin_remote_PHY_linkst_get(slot, 0xff /* Get all slot's ports in 1 msg... */, lk_st_tmp2);
+        if (L7_SUCCESS == rc) {
+          lk_st_tmp[i] = lk_st_tmp2[0];
+          lk_st_tmp[i+1] = lk_st_tmp2[1];
+
+          PT_LOG_TRACE(LOG_CTX_INTF,
+                       "ptin_remote_PHY_linkst_get(slot=%u, ...) => lk_st_tmp2[]={%d, %d}",
+                       slot, lk_st_tmp2[0], lk_st_tmp2[1]);
+        }
+        else {
+#if 0     //If error, that could mean no board => no link...
+          lk_st_tmp[i] = 0;
+          lk_st_tmp[i+1] = 0;
+#else     //...or, more conservatively, let's not change the alarm and rely on normal SWDRV alarm processing, in that case
+          lk_st_tmp[i] = linkstatus[i];
+          lk_st_tmp[i+1] = linkstatus[i+1];
+#endif
+          PT_LOG_ERR(LOG_CTX_INTF, "ptin_remote_PHY_linkst_get(slot=%u, ...) = %d", slot, rc);
+        }
+        //CAVEAT: we're relying on each CXO160G's pair of interfaces being contiguous
+      }//if (0xff == lk_st_tmp[i]...
+    }//Send MSG to FWCTRL...
+
+    if (lk_st_tmp[i] != linkstatus[i]) {//Alarm transition
+      linkstatus[i] = lk_st_tmp[i];
+      PT_LOG_DEBUG(LOG_CTX_INTF,
+                   "linkstatus[%u (ptin_port=%u)] transition to %d",
+                   i, ptin_port, linkstatus[i]);
+
+      //Send FWCTRL alarm transition to ANDL/HAPI, so SWDRV adds it to the usual alarms' flow
+      rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+      if (L7_SUCCESS != rc) {
+        PT_LOG_ERR(LOG_CTX_INTF, "ptin_intf_port2intIfNum(ptin_port=%u, ...) = %d", ptin_port, rc);
+      }
+      else {
+        entry.link_status = lk_st_tmp[i];
+        rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_FWCTRL_LNKSTATUS, DAPI_CMD_SET, sizeof(dtl_FWCTRL_lnkst), &entry);
+        if (L7_SUCCESS != rc) {
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "dtlPtinGeneric(intIfNum=%u (ptin_port=%u), PTIN_DTL_MSG_FWCTRL_LNKSTATUS, ...[link_status=%d]...) = %d",
+                       intIfNum, ptin_port, lk_st_tmp[i], rc);
+        }
+        else PT_LOG_DEBUG(LOG_CTX_INTF,
+                          "dtlPtinGeneric(intIfNum=%u (ptin_port=%u), PTIN_DTL_MSG_FWCTRL_LNKSTATUS, ...[link_status=%d]...) OK",
+                          intIfNum, ptin_port, lk_st_tmp[i]);
+      }//else
+    }//if (lk_st_tmp[i]
+
+    i++;
+  }//for (ptin_port ...
+}//ptin_prot_uplink_mon_FWCTRL_lnkst
+#endif
+
+
 
 
 void ptin_prot_uplink_dump(L7_uint8 protIdx)

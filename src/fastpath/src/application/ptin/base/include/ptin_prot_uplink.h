@@ -437,5 +437,28 @@ extern L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx);
  */
 extern L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event);
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G /*&& defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)*/)
+
+
+/**
+ * Under defect... 
+ * https://jira.ptin.corppt.com/browse/OLTTS-49822 ([Ethernet 
+ * Protection] Incoherence between cli.olt link status and 
+ * SWDRV's on ETH UPLNK PROT instances' interfaces) 
+ * ... circumstances, swdrv becomes "blind" to fiber cut/restore 
+ * events, i.e.hapiBroadPortLinkStatusChange() stops being 
+ * called. 
+ *  
+ * So we monitor FWCTRL link status (VSC8488 PHY), feeding it to 
+ * SWDRV 
+ * 
+ * @author rcosta@alticelabs.com (Jan2023)
+ * 
+ * @param void
+ * 
+ * @return void
+ */
+extern void ptin_prot_uplink_mon_FWCTRL_lnkst(void);
+#endif
 #endif /* _PTIN_PROT_UPLINK__H */
 

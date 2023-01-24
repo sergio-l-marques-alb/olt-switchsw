@@ -361,6 +361,7 @@
 #define CHMSG_TUxG_ETH_CONFIG                     0x9411    /* msg_HwEthernet_t */
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
 #define CHMSG_ETH_CONFIG_UPLNKPROT_DISBL_JUST_TX  0x9415    /* msg_UplnkProtDisJustTX */
+#define CHMSG_ETH_UPLNKPROT_MON_FWCTRL_LNKST      0x9418
 #else   /*#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)*/
 #define CHMSG_ETH_CONFIG_UPLNKPROT_DISBL_JUST_TX  0x9419    /* msg_UplnkProtDisJustTX */
 #endif
@@ -3294,6 +3295,15 @@ typedef struct
 
   unsigned long        enable;                       //enable/disable TX
 } __attribute__ ((packed)) msg_UplnkProtDisJustTX;
+
+
+typedef struct {
+     uint8_t        slotIndex;                // Indice do slot
+     uint8_t        BoardType;                // Tipo de Carta
+     uint8_t        InterfaceIndex;           // Indice do interface
+
+     int            lnkst;
+} __attribute__ ((packed)) msg_prot_uplink_mon_FWCTRL_lnkst_t;
 
 
 typedef struct 

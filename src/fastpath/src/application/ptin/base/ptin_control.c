@@ -369,6 +369,17 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     /* Monitor alarms */
     monitor_alarms();
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    {
+        static unsigned int c=-2;
+
+        if (++c >= 5) { /* 5s (PTIN_LOOP_TICK is 1s) */
+            c=0;
+            ptin_prot_uplink_mon_FWCTRL_lnkst();
+        }
+    }
+#endif
+
     /* Synchronize recovery clocks */
     ptin_control_syncE();
   }
