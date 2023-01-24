@@ -715,7 +715,7 @@ void ptin_intf_dump(void)
     }
     if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_DTL, "Failed to convert ptin_port %u / intIfnum %u to USP", intIfNum, port);
+      PT_LOG_ERR(LOG_CTX_DTL, "Failed to convert ptin_port %u / intIfnum %u to USP", port, intIfNum);
       continue;
     }
 
