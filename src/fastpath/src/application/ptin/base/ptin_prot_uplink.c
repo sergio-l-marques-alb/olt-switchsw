@@ -27,7 +27,6 @@
 #include "fw_shm.h"
 
 #include "dtl_ptin.h"
-
 //#include "dapi_db.h"
 
 #define PROT_CALL_PROC_MS     10
