@@ -149,6 +149,8 @@ static void ptin_control_syncE(void);
 /* 10ms task */
 void _10msTask(void);
 
+void batch_task(void);
+
 /* Task for processing messages */
 void ptin_control_task_process(void);
 
@@ -347,6 +349,21 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PT_LOG_INFO(LOG_CTX_CONTROL, "ptinIntfChangeCallback registered!");
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      if (osapiTaskCreate("batch task", batch_task, 0, 0,
+                          L7_DEFAULT_STACK_SIZE,
+                          L7_MEDIUM_TASK_PRIORITY,
+                          L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create batch_task()!");
+    PTIN_CRASH();
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_CNFGR, "batch_task() launch OK");
+  }
+#endif
+
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "Free ptin_ready_sem:%p", ptin_ready_sem);
 
   /* Signal correct initialization */
@@ -368,17 +385,6 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
     /* Monitor alarms */
     monitor_alarms();
-
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-    {
-        static unsigned int c=-2;
-
-        if (++c >= 5) { /* 5s (PTIN_LOOP_TICK is 1s) */
-            c=0;
-            ptin_prot_uplink_mon_FWCTRL_lnkst();
-        }
-    }
-#endif
 
     /* Synchronize recovery clocks */
     ptin_control_syncE();
@@ -3006,7 +3012,7 @@ void hpcConfigWCmap_test(L7_uint mode)
 
 
 /**
- * Task for processing 10ms periodicity events
+ * 
  */
 void reboot_task(void)
 {
@@ -3054,6 +3060,56 @@ L7_RC_t ptin_control_reboot(void)
 
   return L7_SUCCESS;
 }
+
+/** 
+ * Task for running slow frequency, not necessarily precise 
+ * events. 
+ *  
+ * Created out of the need to run 
+ * ptin_prot_uplink_mon_FWCTRL_lnkst(), which sends data and 
+ * waits for responses on an ipc socket (ergo might hold the 
+ * thread for some time). 
+ *  
+ * If needed for some other routine with similar 
+ * context/requirements... 
+ *  
+ */
+void batch_task(void) {
+    PT_LOG_NOTICE(LOG_CTX_CONTROL, "Starting...");
+
+    osapiSleep(30);
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    /* Loop */
+    while (1)
+    {
+        static unsigned int c=-2;
+
+        if (++c >= 5) {
+            c=0;
+            ptin_prot_uplink_mon_FWCTRL_lnkst();
+        }
+
+        osapiSleep(1);
+    }//while
+#endif
+
+      PT_LOG_NOTICE(LOG_CTX_CONTROL, "... and ending!");
+}//batch_task
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 
 #include "../../switching/link_aggregation/core/include/dot3ad_db.h"
