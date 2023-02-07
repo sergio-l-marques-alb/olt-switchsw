@@ -361,10 +361,10 @@
 #define CHMSG_TUxG_ETH_CONFIG                     0x9411    /* msg_HwEthernet_t */
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
 #define CHMSG_ETH_CONFIG_UPLNKPROT_DISBL_JUST_TX  0x9415    /* msg_UplnkProtDisJustTX */
-#define CHMSG_ETH_UPLNKPROT_MON_FWCTRL_LNKST      0x9418
 #else   /*#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)*/
 #define CHMSG_ETH_CONFIG_UPLNKPROT_DISBL_JUST_TX  0x9419    /* msg_UplnkProtDisJustTX */
 #endif
+#define CHMSG_ETH_UPLNKPROT_MON_FWCTRL_LNKST      0x9418
 
 /*Multicast Package Defines*/
 #ifndef PTIN_IGMP_PACKAGE_MASK_UNIT

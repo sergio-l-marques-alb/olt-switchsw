@@ -375,6 +375,7 @@ L7_RC_t ptin_remote_PHY_control(L7_uint16 slot, L7_uint16 port,
 }
 
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G /*&& defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)*/)
 /**
  * Control uplink PHY 
  * 1st ETH UPLNKPROT version would act upon laser TX; SFR asked 
@@ -448,6 +449,7 @@ L7_RC_t ptin_remote_PHY_linkst_get(L7_uint16 slot, L7_uint16 port,
 
     return L7_SUCCESS;
 }
+#endif
 
 /**
  * Blocking mechanism split: 
