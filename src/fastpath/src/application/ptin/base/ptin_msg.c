@@ -6788,6 +6788,15 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
         ptinEvcPort.action_outer = PTIN_XLATE_ACTION_REPLACE;
         ptinEvcPort.action_inner = PTIN_XLATE_ACTION_NONE;
 
+        /* Adjust outer VID considering the port virtualization scheme */
+        if (ptin_intf_portGem2virtualVid(ptintf2port(ptinEvcPort.intf.value.ptin_intf.intf_type, 
+                                                     ptinEvcPort.intf.value.ptin_intf.intf_id),
+                                         ptinEvcPort.vid,
+                                         &ptinEvcPort.vid) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining the virtual VID from GEM VID %u", ptinEvcPort.vid);
+        }
+    
         PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     ext_evc_id,
                   ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
         PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id);
