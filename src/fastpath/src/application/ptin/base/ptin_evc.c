@@ -10064,7 +10064,22 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     #endif
        )
     {
+#if (PTIN_BOARD == PTIN_BOARD_TC16SXG) 
+      /* The Aspen does not add c-uni tag on
+         Unicast unstacked service, removing the inner vlan
+         on this situations removed paylod VLAN's*/
+        if ((evcs[evc_id].flags == PTIN_EVC_MASK_MACLEARNING) && 
+            !is_stacked) 
+        {
+            egress_del_ivlan = 0;
+        }
+        else
+        {
+            egress_del_ivlan = !is_stacked;
+        }
+#else
       egress_del_ivlan = !is_stacked;
+#endif
     }
     /* For Unstacked MAC-Bridge services - @downstream direction - a new TAG will be added as new outer VLAN */
     /* This way, payload data goes after the second tag, and will be preserved to the ONT */
