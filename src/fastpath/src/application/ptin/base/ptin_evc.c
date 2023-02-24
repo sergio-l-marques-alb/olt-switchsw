@@ -3855,10 +3855,12 @@ _ptin_evc_port_remove1:
     return rc;
   }
 
-  /* If there is only 1 port, EVC will be destroyed, except root ports on Linecards.
+  /* If there is only 1 port, EVC will be destroyed, except with is root ports on Linecards
+     of non P2MP (unicast and bitsteam unstacked).
      On SF doens't make sense to have a EVC without root ports */
 #if (PTIN_BOARD_IS_GPON)
-  if ((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) < 1)
+  if (((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) < 1) || 
+      ((evcs[evc_idx].n_leafs == 0) && !IS_EVC_P2MP(evc_idx)))
 #else
   if ((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) <= 1)
 #endif
