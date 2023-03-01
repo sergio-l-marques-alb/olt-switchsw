@@ -3860,7 +3860,7 @@ _ptin_evc_port_remove1:
      On SF doens't make sense to have a EVC without root ports */
 #if (PTIN_BOARD_IS_GPON)
   if (((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) < 1) || 
-      ((evcs[evc_idx].n_leafs == 0) && !IS_EVC_P2MP(evc_idx)))
+      ((evcs[evc_idx].n_leafs == 0) && (IS_EVC_STD_P2MP(evc_idx) == 0)))
 #else
   if ((evcs[evc_idx].n_roots + evcs[evc_idx].n_leafs) <= 1)
 #endif
