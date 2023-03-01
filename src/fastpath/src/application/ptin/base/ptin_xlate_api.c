@@ -713,7 +713,7 @@ L7_RC_t ptin_xlate_ingress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   xlate.outerVlanAction = intf_vlan->action_outer;
   xlate.innerVlanAction = intf_vlan->action_inner;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
-  xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
+  xlate.innerPrioAction = (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_COPY : PTIN_XLATE_ACTION_NONE;
 
   /* If inner VLAN is to be added, no information should be provided about the input inner vlan (no push allowed to the inner tag) */
   if (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD)
@@ -1113,6 +1113,7 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   xlate.outerVlanAction = intf_vlan->action_outer;
   xlate.innerVlanAction = intf_vlan->action_inner;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
+  xlate.innerPrioAction = (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_COPY : PTIN_XLATE_ACTION_NONE;
   xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
 
   /* If inner VLAN is to be added, no information should be provided about the input inner vlan (no push allowed to the inner tag) */

@@ -6399,8 +6399,9 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 #endif
 
-  // OLTTS - 17139
-#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+/* Added on OLTTS - 17139 and removed on OLTTS-50670 because this rule was affecting
+   all the double traffic egressing the system */
+#if 0 /*(PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)*/
   {
     L7_uint8  prio_mask  = 0x7;
     L7_uint8  vlanFormat_value, vlanFormat_mask;
