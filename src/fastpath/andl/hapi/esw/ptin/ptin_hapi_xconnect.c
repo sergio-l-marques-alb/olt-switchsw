@@ -790,6 +790,13 @@ L7_RC_t ptin_hapi_l2intf_create(ptin_dapi_port_t *dapiPort,
     action.dt_outer = bcmVlanActionReplace;
     action.new_outer_vlan = match_ovid;
     
+#if (PTIN_BOARD != PTIN_BOARD_TG16G)
+    /*on tg16g this operation is done on EFP*/
+    action.ot_inner_pkt_prio = bcmVlanActionCopy;
+    action.dt_inner_pkt_prio = bcmVlanActionCopy;
+    action.dt_inner_prio = bcmVlanActionCopy;
+#endif
+
     /* for outer tagged packet => inner tag added with cvid */
     action.ot_inner = bcmVlanActionAdd;
     action.dt_inner = bcmVlanActionReplace;
