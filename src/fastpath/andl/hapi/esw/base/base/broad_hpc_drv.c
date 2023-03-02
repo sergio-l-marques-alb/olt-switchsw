@@ -417,6 +417,8 @@ L7_RC_t hapiBroadRtag7SwitchControlSet(int unit)
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* this hash configuration prove to work better on cxo160g*/
   arg = BCM_HASH_FIELD_CONFIG_CRC16CCITT;
+#elif (PTIN_BOARD == PTIN_BOARD_TG16G)
+  arg = BCM_HASH_FIELD_CONFIG_CRC16XOR4;
 #else
   arg = BCM_HASH_FIELD_CONFIG_CRC32LO;
 #endif
