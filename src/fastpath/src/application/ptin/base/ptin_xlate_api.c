@@ -714,7 +714,7 @@ L7_RC_t ptin_xlate_ingress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   xlate.innerVlanAction = intf_vlan->action_inner;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
 #if (PTIN_BOARD == PTIN_BOARD_TG16G)
-  /* this operation is not supported on this switch
+  /* this operation is not supported on this switch*/
   xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
 #else
   xlate.innerPrioAction = (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_COPY : PTIN_XLATE_ACTION_NONE;
@@ -1118,7 +1118,7 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   xlate.innerVlanAction = intf_vlan->action_inner;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
 #if (PTIN_BOARD == PTIN_BOARD_TG16G)
-  /* this operation is not supported on this switch
+  /* this operation is not supported on this switch*/
   xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
 #else
   xlate.innerPrioAction = (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_COPY : PTIN_XLATE_ACTION_NONE;
