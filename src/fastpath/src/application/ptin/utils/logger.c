@@ -302,20 +302,6 @@ swdrv_logger_sev_get( int ctx )
   return (int)sev;
 }
 
-/* Calls display_time_regs() from nbtools libtime */
-int swdrv_display_time_regs(void)
-{
-    calc_avgr();
-    display_time_regs();
-    return 0;
-}
-
-int swdrv_reset_time_regs(void)
-{
-    return reset_time_regs();
-}
-
-
 #if 0
 /* ====================================================================================== */
 /* ====================================================================================== */

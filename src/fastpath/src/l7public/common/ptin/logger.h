@@ -11,7 +11,6 @@
  
 #include "nbtools/logger.h"
 #include "nbtools/logpcap.h"
-#include "nbtools/libtime.h"
  
 //typedef enum {
 //  LOG_OUTPUT_DEFAULT=0,
@@ -128,14 +127,6 @@ swdrv_logger_ctx_text( int ctx );
  */
 extern int
 swdrv_logger_sev_get( int ctx );
-
-/* Calls display_time_regs() from nbtools libtime */
-int swdrv_display_time_regs(void);
-
-
-/* Calls reset_time_regs() from nbtools libtime */
-int swdrv_reset_time_regs(void);
-
 
 #define PT_LOG_PEDANTIC xLOG_PEDANT
 #define PT_LOG_TRACE    xLOG_TRACE
