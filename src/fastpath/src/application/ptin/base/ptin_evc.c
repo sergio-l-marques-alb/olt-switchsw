@@ -311,11 +311,13 @@ static L7_uint32 evcId_from_internalVlan[4096];
 static L7_uint16 n_quattro_evcs = 0;
 static L7_uint16 n_quattro_igmp_evcs = 0;
 
+/* This macros were implemented to counter QUATTRO stacked services, 
+   that only use one instance for all services */
 #define INCREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId) && IS_EVC_STACKED(evc_id))  (counter)++; }
 #define DECREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId) && IS_EVC_STACKED(evc_id) && (counter)>0)  (counter)--; }
 
-#define NO_INSTANCE(evcId, counter)       (!IS_EVC_QUATTRO(evcId) || ((counter) == 0))
-#define SINGLE_INSTANCE(evcId, counter)   (!IS_EVC_QUATTRO(evcId) || ((counter) <= 1))
+#define NO_INSTANCE(evcId, counter)       (!(IS_EVC_QUATTRO(evcId) && IS_EVC_STACKED(evc_id)) || ((counter) == 0))
+#define SINGLE_INSTANCE(evcId, counter)   (!(IS_EVC_QUATTRO(evcId) && IS_EVC_STACKED(evc_id)) || ((counter) <= 1))
 #else
 #define INCREMENT_QUATTRO_INSTANCE(evcId, counter)   
 #define DECREMENT_QUATTRO_INSTANCE(evcId, counter)   
