@@ -2151,7 +2151,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
           if (!SF[PORT_PROTECTION])
           {
             /* If no SF in protection -> Instant switch to protection machine-state */
-            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Normal => PROT_STATE_Protection state (%u)", i);
+            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_WorkAdmin => PROT_STATE_Protection state (%u)", i);
             uplinkprotSwitchTo(i, PORT_PROTECTION, PROT_LReq_LINK, __LINE__);
             uplinkprotFsmTransition(i, PROT_STATE_Protection, __LINE__);
           }
@@ -2184,7 +2184,7 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
           if (!SF[PORT_WORKING])
           {
             /* If no SF in working -> Instant switch to Normal machine-state (Working) */
-            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Protection => PROT_STATE_Normal state (%u)", i);
+            PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_ProtAdmin => PROT_STATE_Normal state (%u)", i);
             uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_LINK, __LINE__);
             uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
           }
@@ -2233,10 +2233,10 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       if (portType == PORT_WORKING)
       {
         if (state_machine == PROT_STATE_Protection) {
-          if (SF[PORT_PROTECTION]) {
+          if (SF[PORT_PROTECTION] || SD[PORT_PROTECTION]) {
             /* In normal machine-state and SF in working port -> Instant switch to protection */
             PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Protection => PROT_STATE_Normal state (%u)", i);
-            uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_LINK, __LINE__);
+            uplinkprotSwitchTo(i, PORT_WORKING, SF[PORT_PROTECTION]? PROT_LReq_LINK: PROT_LReq_BW, __LINE__);
             uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
 
             ptin_prot_timer_stop(i);
@@ -2256,11 +2256,11 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
       /* link up @ protection port */
       else
       {
-        if ((state_machine == PROT_STATE_Normal) && SF[PORT_WORKING])
+        if ((state_machine == PROT_STATE_Normal) && (SF[PORT_WORKING] || SD[PORT_WORKING]))
         {
           /* In normal machine-state and SF in working port -> Instant switch to protection */
           PT_LOG_INFO(LOG_CTX_INTF,"PROT_STATE_Normal => PROT_STATE_Protection state (%u)", i);
-          uplinkprotSwitchTo(i, PORT_PROTECTION, PROT_LReq_LINK, __LINE__);
+          uplinkprotSwitchTo(i, PORT_PROTECTION, SF[PORT_WORKING]? PROT_LReq_LINK: PROT_LReq_BW, __LINE__);
           uplinkprotFsmTransition(i, PROT_STATE_Protection, __LINE__);
 
           ptin_prot_timer_stop(i);
@@ -2279,37 +2279,35 @@ L7_RC_t uplinkProtEventProcess(L7_uint32 intIfNum, L7_uint16 event)
         break;
       }
 
+#if 0   /* Don't get this: wouldn't WTR timer in normal operation be stopped with this "if"? */
       /* Stopping timer if no alarm regarding to current por is detected */
       if ((!SF[portType] && !SD[portType]) && (uplinkprot[i].activePortType == portType) && (ptin_prot_timer_isrunning(i)))
       {
         PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: SD[%u]=0... stopping timer", portType, i);
         ptin_prot_timer_stop(i);
       }
+#endif
 
       if (state_machine == PROT_STATE_Normal)
       {
         /* Is protection port better? -> allocate timer to switch */
-        if (SD[PORT_WORKING])
+        if ((SD[PORT_WORKING] || SF[PORT_WORKING]) && !SF[PORT_PROTECTION]) /*A priori, SD[W] means no SF in any ...*/
         {
           PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: stateMachine=PROT_STATE_Normal, SD[W]=1", i);
-          if (!ptin_prot_timer_isrunning(i))
-          {
-            PT_LOG_DEBUG(LOG_CTX_INTF,"Going to start timer for protIdx %u", i);
-            ptin_prot_timer_start(i, uplinkprot[i].protParams.WaitToRestoreTimer); 
-          }
+          uplinkprotSwitchTo(i, PORT_PROTECTION, PROT_LReq_BW, __LINE__);
+          uplinkprotFsmTransition(i, PROT_STATE_Protection, __LINE__);
+          ptin_prot_timer_stop(i);
         }
       }
       else if (state_machine == PROT_STATE_Protection)
       {
         /* Is Working port better? -> allocate timer to switch */
-        if (SD[PORT_PROTECTION])
+        if ((SD[PORT_PROTECTION] || SF[PORT_PROTECTION]) && !SF[PORT_WORKING]) /*A priori, SD[P] means no SF in any ...*/
         {
           PT_LOG_DEBUG(LOG_CTX_INTF, "protIdx=%u: stateMachine=PROT_STATE_Protection, SD[P]=1", i);
-          if (!ptin_prot_timer_isrunning(i))
-          {
-            PT_LOG_DEBUG(LOG_CTX_INTF,"Going to start timer for protIdx %u", i);
-            ptin_prot_timer_start(i, uplinkprot[i].protParams.WaitToRestoreTimer); 
-          }
+          uplinkprotSwitchTo(i, PORT_WORKING, PROT_LReq_BW, __LINE__);
+          uplinkprotFsmTransition(i, PROT_STATE_Normal, __LINE__);
+          ptin_prot_timer_stop(i);
         }
         /* Check if revert (to working) should be applied */
         else if ((!SD[PORT_WORKING]) && (!SF[PORT_WORKING]) && (uplinkprot[i].protParams.revert2working))
