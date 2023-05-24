@@ -4360,7 +4360,7 @@ void ptin_prot_uplink_mon_FWCTRL_lnkst(void) {
 
   for (ptin_port = 0, i=0;
        ptin_port < ptin_sys_number_of_ports && i<PTIN_SYSTEM_N_UPLINK;
-       ptin_port++) {
+       ptin_port++, i++) {
     // Check ptin_intf_dump()
     slot = sport = 0;
     rc = ptin_intf_port2SlotPort(ptin_port, &slot, &sport, L7_NULLPTR);
@@ -4397,7 +4397,8 @@ void ptin_prot_uplink_mon_FWCTRL_lnkst(void) {
     {
       int lk_st_tmp2[PTIN_SYSTEM_N_UPLINK]; //ptin_remote_PHY_linkst_get() fills just 1 or 2 ports...
 
-      if (0 == 1+lk_st_tmp[i]) {   //Not filled yet
+      if (0 == i%2) {
+      //if (0 == 1 + lk_st_tmp[i]) {   //Not filled yet
         rc = ptin_remote_PHY_linkst_get(slot, 0xff /* Get all slot's ports in 1 msg... */, lk_st_tmp2);
         if (L7_SUCCESS == rc) {
           lk_st_tmp[i] = lk_st_tmp2[0];
@@ -4445,8 +4446,6 @@ void ptin_prot_uplink_mon_FWCTRL_lnkst(void) {
                           intIfNum, ptin_port, lk_st_tmp[i]);
       }//else
     }//if (lk_st_tmp[i]
-
-    i++;
   }//for (ptin_port ...
 }//ptin_prot_uplink_mon_FWCTRL_lnkst
 #endif
