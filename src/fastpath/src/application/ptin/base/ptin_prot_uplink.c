@@ -1828,7 +1828,7 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
       return L7_SUCCESS;
     }
     else if ((operator_switchToPortType[protIdx] == PORT_PROTECTION) &&
-             (uplinkprot[protIdx].state_machine != PROT_STATE_Protection) &&
+             (uplinkprot[protIdx].state_machine != PROT_STATE_ProtAdmin) &&
              (!uplinkprot[protIdx].statusSF[PORT_PROTECTION]))
     {
       PT_LOG_INFO(LOG_CTX_INTF,"=> PROT_STATE_ProtAdmin state (%u)", protIdx);
