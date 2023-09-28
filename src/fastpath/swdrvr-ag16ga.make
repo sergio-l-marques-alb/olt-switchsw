@@ -27,7 +27,12 @@ export CCACHE_DIR         = $(CURRENT_PATH)/.ccache
 CROSS_COMPILE             = arm-linux-
 
 # Kernel and SDK paths
-KERNEL_PATH = $(KERNEL_BASE)/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
+ifeq ($(KERNEL_SOURCE_DIR),)
+ KERNEL_PATH = $(KERNEL_BASE)/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
+else
+ KERNEL_PATH = $(KERNEL_SOURCE_DIR)
+endif
+
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.15/broadcom
 
 ifeq ($(DESTDIR),)
