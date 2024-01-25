@@ -276,6 +276,7 @@ typedef struct
 } ptin_dtl_ipmc_addr_t;
 
 /**  PTIN_DTL_MSG_TEMPERATURE_MONITOR */
+#define MAX_TEMPERATURE_SENSORS 10
 typedef struct
 {
   L7_int index;
@@ -284,7 +285,7 @@ typedef struct
   {
     L7_int16 curr_value;
     L7_int16 peak_value;
-  } sensors_data[10];
+  } sensors_data[MAX_TEMPERATURE_SENSORS];
 } ptin_dtl_temperature_monitor_t;
 
 

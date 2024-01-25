@@ -8028,7 +8028,7 @@ L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *temp_info)
 {
   bcm_error_t rv;
   int i, n=0, count=0;
-  bcm_switch_temperature_monitor_t temp_data[10];
+  bcm_switch_temperature_monitor_t temp_data[MAX_TEMPERATURE_SENSORS];
 
   //return L7_SUCCESS;
 
@@ -8044,10 +8044,10 @@ L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *temp_info)
     PT_LOG_TRACE(LOG_CTX_HAPI, "No data to be retrieved");
     return L7_SUCCESS;
   }
-  else if (temp_info->number_of_sensors < 0 || temp_info->number_of_sensors > 10)
+  else if (temp_info->number_of_sensors < 0 || temp_info->number_of_sensors > MAX_TEMPERATURE_SENSORS)
   {
     PT_LOG_TRACE(LOG_CTX_HAPI, "All sensors to be retrieved");
-    n = 10;
+    n = MAX_TEMPERATURE_SENSORS;
   }
   else
   {
