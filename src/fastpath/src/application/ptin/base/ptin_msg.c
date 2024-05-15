@@ -1110,6 +1110,8 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
   PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", ENDIAN_SWAP16(msgPhyConf->MaxFrame));
   PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", ENDIAN_SWAP8 (msgPhyConf->LoopBack));
   PT_LOG_DEBUG(LOG_CTX_MSG, " MACLearn Prio = %u", ENDIAN_SWAP8 (msgPhyConf->MacLearning));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Def VLAN      = %u", ENDIAN_SWAP16(msgPhyConf->def_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Def Prio      = %u", ENDIAN_SWAP8 (msgPhyConf->def_pcp));
   PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", ENDIAN_SWAP16(msgPhyConf->Mask));
 
   /* Copy the message data to a new structure (*/
@@ -1122,6 +1124,8 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
   phyConf.MaxFrame     = ENDIAN_SWAP16(msgPhyConf->MaxFrame);
   phyConf.LoopBack     = ENDIAN_SWAP8 (msgPhyConf->LoopBack);
   phyConf.autoneg      = ENDIAN_SWAP8(msgPhyConf->autoneg);
+  phyConf.def_vid      = ENDIAN_SWAP16(msgPhyConf->def_vid);
+  phyConf.def_pcp      = ENDIAN_SWAP8(msgPhyConf->def_pcp);
 
   /* Apply config */
   if ( ptin_intf_PhyConfig_set(&phyConf) != L7_SUCCESS )

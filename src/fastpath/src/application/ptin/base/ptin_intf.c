@@ -1203,6 +1203,33 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     }
   }
 
+  if (phyConf->Mask & PTIN_PHYCONF_MASK_DEFVLAN)
+  {
+    /* New VID: translation and verification */
+    if (ptin_xlate_PVID_set(intIfNum, phyConf->def_vid) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting VID %u", phyConf->def_vid);
+      return L7_FAILURE;
+    }
+  }
+
+  if (phyConf->Mask & PTIN_PHYCONF_MASK_DEFPCP)
+  {
+    /* Priority verification */
+    if (phyConf->def_pcp > 7)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Invalid Priority %u", phyConf->def_pcp);
+      return L7_FAILURE;
+    }
+
+    /* Apply Default Priority configuration */
+    if (usmDbDot1dPortDefaultUserPrioritySet(1, intIfNum, phyConf->def_pcp) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error applying Priority %u", phyConf->def_pcp);
+      return L7_FAILURE;
+    }
+  }
+
   /* Always clear counters after a reconfiguration */
   if (ptin_intf_counters_clear(port) != L7_SUCCESS)
   {

@@ -372,6 +372,8 @@ typedef struct
 #define PTIN_PHYCONF_MASK_PORTEN        0x0020
 #define PTIN_PHYCONF_MASK_MAXFRAME      0x0040
 #define PTIN_PHYCONF_MASK_AUTONEG       0x0400
+#define PTIN_PHYCONF_MASK_DEFVLAN       0x0800
+#define PTIN_PHYCONF_MASK_DEFPCP        0x1000
 
 typedef enum
 {
@@ -402,6 +404,8 @@ typedef struct {
   L7_uint8   PortEnable;        // 0x0020   0 - disabled; 1 - enabled
   L7_uint16  MaxFrame;          // 0x0040
   L7_uint8   autoneg;           // 0x0400   0 - disabled; 1 - enabled
+  L7_uint16  def_vid;           // 0x0800
+  L7_uint8   def_pcp;           // 0x1000
 } ptin_HWEthPhyConf_t;
 
 /* Switch Port PHY state */
