@@ -141,7 +141,7 @@ int swdrv_logger_init(void)
     strncpy(fc.filename, LOG_OUTPUT_FILE_DEFAULT, i);
     fc.max_size         =1UL<<21;
     fc.nr_files         =5;
-    fc.use_compression  =0;
+    fc.use_compression  =1;
     if (0 != logger_file_open(&fc, &default_file_id)) {
         printf("Error: logger_file_open(%s, 1200, &default_file_id) ret=%d\n", LOG_OUTPUT_FILE_DEFAULT, ret);
         return 2;
