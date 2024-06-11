@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ptin_globaldefs.h"
+//#include "ptin_stats.h"
 
 //DELETE /* Context strings */
 //DELETE static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
@@ -116,16 +117,20 @@ uint32_t swdrv_logger_get_default_fileid(void)
     return default_file_id;
 }
 
+static void ptin_logger_thread(void)
+{
+    int *arg= 0; /*not important, it is not used*/
+    thread_logrotate(arg); 
+}
 
 int swdrv_logger_init(void)
 {
     int           i;
     log_ret_t     ret;
-    uint32_t      /*file_id,*/ file_id2, file_id3;
+    uint32_t      /*file_id,*/ file_id2, file_id3, file_rate_mon_id;
     //log_config_t  config = { "App Teste", 10000, 0xC0A80101, 2222 };//unchanged default (from "example.c" file)
-    static log_config_t  config = { "swdrv", 10000, 0x7F000001, 2222 };
+    static log_config_t  config = { "swdrv", 0, 0, 0, LOG_THREAD_EXTERNAL};
     log_file_conf_t fc;
-
 
     /* Initialize */
     ret = logger_init(&config);
@@ -159,6 +164,12 @@ int swdrv_logger_init(void)
         return 4;
     }
 
+    strncpy(fc.filename, EVENT_RATE_MON_OUTPUT_FILE_DEFAULT, i);
+    if (0 != logger_file_open(&fc, &file_rate_mon_id)) {
+        printf("Error: logger_file_open(%s, 1200, &file_id) ret=%d\n", EVENT_RATE_MON_OUTPUT_FILE_DEFAULT, ret);
+        return 4;
+    }
+
     /* Update the contexts structure with the correct file_id */
     for (i=0; i<LOG_CONTEXT_LAST ; i++) {
         //strncpy(contexts[i].description, log_ctx_str[i], LOG_CTX_DESC_MAXLEN);
@@ -166,6 +177,9 @@ int swdrv_logger_init(void)
         contexts[i].file_id     = default_file_id;
     }
     contexts[LOG_CTX_EVENTS].file_id =  file_id3;
+
+    /* Set Event Rate Mon Output File for its context */
+    contexts[LOG_CTX_EVENT_RATE_MON].file_id =  file_rate_mon_id;
 
 // Move SDK events to the main Swdrv log file (temporatily)
 //    contexts[LOG_CTX_SDK].file_id =     file_id2;
@@ -180,6 +194,17 @@ int swdrv_logger_init(void)
     }
 
     logger_conf_dump();
+
+    ret = osapiTaskCreate("logrotate", ptin_logger_thread, 0, 0,
+                    L7_DEFAULT_STACK_SIZE,
+                    L7_DEFAULT_TASK_PRIORITY,
+                    L7_DEFAULT_TASK_SLICE);
+
+    if (ret == L7_ERROR)
+    {
+        printf("%s: osapiTaskCreate() for logrotation thread creation has failed.\n", __FUNCTION__);
+        return 6;
+    }
 
     xLOG_NOTICE(LOG_CTX_STARTUP, "Logger initialized!");
 
@@ -220,9 +245,147 @@ L7_int32 swdrv_logger_sev_set(unsigned int ctx_mask, int sev)
     return 0;
 }
 
+/**
+ * Set severity threshold of a context using its index in logger
+ *
+ * @param ctx_index index of the context affected
+ * @param sev severity threshold
+ *
+ * @return int Zero if OK, otherwise means error
+ */
+L7_int32 swdrv_logger_sev_set_index(uint16_t ctx_index, int sev)
+{
+    printf("Running %s function...\r\n", __FUNCTION__);
+    PT_LOG_NOTICE(LOG_CTX_LOGGER,"Going to change severity attributes: ctx_index= %u sev=%d",
+                  ctx_index, sev);
+
+    (void) log_sev_set(ctx_index, sev);
+    PT_LOG_NOTICE(LOG_CTX_LOGGER,"Log severity of context with index %u modified to %d", ctx_index, sev);
+    
+    return 0;
+}
+
 L7_int32 swdrv_logger_sev_set_(unsigned int ctx, int sev)
 {
     (void) log_sev_set(ctx, sev);
+    return 0;
+}
+
+/**
+ * Reset all severity contexts to default
+ * 
+ * @return Zero if OK, otherwise means error
+*/
+uint32_t swdrv_logger_sev_reset(void)
+{
+    int i;
+    for (i = 0; i < LOG_CONTEXT_LAST; i++)
+    {
+        (void) log_sev_set(i, contexts[i].severity);
+    }
+    return 0;
+}
+
+/**
+ * Gets contexts and corresponding severities and ids
+ *
+ * @param[inout] ret_ctx_sev array of struct containing context descriptions, severities and ids
+ * 
+ * @param[out] num_ctxs in- max contexts, out - number of contexts retrieved
+ * 
+ * @return 0 if all is ok // else : error
+ */
+int swdrv_logger_ctx_get(swdrv_ctx_info_t ret_ctx_sev[], uint32_t *num_ctxs) 
+{
+    log_ret_t rv;
+    log_ctx_entry_t aux_contexts[LOG_CTX_MAX_ENTRIES];
+
+    uint32_t n_ctx_static  = 0;
+    uint32_t n_ctx_dynamic = 0;
+
+    uint32_t offset = 0;            /* index to store dynamic contexts position in ret_ctx_sev array */
+    uint32_t offset_dyn_ctx = 0;    /* offset in which dynamic contexts start in the logger library */
+
+    int i;
+
+
+    if (NULL == ret_ctx_sev || NULL == num_ctxs )
+    {
+        PT_LOG_ERR(LOG_CTX_LOGGER, "Error: Null pointer input");
+        return -11; //RC_INVALID_PARAM;
+    }
+
+    if(*num_ctxs > LOG_CTX_MAX_ENTRIES)
+    {
+        PT_LOG_ERR(LOG_CTX_LOGGER, "Expected total nOf contexts (%u) exceeds maximum nOf entries (%d)", *num_ctxs, LOG_CTX_MAX_ENTRIES);
+        return -13; //RC_OTHER_ERRORS;
+    }
+
+
+    for(i = 0; i < *num_ctxs; i++)
+    {
+        memset(&ret_ctx_sev[i].sev,    0, sizeof(ret_ctx_sev[0].sev));
+        memset(&ret_ctx_sev[i].ctx_id, 0, sizeof(ret_ctx_sev[0].ctx_id));
+        memset(&ret_ctx_sev[i].desc,   0, LOG_CTX_DESC_MAXLEN + 1);
+    }
+
+    memset(aux_contexts, 0, sizeof(aux_contexts));
+
+    n_ctx_static = *num_ctxs;
+
+    /* Get static contexts info */
+    rv = logger_ctx_get(aux_contexts, &n_ctx_static);
+    if (rv != LOG_OK)
+    {
+        PT_LOG_ERR(LOG_CTX_LOGGER, "Error getting static contexts info");
+        return -1; //RC_FAILED;
+    }
+
+    if (n_ctx_static > *num_ctxs)
+    {
+        PT_LOG_ERR(LOG_CTX_LOGGER, "Static contexts exceed (%u) maximum nOf entries (%u)", n_ctx_static, *num_ctxs);
+        return -13; //RC_OTHER_ERRORS;
+    }
+
+    for (i = 0; i < n_ctx_static; i++)
+    {
+        memcpy(ret_ctx_sev[i].desc, aux_contexts[i].description, LOG_CTX_DESC_MAXLEN+1); 
+        ret_ctx_sev[i].desc[LOG_CTX_DESC_MAXLEN] = '\0';
+        ret_ctx_sev[i].ctx_id                    =  i;
+        ret_ctx_sev[i].sev                       =  aux_contexts[i].severity;
+        ret_ctx_sev[i].type                      =  LOG_STATIC;
+    }
+
+    memset(aux_contexts, 0, sizeof(aux_contexts));
+    n_ctx_dynamic = *num_ctxs;
+
+    /* Get dynamic contexts info */
+    rv = logger_ctx_dyn_get(aux_contexts, &n_ctx_dynamic, &offset_dyn_ctx);
+    if (rv != LOG_OK)
+    {
+        PT_LOG_ERR(LOG_CTX_LOGGER, "Error getting dynamic contexts info");
+        return -1; //RC_FAILED;
+    }
+
+    /* Number of contexts returned */
+    *num_ctxs = n_ctx_static + n_ctx_dynamic;
+
+    if (*num_ctxs > LOG_CTX_MAX_ENTRIES)
+    {
+        PT_LOG_ERR(LOG_CTX_LOGGER, "Total contexts (%u) exceed maximum nOf entries (%d)", *num_ctxs, LOG_CTX_MAX_ENTRIES);
+        return -13; //RC_OTHER_ERRORS;
+    }
+
+    for (i = 0; i < n_ctx_dynamic; i++)
+    {
+        offset = n_ctx_static + i;          
+        memcpy(ret_ctx_sev[offset].desc, aux_contexts[i].description, LOG_CTX_DESC_MAXLEN+1);
+        ret_ctx_sev[offset].desc[LOG_CTX_DESC_MAXLEN] = '\0';
+        ret_ctx_sev[offset].ctx_id                    =  offset_dyn_ctx+i;            
+        ret_ctx_sev[offset].sev                       =  aux_contexts[i].severity;
+        ret_ctx_sev[offset].type                      =  LOG_DYNAMIC;
+    }
+    
     return 0;
 }
 
@@ -303,6 +466,21 @@ swdrv_logger_sev_get( int ctx )
 }
 
 #if 0
+/* Calls display_time_regs() from nbtools libtime */
+int swdrv_display_time_regs(void)
+{
+    ptin_stats_libtime_db_dump();
+    return 0;
+}
+
+int swdrv_reset_time_regs(void)
+{
+    return ptin_stats_libtimes_reset();
+}
+#endif
+
+
+
 /* ====================================================================================== */
 /* ====================================================================================== */
 /*
@@ -316,7 +494,13 @@ logpcap_prot_entry_t protocols[PROT_LAST] =
 {
     {"IGMP",    { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
     {"LACP",    { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
-    {"DSP",     { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} }
+    {"DSP",     { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"PPPOE",   { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"DHCPV4",  { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"DHCPV6",  { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"UDP",     { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"ICMPV6",  { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} },
+    {"IPSG",    { 0 }, 0, LOGPCAP_REG_MODE_RAW,  {{0}, {0}, 0x0000} }
 };
 
 /* Number of protocols */
@@ -324,7 +508,6 @@ int n_prot = sizeof(protocols) / sizeof(protocols[0]);
 
 /* File index assigned by logpcap upon logpcap_file_open() call */
 uint32_t file_id;       /* Update logpcap_prot_entry_t 3rd parameter with this value */
-
 
 
 /**
@@ -371,6 +554,11 @@ int swdrv_logpcap_init(void)
     protocols[PROT_IGMP].file_id    = file_id;
     protocols[PROT_LACP].file_id    = file_id;
     protocols[PROT_DSP].file_id     = file_id;
+    protocols[PROT_PPPOE].file_id   = file_id;
+    protocols[PROT_DHCPV4].file_id  = file_id;
+    protocols[PROT_DHCPV6].file_id  = file_id;
+    protocols[PROT_ICMPV6].file_id  = file_id;
+    protocols[PROT_IPSG].file_id    = file_id;
     /* Update for other protocols as well (as new ones are created) */
 
     /* Enable all packet streams */
@@ -393,6 +581,7 @@ int swdrv_logpcap_init(void)
 
     return 0;
 }
+
 /**
  * Modify logpcap protocols configurations/filters at run-time
  */
@@ -410,4 +599,3 @@ void swdrv_logpcap_stream_conf_dump(int prot_id)
 {
     logpcap_stream_conf_dump(prot_id);
 }
-#endif

@@ -10,7 +10,9 @@
 #define LOG_OUTPUT_FILE_DEFAULT     FILESYSTEM_LOG_PATH "switchdrvr.log"
 #define LOG_OUTPUT_FILE_DEFAULT2    FILESYSTEM_LOG_PATH "switchdrvr_sdk.log"
 #define LOG_OUTPUT_FILE_DEFAULT3    FILESYSTEM_LOG_PATH "switchdrvr_events.log"
+//#define LOG_OUTPUT_FILE_MGMD        FILESYSTEM_LOG_PATH "mgmd.log"
 #define LOGPCAP_OUTPUT_FILE_DEFAULT FILESYSTEM_LOG_PATH "logpcap.pcap"
+#define EVENT_RATE_MON_OUTPUT_FILE_DEFAULT FILESYSTEM_LOG_PATH "rate_mon.log"
 
 /* ************************** */
 /* Global Features Activation */
