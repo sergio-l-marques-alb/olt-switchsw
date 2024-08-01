@@ -1210,6 +1210,18 @@ extern void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state);
  * @return none
  */
 extern void ptin_intf_dai_restore_defaults(void);
+
+/**
+ * Report links to fwctrl
+ * 
+*  @param    intIfNum [in] internal interface number
+ * @param    type     [in] link event type (L7_PORT_EVENTS_t)
+ * 
+ * @return L7_RC_t 
+ */
+extern
+L7_RC_t ptin_intf_link_report(L7_uint32 intIfNum, int type);
+
 #endif
 
 #endif  /* _PTIN_INTERFACE_H */
