@@ -31,6 +31,7 @@
 #include "ptin_fieldproc.h"
 #include "ptin_fpga_api.h"
 #include "ptin_msg.h"
+#include "lcfw/libHapiLcFw.h"
 
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
 int sysintf_to_vport_map_ae48ge[][PTIN_SYSTEM_N_ETH] = SYSINTF_TO_VPORT_MAP_AE48GEv3;
@@ -469,6 +470,107 @@ void ptin_intf_dai_restore_defaults(void)
   }
   return;
 }
+
+/**
+ * Report links to fwctrl
+ * 
+*  @param    intIfNum [in] internal interface number
+ * @param    type     [in] link event type (L7_PORT_EVENTS_t)
+ * 
+ * @return rc_t 
+ */
+L7_RC_t ptin_intf_link_report(L7_uint32 intIfNum, int type)
+{
+    BkLinkInfo_t cxfw_info;
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+    uint32_t slot_bckpl_ports;
+#endif
+    uint8_t link_state;
+    int32_t fwctrl_rc;
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+    if ((intIfNum <= PTIN_SYSTEM_N_ETH) || (intIfNum > PTIN_SYSTEM_N_PORTS))
+    {
+        PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfNum %u is not a backplane port: "
+                                     "ignoring link event notification for CxFw...",
+                                     intIfNum);
+        return L7_SUCCESS;
+    }
+#else 
+ #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+    if ((intIfNum <= PTIN_SYSTEM_N_PONS) || (intIfNum > PTIN_SYSTEM_N_PORTS))
+    {
+        PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfNum %u is not a backplane port: "
+                                     "ignoring link event notification for CxFw...",
+                                     intIfNum);
+        return L7_SUCCESS;
+    }
+ #else
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Invalid ptin board!");
+    return L7_FAILURE;
+ #endif
+#endif
+
+    /* Get link state */
+    if (type == L7_DOWN)
+    {
+        link_state = LINK_STATE_DOWN;
+    }
+    else if (type == L7_UP)
+    {
+        link_state = LINK_STATE_UP;
+    }
+    else
+    { 
+         PT_LOG_DEBUG(LOG_CTX_CONTROL, " Event type not needed to report fwctrl %u", type);
+         return L7_SUCCESS;
+    }
+
+    memset(&cxfw_info, 0x00, sizeof(cxfw_info));
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+    slot_bckpl_ports = (PTIN_SYSTEM_N_PORTS - PTIN_SYSTEM_N_ETH) / 2;
+
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting intIfNum %u from AE48GE (%u backplane ports per mx)",
+                                 intIfNum, slot_bckpl_ports);
+
+    cxfw_info.sfId = PTIN_SLOT_WORK;
+    cxfw_info.nniId = (intIfNum - 1) - PTIN_SYSTEM_N_ETH;
+
+    if (intIfNum > (PTIN_SYSTEM_N_ETH + slot_bckpl_ports))
+    {
+        cxfw_info.sfId = PTIN_SLOT_PROT;
+        cxfw_info.nniId -= slot_bckpl_ports;
+    }
+
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfnum %u is backplane port #%u from %s slot",
+                                 intIfNum,
+                                 cxfw_info.nniId, 
+                                 (cxfw_info.sfId == PTIN_SLOT_WORK) ? "working":"protection");
+
+#else
+    cxfw_info.sfId = 0xFF;
+    cxfw_info.nniId = intIfNum - 1 - PTIN_SYSTEM_N_PONS;
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting intIfNum %u from AG16GA", intIfNum);
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfnum %u is backplane port #%u",
+                                 intIfNum, cxfw_info.nniId);
+#endif
+
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting CxFw: sfid:%u, nnid:%u, link status:%u",
+                                 cxfw_info.sfId, cxfw_info.nniId, link_state);
+
+    fwctrl_rc = libHapiLcFw_set_bk_link_state(&cxfw_info, link_state);
+    if (fwctrl_rc != 0) 
+    {
+        PT_LOG_WARN(LOG_CTX_CONTROL, "Could not communicate with CxFw's HAPI intIfNum %u event "
+                                     "(rc=%d, MX=%u, link id=%u, link state=%u)",
+                                     intIfNum, fwctrl_rc, cxfw_info.sfId, cxfw_info.nniId, link_state);
+        return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+}
+
 #endif
 
 /****************************************************************************** 

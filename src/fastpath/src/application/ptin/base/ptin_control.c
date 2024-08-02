@@ -36,6 +36,7 @@
 #include "ptin_fpga_api.h"
 #include "ptin_prot_uplink.h"
 #include "fw_shm.h"
+#include "lcfw/libHapiLcFw.h"
 
 #include <usmdb_sim_api.h>
 
@@ -2386,6 +2387,7 @@ void ptinIntfTask(L7_uint32 numArgs, void *unit)
 {
   L7_RC_t rc;
   ptinIntfEventMsg_t eventMsg;
+  int32_t cxfw_rc;
 
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "PTinIntf running!");
 
@@ -2411,6 +2413,15 @@ void ptinIntfTask(L7_uint32 numArgs, void *unit)
     PT_LOG_INFO(LOG_CTX_CONTROL,"Failed to register events");
     PTIN_CRASH();
   }
+
+  /* Initialize CxFw lib to comunicate link status */
+  cxfw_rc = HapiLcFw_init(-1);
+  if (cxfw_rc)
+  {
+      PT_LOG_FATAL(LOG_CTX_CONTROL, "Could not initialize CxFw hapi lib: rc= %d", cxfw_rc);
+      PTIN_CRASH();
+  }
+
   PT_LOG_INFO(LOG_CTX_CONTROL,"Events registered successfully");
 
   #if 0
@@ -2569,14 +2580,25 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
       }
     }
 
-    PT_LOG_INFO(LOG_CTX_INTF, "LAG active members addition/remotion (%u) detected at interface intIfNum %u (LAG intIfNum is %u)",
-                eventMsg->event, eventMsg->intIfNum, lag_intIfNum);
+    PT_LOG_INFO(LOG_CTX_INTF, "LAG active members addition/remotion (%u) detected "
+                              "at interface intIfNum %u (LAG intIfNum is %u)",
+                              eventMsg->event, eventMsg->intIfNum, lag_intIfNum);
 
     rc = uplinkProtEventProcess(lag_intIfNum, eventMsg->event);
   }
   else
   {
-    PT_LOG_TRACE(LOG_CTX_CONTROL, "Unknown event detected at interface intIfNum %u", eventMsg->intIfNum);
+    PT_LOG_TRACE(LOG_CTX_CONTROL, "Unknown event detected at interface intIfNum %u",
+                                  eventMsg->intIfNum);
+  }
+
+  /*on this function always return rc because if any error occors 
+    below is not related with the link event but with the report to fwctrl*/
+  rc = ptin_intf_link_report(eventMsg->intIfNum, eventMsg->event);
+  if (rc != L7_SUCCESS)
+  {
+      PT_LOG_TRACE(LOG_CTX_CONTROL, "Unknown event detected at interface intIfNum %u",
+                                    eventMsg->intIfNum);
   }
 
   return rc;

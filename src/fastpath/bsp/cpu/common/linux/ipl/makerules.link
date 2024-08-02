@@ -262,7 +262,10 @@ $(exec_name): $(pkglib_file) $(pkgarc_file) $(iplobjs)
 		$(gc_option) -lm \
 		-Wl,-Bstatic $(CPPLIBS) $(OSLIBS_STATIC) \
 		-Wl,-Bdynamic $(OSLIBS) \
-        -Wl,--rpath-link=$(BUILDIR)/usr/local/lib \
+		-Wl,--rpath-link=$(BUILDIR_LOCAL)/usr/local/lib \
+		-Wl,--rpath-link=$(BUILDIR_LOCAL)/usr/local/lib/opensaf \
+		-Wl,--rpath-link=$(BUILDIR)/usr/local/lib \
+		-Wl,--rpath-link=$(BUILDIR)/usr/local/lib/opensaf \
 		$(GCOV_LINK)
 
 
