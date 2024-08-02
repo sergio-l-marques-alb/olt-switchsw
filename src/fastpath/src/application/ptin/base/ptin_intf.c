@@ -30,6 +30,7 @@
 #include "ptin_igmp.h" //Added for Admission Control Support
 #include "ptin_fieldproc.h"
 #include "ptin_fpga_api.h"
+#include "ptin_env_api.h"
 #include "ptin_msg.h"
 #include "lcfw/libHapiLcFw.h"
 
@@ -484,6 +485,23 @@ L7_RC_t ptin_intf_link_report(L7_uint32 intIfNum, int type)
     BkLinkInfo_t cxfw_info;
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
     uint32_t slot_bckpl_ports;
+    uint32_t mode;
+    /*          Mode 0    Mode 1     Mode 2
+    Backplane | Sysintf | Sysintf | Sysintf
+    ----------+---------+---------+--------
+            0 |   0-31  |   0-31  |  0-31  
+            1 |  32-35  |    x    |  32-35 
+            2 |  36-39  |    x    |  40-43 
+            3 |  40-43  |  32-39  |  36-39 
+            4 |  44-47  |  40-47  |  44-47 
+    ----------+---------+---------+-------- */
+    uint64_t bitmap[3][5] =
+    {
+        /* Mode 0 */{0x00000000FFFFFFFF, 0x0000000F00000000, 0x000000F000000000, 0x00000F0000000000, 0x0000F00000000000},
+        /* Mode 1 */{0x00000000FFFFFFFF,                  0,                  0, 0x000000FF00000000, 0x0000FF0000000000},
+        /* Mode 2 */{0x00000000FFFFFFFF, 0x0000000F00000000, 0x00000F0000000000, 0x000000F000000000, 0x0000F00000000000},
+    };
+
 #endif
     uint8_t link_state;
     int32_t fwctrl_rc;
@@ -530,9 +548,16 @@ L7_RC_t ptin_intf_link_report(L7_uint32 intIfNum, int type)
 
 #if (PTIN_BOARD == PTIN_BOARD_AE48GE)
     slot_bckpl_ports = (PTIN_SYSTEM_N_PORTS - PTIN_SYSTEM_N_ETH) / 2;
+    mode = ptin_env_board_config_mode_get();
 
-    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting intIfNum %u from AE48GE (%u backplane ports per mx)",
-                                 intIfNum, slot_bckpl_ports);
+    if (mode > 2)
+    {
+        PT_LOG_ERR(LOG_CTX_CONTROL, "Invalid board mode %u!", mode);
+        return L7_FAILURE;
+    }
+
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting intIfNum %u from AE48GE (mode:%u)",
+                                 intIfNum, mode);
 
     cxfw_info.sfId = PTIN_SLOT_WORK;
     cxfw_info.nniId = (intIfNum - 1) - PTIN_SYSTEM_N_ETH;
@@ -543,28 +568,38 @@ L7_RC_t ptin_intf_link_report(L7_uint32 intIfNum, int type)
         cxfw_info.nniId -= slot_bckpl_ports;
     }
 
-    PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfnum %u is backplane port #%u from %s slot",
+    if (cxfw_info.nniId >= 5)
+    {
+        PT_LOG_ERR(LOG_CTX_CONTROL, "Invalid backplane port index %u >= 5!", cxfw_info.nniId);
+        return L7_FAILURE;
+    }
+
+    cxfw_info.affectedPorts = bitmap[mode][cxfw_info.nniId];
+
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfnum %u is backplane port #%u from %s slot: affected ports:%llu",
                                  intIfNum,
                                  cxfw_info.nniId, 
-                                 (cxfw_info.sfId == PTIN_SLOT_WORK) ? "working":"protection");
+                                 (cxfw_info.sfId == PTIN_SLOT_WORK) ? "working":"protection",
+                                 cxfw_info.affectedPorts);
 
 #else
     cxfw_info.sfId = 0xFF;
     cxfw_info.nniId = intIfNum - 1 - PTIN_SYSTEM_N_PONS;
+    cxfw_info.affectedPorts = (0xF << (4 * cxfw_info.nniId));
     PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting intIfNum %u from AG16GA", intIfNum);
-    PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfnum %u is backplane port #%u",
-                                 intIfNum, cxfw_info.nniId);
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "IntIfnum %u is backplane port #%u: affected ports: %llu",
+                                 intIfNum, cxfw_info.nniId, cxfw_info.affectedPorts);
 #endif
 
-    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting CxFw: sfid:%u, nnid:%u, link status:%u",
-                                 cxfw_info.sfId, cxfw_info.nniId, link_state);
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Reporting CxFw: sfid:%u, nnid:%u, affected ports: %llu, link status:%u",
+                                 cxfw_info.sfId, cxfw_info.nniId, cxfw_info.affectedPorts, link_state);
 
     fwctrl_rc = libHapiLcFw_set_bk_link_state(&cxfw_info, link_state);
     if (fwctrl_rc != 0) 
     {
         PT_LOG_WARN(LOG_CTX_CONTROL, "Could not communicate with CxFw's HAPI intIfNum %u event "
-                                     "(rc=%d, MX=%u, link id=%u, link state=%u)",
-                                     intIfNum, fwctrl_rc, cxfw_info.sfId, cxfw_info.nniId, link_state);
+                                     "(rc=%d, MX=%u, link id=%u, affected ports: %llu, link state=%u)",
+                                     intIfNum, fwctrl_rc, cxfw_info.sfId, cxfw_info.nniId, cxfw_info.affectedPorts, link_state);
         return L7_FAILURE;
     }
 
