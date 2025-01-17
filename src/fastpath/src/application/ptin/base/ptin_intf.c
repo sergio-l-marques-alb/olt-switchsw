@@ -289,7 +289,7 @@ L7_RC_t ptin_intf_post_init(void)
   L7_uint   i;
   L7_RC_t   rc = L7_SUCCESS;
   ptin_intf_t ptin_intf;
-  L7_uint32 mtu_size;
+  L7_uint32 mtu_size, link;
 
   /* Initialize phy default TPID and MTU */
   for (i=0; i<ptin_sys_number_of_ports; i++)
@@ -300,6 +300,19 @@ L7_RC_t ptin_intf_post_init(void)
     phyExt_data[i].dtag_all2one_bundle  = L7_TRUE;
     phyExt_data[i].outer_tpid = PTIN_TPID_OUTER_DEFAULT;
 //    phyExt_data[i].inner_tpid = PTIN_TPID_INNER_DEFAULT;
+
+        /* Link State */
+    if (nimGetIntfLinkState(map_port2intIfNum[i], &link) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to get link state of port# %d", map_port2intIfNum[i]);
+      return L7_FAILURE;
+    }
+
+    rc = ptin_intf_link_report(map_port2intIfNum[i], link);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error reporting link port %d rc %d", i, rc);
+    }
 
     /* Disable front ports */
     if ((PTIN_SYSTEM_ETH_PORTS_MASK >> i) & 1)
