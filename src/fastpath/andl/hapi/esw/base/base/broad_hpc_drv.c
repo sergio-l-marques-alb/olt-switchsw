@@ -100,6 +100,7 @@
 #if 1
 #include "logger.h" /* PTin added */
 #include "ptin_hapi.h"
+#include "shm_startup_api.h"
 #define PTIN_TRAP_TO_CPU  0
 #endif
 
@@ -2806,6 +2807,7 @@ L7_RC_t hpcBroadInit()
     rv = sysconf_attach(bcom_unit);
     if (rv < 0)
     {
+        (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_ATTACH);
         PT_LOG_FATAL(LOG_CTX_STARTUP,"ERROR: SOC unit %d attach failed!", bcom_unit);
         L7_LOG_ERROR(0);
     }
@@ -2831,6 +2833,7 @@ L7_RC_t hpcBroadInit()
 
   if (total_bcom_units <= 0)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_ATTACH);
     PT_LOG_ERR(LOG_CTX_STARTUP,"No attached units.\n");
     L7_LOG_ERROR(0);
   }
@@ -2851,6 +2854,18 @@ L7_RC_t hpcBroadInit()
 
   for (bcom_unit=0; bcom_unit<total_bcom_units; bcom_unit++)
   {
+    if (bcom_unit == 0)
+    {
+      /* Switch init stage */
+      SHM_STARTUP_API_CHECK_LOG(
+          shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCM_SW1_INIT));
+    }
+    else
+    {
+      /* Switch init stage */
+      SHM_STARTUP_API_CHECK_LOG(
+          shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCM_SW2_INIT));
+    }
 
 #ifdef L7_TOOL_VALGRIND
       (void)soc_property_get(bcom_unit, spn_CDMA_TIMEOUT_USEC, 5000000);
@@ -2859,19 +2874,26 @@ L7_RC_t hpcBroadInit()
     /* This single call is going to initialise all the modules */
     if ((rc = systemInit(bcom_unit)) != BCM_E_NONE)
     {
+      (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_INIT);
       SYSAPI_PRINTF( SYSAPI_LOGGING_ALWAYS,
                      "\n%s %d: In %s call to 'systemInit' - FAILED : %d\n",
                      __FILE__, __LINE__, __FUNCTION__, rc);
       return L7_FAILURE;
     }
 
+    /* Switch MMU init stage */
+    SHM_STARTUP_API_CHECK_LOG(
+        shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCM_MMU_INIT));
+
     if ((rc = hapiBroadMmuInit()) != L7_SUCCESS)
     {
+      (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_MMU);
       L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_DRIVER_COMPONENT_ID,"hapiBroadMmuInit returned %d",rc);
     }
 
     if (hapiBroadMmuConfigModify(bcom_unit) != L7_SUCCESS) /* add cells to CPU COS 4-7 for bursts */
     {
+      (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_MMU);
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,
                     "%s: MMU configuration has failed.\n",
                     __FUNCTION__);
@@ -2886,6 +2908,10 @@ L7_RC_t hpcBroadInit()
   soc_trident_port_cbl_table_parity_set(0, 0);
   PT_LOG_NOTICE(LOG_CTX_STARTUP, "port_cbl_table_parity_set(0)");
 #endif
+  
+  /* Switch post init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCM_POST_INIT));
 
   /* 
    * Load post-SDK initialization SOC file.
@@ -2897,6 +2923,7 @@ L7_RC_t hpcBroadInit()
   board_info = hpcBoardGet();
   if (board_info == L7_NULL) 
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_DETECTION);
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS," In %s:%d, could not find the board\n",
 	              __FUNCTION__, __LINE__);
     return (L7_FAILURE);

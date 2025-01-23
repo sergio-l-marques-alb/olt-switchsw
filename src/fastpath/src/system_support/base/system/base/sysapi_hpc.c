@@ -37,6 +37,8 @@
 #include "compdefs.h"
 #include "bspapi.h"
 
+#include "shm_startup_api.h"
+
 extern HPC_UNIT_DESCRIPTOR_t hpc_unit_descriptor_db[];
 extern HPC_CARD_DESCRIPTOR_t hpc_card_descriptor_db[];
 static L7_uint32             hpcSlotPortCount[L7_MAX_PHYSICAL_SLOTS_PER_UNIT];
@@ -65,6 +67,8 @@ L7_RC_t sysapiHpcInit(void)
 
   if ((result = hpcDescriptorDbInit()) != L7_SUCCESS)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_INIT_STAGE);
+
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
             "hpcDescriptorDbInit: bad return code from sysapiHpcDescriptorDbInit call.\n");
     return(result);

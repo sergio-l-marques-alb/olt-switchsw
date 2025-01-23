@@ -52,6 +52,7 @@
 #endif
 
 #include "fw_shm.h"
+#include "shm_startup_api.h"
 
 //#include "sirerrors.h"
 //#include "traces.h"
@@ -198,22 +199,36 @@ void ptinApiCnfgrCommand(L7_CNFGR_CMD_DATA_t *pCmdData)
             switch ( request )
             {
               case L7_CNFGR_RQST_I_PHASE1_START:
+                /* PHASE 1 */
+                SHM_STARTUP_API_CHECK_LOG(
+                    shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_CNFGR_PHASE1_INIT));
                 if ((ptinRC = ptinCnfgrInitPhase1Process( &response, &reason )) != L7_SUCCESS)
                 {
+                  (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_CNFGR_INIT);
                   ptinCnfgrFiniPhase1Process();
                 }
                 break;
               case L7_CNFGR_RQST_I_PHASE2_START:
+                /* PHASE 2 */
+                SHM_STARTUP_API_CHECK_LOG(
+                    shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_CNFGR_PHASE2_INIT));
                 if ((ptinRC = ptinCnfgrInitPhase2Process( &response, &reason )) != L7_SUCCESS)
                 {
+                  (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_CNFGR_INIT);
                   ptinCnfgrFiniPhase2Process();
                 }
                 break;
               case L7_CNFGR_RQST_I_PHASE3_START:
+                /* PHASE 3 */
+                SHM_STARTUP_API_CHECK_LOG(
+                    shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_CNFGR_PHASE3_INIT));
                 if ((ptinRC = ptinCnfgrInitPhase3Process( &response, &reason )) != L7_SUCCESS)
                 {
+                  (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_CNFGR_INIT);
                   ptinCnfgrFiniPhase3Process();
                 }
+                SHM_STARTUP_API_CHECK_LOG(
+                    shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_CNFGR_POST_INIT));
                 break;
               case L7_CNFGR_RQST_I_WAIT_MGMT_UNIT:
                 ptinRC = ptinCnfgrNoopProccess( &response, &reason );
