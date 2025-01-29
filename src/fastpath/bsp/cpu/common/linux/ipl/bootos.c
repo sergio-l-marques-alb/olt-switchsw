@@ -362,7 +362,7 @@ int fp_main(int argc, char *argv[])
         }
         else if (status != SHM_STATUS_OK)
         {
-          xLOG_WARN(LOG_CTX_STARTUP, "HWINIT not ready....");
+          PT_LOG_WARN(LOG_CTX_STARTUP, "HWINIT not ready....");
           osapiSleep(1);
         }
       }
@@ -378,51 +378,7 @@ int fp_main(int argc, char *argv[])
   }
   else
   {
-    xLOG_WARN(LOG_CTX_STARTUP, "Skipping FPGA shared memory reading.");
-  }
-
-  /* FWCTRL shared memory is ready? */
-  if (shm_startup_app_is_open(SHMEM_APP_FWCTRL))
-  {
-    /* Going to WAIT status */
-    SHM_STARTUP_API_CHECK_EXIT(
-        shm_startup_swdrv_status_set(SHM_STATUS_WAITING, EXT_STATUS_WAIT_FWCTRL_STATUS_OK));
-
-    /* Do/While scope */
-    {
-      uint32_t status=0, ext_status=0, error=0;
-      do
-      {
-        if (shm_startup_app_get(SHMEM_APP_FWCTRL,  &status, &ext_status, &error) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP, "Error reading FWCTRL shared memory... skipping step.");
-          break;
-        }
-        if (status == SHM_STATUS_ERROR)
-        {
-          (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_APPS_STATUS_NOK);
-          PT_LOG_ERR(LOG_CTX_STARTUP, "FWCTRL is in error (%u)...", error);
-          osapiSleep(1);
-        }
-        else if (ext_status < EXT_STATUS_FWCTRL_CHECKPOINT_START)
-        {
-          PT_LOG_WARN(LOG_CTX_STARTUP, "FWCTRL not ready....");
-          osapiSleep(1);
-        }
-      }
-      while (ext_status < EXT_STATUS_FWCTRL_CHECKPOINT_START);
-    }
-
-    /* Closing share memory of FWCTRL app */
-    SHM_STARTUP_API_CHECK_LOG(shm_startup_app_close(SHMEM_APP_FWCTRL));
-
-    /* Going back to BOOTING status */
-    SHM_STARTUP_API_CHECK_EXIT(
-        shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_START));
-  }
-  else
-  {
-    PT_LOG_WARN(LOG_CTX_STARTUP, "Skipping FWCTRL shared memory reading.");
+    PT_LOG_WARN(LOG_CTX_STARTUP, "Skipping FPGA shared memory reading.");
   }
 
   /* Memory mapping stage */
