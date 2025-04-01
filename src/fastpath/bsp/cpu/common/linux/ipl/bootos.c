@@ -58,6 +58,7 @@
 #include "ptin_globaldefs.h"
 #include "ptin_env_api.h"
 #include <sys/resource.h>
+#include "shm_startup_api.h"
 /* PTin end */
 
 #include "hpc_hw_api.h"
@@ -257,6 +258,46 @@ int fp_main(int argc, char *argv[])
   L7_int32 startupStatusTaskID;
   L7_RC_t rc;
 
+  /* Set logger context for Shared memory */
+  shm_startup_set_log_context(LOG_CTX_STARTUP);
+  PT_LOG_WARN(LOG_CTX_STARTUP, "Switchdrvr shared memory non existent. Creating it...");
+
+  SHM_STARTUP_API_CHECK_EXIT(
+      shm_startup_swdrv_create());
+  
+  PT_LOG_DEBUG(LOG_CTX_STARTUP, "Continuing startup...");
+
+  /* Open Shared Memory */
+  SHM_STARTUP_API_CHECK_EXIT(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_START));
+  SHM_STARTUP_API_CHECK_EXIT(
+      shm_startup_swdrv_status_set(SHM_STATUS_WAITING, EXT_STATUS_WAIT_APPS_TO_START));
+
+  /* Open other shared memories */
+  if (shm_startup_app_open(SHMEM_APP_HWINIT, 60 /*tries*/, 1 /*pause_time*/) == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "HWINIT shared memory open!");
+  }
+  else
+  {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_APPS_MISSING);
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Failed opening HWINIT shared memory!");
+  }
+  
+  if (shm_startup_app_open(SHMEM_APP_FWCTRL, 60 /*tries*/, 1 /*pause_time*/) == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "HWINIT shared memory open!");
+  }
+  else
+  {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_APPS_MISSING);
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Failed opening FWCTRL shared memory!");
+  }
+
+  /* Going back to BOOTING status */
+  SHM_STARTUP_API_CHECK_EXIT(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_START));
+
   /* PTin added: Clock */
   #if 1
   extern pthread_cond_t osapiTimerCond;
@@ -296,12 +337,64 @@ int fp_main(int argc, char *argv[])
   }
 #endif
 
+  /* FPGA shared memory is open? */
+  if (shm_startup_app_is_open(SHMEM_APP_HWINIT))
+  {
+    /* Going to WAIT status */
+    SHM_STARTUP_API_CHECK_EXIT(
+        shm_startup_swdrv_status_set(SHM_STATUS_WAITING, EXT_STATUS_WAIT_HWINIT_STATUS_OK));
+
+    /* Do/While scope */
+    {
+      uint32_t status=0, ext_status=0, error=0;
+      do
+      {
+        if (shm_startup_app_get(SHMEM_APP_HWINIT,  &status, &ext_status, &error) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "Error reading HWINIT shared memory... skipping step.");
+          break;
+        }
+        if (status == SHM_STATUS_ERROR)
+        {
+          (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_APPS_STATUS_NOK);
+          PT_LOG_ERR(LOG_CTX_STARTUP, "HWINIT is in error (%u)...", error);
+          osapiSleep(1);
+        }
+        else if (status != SHM_STATUS_OK)
+        {
+          PT_LOG_WARN(LOG_CTX_STARTUP, "HWINIT not ready....");
+          osapiSleep(1);
+        }
+      }
+      while (status != SHM_STATUS_OK);
+    }
+    
+    /* Closing share memory of HWINIT app */
+    SHM_STARTUP_API_CHECK_LOG(shm_startup_app_close(SHMEM_APP_HWINIT));
+
+    /* Going back to BOOTING status */
+    SHM_STARTUP_API_CHECK_EXIT(
+        shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_START));
+  }
+  else
+  {
+    PT_LOG_WARN(LOG_CTX_STARTUP, "Skipping FPGA shared memory reading.");
+  }
+
+  /* Memory mapping stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_MEMMAP_STAGE));
+
   /* PTin added: CPLD and FPGA mapping */
   rc = ptin_fpga_init();
   if (rc != L7_SUCCESS)
   {
     return L7_FAILURE;
   }
+
+  /* Init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_INIT_STAGE));
 
   /* Initialize file system, timers, event log, HPC, and other
   ** system services.
@@ -353,11 +446,23 @@ int fp_main(int argc, char *argv[])
                    L7_DEFAULT_TASK_SLICE);
 #endif
 
+  /* Network Init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_NETWORK_INIT));
+
   osapiNetworkInit(); /* Initializes the IP Network */
 
   sysapiIfNetInit(); /* Initialize the sysapi network support layer */
 
+  /* DTL Init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_DTL_INIT));
+
   dtlNetInit(); /* Initialize DTL interface */
+
+  /* CNFGR Init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_CNFGR_INIT));
 
   /* Startup networking applications ----
    * Call the configurator to bring up the net application software */

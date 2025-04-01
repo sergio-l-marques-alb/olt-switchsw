@@ -36,6 +36,7 @@
 #include "ptin_fpga_api.h"
 #include "ptin_prot_uplink.h"
 #include "fw_shm.h"
+#include "shm_startup_api.h"
 #include "lcfw/libHapiLcFw.h"
 
 #include <usmdb_sim_api.h>
@@ -187,6 +188,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "PTin task will now start!");
 
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_PTIN_INIT));
+
   /* System StormControl no more supported */
   /* Initialize storm control */
   rc = ptin_stormControl_init();
@@ -200,6 +204,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   /* Initialize PTin Interface module data structures */
   if (ptin_intf_pre_init() != L7_SUCCESS)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_PTIN_INIT);
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin Interface module! CRASH!");
     PTIN_CRASH();
   }
@@ -207,6 +212,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   /* Apply configuration on DTL and lower layers */
   if (dtlPtinInit() != L7_SUCCESS)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_PTIN_INIT);
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin DTL module! CRASH!");
     PTIN_CRASH();
   }
@@ -215,6 +221,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
    * initialization, which can be guaranteed at this stage */
   if (ptin_intf_post_init() != L7_SUCCESS)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_PTIN_INIT);
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin Interface module! CRASH!");
     PTIN_CRASH();
   }
@@ -264,9 +271,13 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   /* Register a period timer */
   if (osapiPeriodicUserTimerRegister(PTIN_LOOP_TICK, &ptin_loop_handle) != L7_SUCCESS)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_PTIN_INIT);
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Error registering period timer! CRASH!");
     PTIN_CRASH();
   }
+
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_OK, EXT_STATUS_NORMAL_OPERATION));
 
 #if (!PTIN_BOARD_IS_STANDALONE)
   /* Unblock switchover monitor task */
@@ -322,6 +333,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_PTIN_INIT);
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_control_task_process task!");
     PTIN_CRASH();
   }

@@ -17,7 +17,6 @@
 * @end
 *
 *********************************************************************/
-
 #include "l7_common.h"
 #include "buff_api.h"
 #include "sysapi.h"
@@ -50,6 +49,7 @@
 
 /* PTin added: logger */
 #include "logger.h"
+#include "shm_startup_api.h"
 
 static cpudb_ref_t system_cpudb = L7_NULLPTR;
 static topo_cpu_t  system_topo;
@@ -208,6 +208,10 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   sal_assert_set((sal_assert_func_t)hapiBroadAssert);
 
+  /* Init SOC stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_SOC_INIT_STAGE));
+
   /* Initialise the System Abstraction Layer(SAL) of the Broadcom vendor 
    * Driver
    */
@@ -252,21 +256,28 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   if (soc_cm_init(&init_data) != SOC_E_NONE)
 #endif
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_SOC_INIT);
     L7_LOG_ERROR(0);
   }
   
   hapiBroadSocFileLoad("sdk-preinit.soc", L7_TRUE);
+
+  /* HW Probing stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCM_PROBE_STAGE));
  
   /* 
    * Initialize all devices on the PCI bus.
    */
   if (sysconf_probe() != 0)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_PROBE);
     L7_LOG_ERROR(1);
   }
   board_info = hpcBoardGet();
   
   if (board_info==L7_NULL) {
+      (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_DETECTION);
       SYSAPI_PRINTF( SYSAPI_LOGGING_ALWAYS,
                      "\n%s %d: In %s call to 'hpcBoardGet' - FAILED\n",
                      __FILE__, __LINE__, __FUNCTION__);
@@ -283,6 +294,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   if (hpcLocalUnitIdentifierMacGet((L7_enetMacAddr_t *)&(cpu_key.key)) != L7_SUCCESS)
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_POST_INIT);
     L7_LOG_ERROR(0);
   }
 
@@ -301,6 +313,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
      system_cpudb = hpcBroadLocalCpudbCreate ();
      if (system_cpudb == L7_NULLPTR)
      {
+       (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_POST_INIT);
        L7_LOG_ERROR(0);    
      }
 
@@ -309,28 +322,36 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
      if ((rv = topology_mod_ids_assign(system_cpudb)) != BCM_E_NONE)
      {
+      (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_POST_INIT);
        L7_LOG_ERROR(rv);
      }
 
      if ((rv = bcm_stack_topo_create(system_cpudb, &system_topo)) != BCM_E_NONE)
      {
+       (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_POST_INIT);
        L7_LOG_ERROR(rv);
      }
 
      /* PTin added: new SDK */
      if ((rv = topo_board_register(topo_board_default_board_program, NULL)) != BCM_E_NONE)
      {
+       (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_POST_INIT);
        L7_LOG_ERROR(rv);
      }
      /* PTin end */
 
      if ((rv = topo_board_program (system_cpudb, &system_topo)) != BCM_E_NONE)
      {
+       (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCM_POST_INIT);
        PT_LOG_ERR(LOG_CTX_STARTUP, "Error running topo_board_program: rv=%d", rv);
        L7_LOG_ERROR(rv);
      }
   }
 #endif
+
+  /* BCMX init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCMX_INIT));
 
 /* Added this for non-stackable, it was lifted from hpcBroadTransportInit */
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
@@ -342,6 +363,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
     rv = bcm_rx_init(i);
     if (rv < 0)
     {
+      (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCMX_INIT);
       PT_LOG_ERR(LOG_CTX_STARTUP,"RX init failed, unit %d\n", i);
       break;
     }
@@ -351,6 +373,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
       rv = bcm_rx_start(i, NULL);
       if (rv < 0)
       {
+        (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_BCMX_INIT);
         PT_LOG_ERR(LOG_CTX_STARTUP,"RX start failed unit %d\n", i);
         break;
       }
@@ -358,9 +381,17 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   }
 
+  /* RPC init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCM_RPC_INIT));
+
   hpcBroadRpcInit();
 
   usl_init();
+
+  /* Default config stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_BCM_DEFCONFIG_INIT));
 
   hpcHardwareDefaultConfigApply ();
 

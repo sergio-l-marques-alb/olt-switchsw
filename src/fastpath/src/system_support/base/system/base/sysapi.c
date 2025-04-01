@@ -42,6 +42,7 @@
 #include "trace_api.h"
 #include "cli_web_user_mgmt.h"
 #include "sdm_api.h"
+#include "shm_startup_api.h"
 
 #define  SYSAPI_FILE_BUF_SIZE   1024
 
@@ -179,6 +180,9 @@ void sysapiInit (void (*box_reset)(void))
 
   if (statsCfgInit() != L7_SUCCESS)
   {
+    SHM_STARTUP_API_CHECK_LOG(
+        shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_MEMORY));
+
     printf("Stats initialization failed\n");
     L7_LOG_ERROR(876);
   }
@@ -205,11 +209,18 @@ void sysapiInit (void (*box_reset)(void))
    * the routing heap. */
   if (routingStart() != L7_SUCCESS)
   {
+    SHM_STARTUP_API_CHECK_LOG(
+        shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_MISC));
+
     L7_LOGF(L7_LOG_SEVERITY_EMERGENCY, L7_IP_MAP_COMPONENT_ID,
         "Failed to initialize the routing infrastructure.");
     L7_LOG_ERROR(0);
   }
 #endif
+
+  /* Misc Init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_MISC_INIT));
 
   osapiMiscInit();
 
@@ -311,6 +322,10 @@ L7_RC_t sysapiSystemInit(void)
    */
   (void)sysapiHpcInit();
 
+  /* SEM+QUEUES init stage */
+  SHM_STARTUP_API_CHECK_LOG(
+      shm_startup_swdrv_status_set(SHM_STATUS_BOOTING, EXT_STATUS_BOOT_SEM_QUEUES_INIT));
+
   /***********************************
    * Allocate the "mbuf" memory pool
    ***********************************/
@@ -332,6 +347,8 @@ L7_RC_t sysapiSystemInit(void)
 
   if (sysapiRegistryPut( L7_MBUF_SIZE,  U32_ENTRY, (void *) &temp32) != L7_SUCCESS )
   {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_MEMORY);
+
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
             "sysapiRegistryPut failed");
     return(L7_ERROR);
@@ -348,7 +365,10 @@ L7_RC_t sysapiSystemInit(void)
 
   pMbufPool = osapiMalloc ( L7_SIM_COMPONENT_ID, L7_MAX_NETWORK_BUFF_PER_BOX * ( temp32 ) );
   if ( pMbufPool == L7_NULLPTR )
+  {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_MEMORY);
     return(L7_ERROR);
+  }
 
 #ifdef MBUF_HISTORY
   mbufHistory = NULL;    /* Allocated on demand */
@@ -359,7 +379,10 @@ L7_RC_t sysapiSystemInit(void)
    *********************************************************/
   pMbufQTop = ( L7_uint32 * )osapiMalloc ( L7_SIM_COMPONENT_ID, L7_MAX_NETWORK_BUFF_PER_BOX * 4 );
   if ( pMbufQTop == L7_NULLPTR )
+  {
+    (void) shm_startup_swdrv_error_set(SHM_STARTUP_ERROR_MEMORY);
     return(L7_ERROR);
+  }
 
   /***************************************************
    * Initialize the "mbuf" Queue and counter.
@@ -1706,7 +1729,7 @@ L7_RC_t sysapiCfgFileGetImpl(L7_COMPONENT_IDS_t component_id, L7_char8 *fileName
       if (*checkSum != chkSum)
       {
 		L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "File %s corrupted from file system.  "
-					"Checksum mismatch.The calculated checksum of a component’s configuration file "
+					"Checksum mismatch.The calculated checksum of a componentï¿½s configuration file "
 					"in the file system did not match the checksum of the file in memory.\n", fileName);
         buildDefaultFile = L7_TRUE;
       }
