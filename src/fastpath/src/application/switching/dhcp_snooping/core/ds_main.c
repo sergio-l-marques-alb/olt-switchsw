@@ -1544,11 +1544,11 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
         {
             dsInfo->debugStats.msgsFiltered++;
             
-            //if (ptin_debug_dhcp_snooping)
-            //{
-            //    PT_LOG_TRACE(LOG_CTX_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
-            //}
-            //ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
+            if (ptin_debug_dhcp_snooping)
+            {
+                PT_LOG_TRACE(LOG_CTX_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
+            }
+            ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
             return L7_REQUEST_DENIED;
         }
     }
@@ -3193,7 +3193,9 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: client filter");
+    }
      return L7_TRUE;
   }
 
@@ -3201,14 +3203,18 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsFilterVerifyMac(intIfNum, vlanId, frame, ipHeader))
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: verify MAC");
+    }
     return L7_TRUE;
   }
 
   if (client_idx == L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Client_idx is NULL");
+    }
     return L7_TRUE;
   }
 
@@ -5182,7 +5188,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
     /* Packet not under interest of current function.*/
     PT_LOG_TRACE(LOG_CTX_DHCP, "Packet not under interest of current function.");
-    return L7_FALSE;
+    return L7_TRUE;
   }
 
 
@@ -5195,7 +5201,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       {
         PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
       }
-      return L7_FAILURE;
+      return L7_TRUE;
     }
   }
   else
@@ -5208,7 +5214,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       {
         PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
       }
-      return L7_FAILURE;
+      return L7_TRUE;
     }
     
     ptin_port = client_info.ptin_port;
@@ -6494,6 +6500,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
   {
      PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid (%u)", 
                 frameLen);
+     SYSAPI_NET_MBUF_FREE(bufHandle);
      return L7_FAILURE;    
   }
 
@@ -6539,6 +6546,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
         {
           PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet is invalid (%u)",
                      frameLen);
+          SYSAPI_NET_MBUF_FREE(bufHandle);
           return L7_FAILURE;
         }
       }
