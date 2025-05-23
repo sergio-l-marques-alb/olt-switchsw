@@ -3190,7 +3190,7 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
      {
        PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
      }
-     return L7_FAILURE;
+     return L7_TRUE;
    }
 
   if (!PTIN_PORT_IS_PON(ptin_port) ) 
