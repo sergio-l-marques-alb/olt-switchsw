@@ -3181,22 +3181,40 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
                       L7_ushort16 innerVlanId, L7_uint *client_idx)      /* PTin modified: DHCP snooping */
 {
-  /* Discard server packets received on untrusted ports */
-  if (dsFilterServerMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+   uint32_t ptin_port;
+
+   ptin_port =  intIfNum2port(intIfNum, 0);
+   if (ptin_port == PTIN_PORT_INVALID)
+   {
+     if (ptin_debug_dhcp_snooping)
+     {
+       PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
+     }
+     return L7_FAILURE;
+   }
+
+  if (!PTIN_PORT_IS_PON(ptin_port) ) 
   {
-    if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: server filter");
-    return L7_TRUE;
+      /* Discard server packets received on untrusted ports */
+    if (dsFilterServerMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+    {
+      if (ptin_debug_dhcp_snooping)
+        PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: server filter");
+      return L7_TRUE;
+    }
   }
 
-  /* Discard certain client messages based on rx interface */
-  if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+  if (PTIN_PORT_IS_PON(ptin_port)) 
   {
-    if (ptin_debug_dhcp_snooping)
-    {
-      PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: client filter");
-    }
-     return L7_TRUE;
+      /* Discard certain client messages based on rx interface */
+      if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+      {
+        if (ptin_debug_dhcp_snooping)
+        {
+          PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: client filter");
+        }
+         return L7_TRUE;
+      }
   }
 
   /* Verify that the source MAC matches the client hw address */
