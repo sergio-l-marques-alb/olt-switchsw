@@ -3166,10 +3166,12 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 ptin_port, L7_uchar8 *frame, L7_uint32 *fr
 /*********************************************************************
 * @purpose  Apply security filtering rules to received DHCP packet.
 *
-* @param    intIfNum @b{(input)} receive interface
-* @param    vlanId   @b{(input)} VLAN ID
-* @param    frame    @b{(input)} ethernet frame
-* @param    ipHeader @b{(input)} IP header inside frame
+* @param    intIfNum    @b{(input)} receive interface
+* @param    vlanId      @b{(input)} VLAN ID
+* @param    frame       @b{(input)} ethernet frame
+* @param    ipHeader    @b{(input)} IP header inside frame
+* @param    innerVlanId @b{(input)} Innervlan - vlan_gem
+* @param    client_idx  @b{(input)} client_idx
 *
 * @returns  L7_TRUE if frame is filtered
 *
@@ -3183,7 +3185,7 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
 {
    uint32_t ptin_port;
 
-   ptin_port =  intIfNum2port(intIfNum, 0);
+   ptin_port =  intIfNum2port(intIfNum, innerVlanId);
    if (ptin_port == PTIN_PORT_INVALID)
    {
      if (ptin_debug_dhcp_snooping)
