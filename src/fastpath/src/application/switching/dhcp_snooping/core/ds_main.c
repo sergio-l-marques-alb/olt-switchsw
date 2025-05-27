@@ -3183,16 +3183,36 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
                       L7_ushort16 innerVlanId, L7_uint *client_idx)      /* PTin modified: DHCP snooping */
 {
-   uint32_t ptin_port;
+   uint32_t         ptin_port;
+   ptin_client_id_t client_info;
+   L7_RC_t          rc;
 
-   ptin_port =  intIfNum2port(intIfNum, innerVlanId);
-   if (ptin_port == PTIN_PORT_INVALID)
+   if (*client_idx != DHCP_INVALID_CLIENT_IDX ) 
    {
-     if (ptin_debug_dhcp_snooping)
-     {
-       PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
-     }
-     return L7_TRUE;
+       /*Get ptin_port from client_idx*/
+       rc = ptin_dhcp_clientData_get(vlanId, *client_idx, &client_info);
+       if (rc != L7_SUCCESS)
+       {
+         if (ptin_debug_dhcp_snooping)
+         {
+           PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
+         }
+         return L7_FAILURE;
+       }
+
+       ptin_port = client_info.ptin_port;
+   }
+   else
+   {
+       ptin_port =  intIfNum2port(intIfNum, 0);
+       if (ptin_port == PTIN_PORT_INVALID)
+       {
+         if (ptin_debug_dhcp_snooping)
+         {
+           PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
+         }
+         return L7_FAILURE;
+       }
    }
 
   if (!PTIN_PORT_IS_PON(ptin_port) ) 
