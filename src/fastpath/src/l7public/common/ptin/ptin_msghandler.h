@@ -592,30 +592,32 @@ typedef struct {
   L7_uint32 TxActivity;         // 0x0010   0 - Sem;      1 - Com
 } __attribute__((packed)) msg_HWEthPhyActivity_t;
 
+
 /* Switch Port Counters structures */
 // Message CCMSG_ETH_PHY_COUNTERS_GET and CCMSG_ETH_PHY_COUNTERS_CLEAR
 typedef struct _L7_HWEthRFC2819_Statistics_Block
 {
   L7_uint64 etherStatsDropEvents;               // 0x00000001
-  L7_uint64 etherStatsOctets;                   // 0x00000002
-  L7_uint64 etherStatsPkts;                     // 0x00000004
-  L7_uint64 etherStatsBroadcastPkts;            // 0x00000008
-  L7_uint64 etherStatsMulticastPkts;            // 0x00000010
-  L7_uint64 etherStatsCRCAlignErrors;           // 0x00000020
-  L7_uint64 etherStatsUndersizePkts;            // 0x00000040
-  L7_uint64 etherStatsOversizePkts;             // 0x00000080
-  L7_uint64 etherStatsFragments;                // 0x00000100
-  L7_uint64 etherStatsJabbers;                  // 0x00000200
-  L7_uint64 etherStatsCollisions;               // 0x00000400
-  L7_uint64 etherStatsPkts64Octets;             // 0x00000800
-  L7_uint64 etherStatsPkts65to127Octets;        // 0x00001000
-  L7_uint64 etherStatsPkts128to255Octets;       // 0x00002000
-  L7_uint64 etherStatsPkts256to511Octets;       // 0x00004000
-  L7_uint64 etherStatsPkts512to1023Octets;      // 0x00008000
-  L7_uint64 etherStatsPkts1024to1518Octets;     // 0x00010000
-  L7_uint64 etherStatsPkts1519toMaxOctets;      // Proprietary (0x00020000)
-  L7_uint64 Throughput;                         // Proprietary (0x00040000)
-} __attribute__((packed)) msg_HWEthRFC2819_StatisticsBlock_t; //144
+  L7_uint64 etherStatsDropVlan;                 // 0x00000002
+  L7_uint64 etherStatsOctets;                   // 0x00000004
+  L7_uint64 etherStatsPkts;                     // 0x00000008
+  L7_uint64 etherStatsBroadcastPkts;            // 0x00000010
+  L7_uint64 etherStatsMulticastPkts;            // 0x00000020
+  L7_uint64 etherStatsCRCAlignErrors;           // 0x00000040
+  L7_uint64 etherStatsUndersizePkts;            // 0x00000080
+  L7_uint64 etherStatsOversizePkts;             // 0x00000100
+  L7_uint64 etherStatsFragments;                // 0x00000200
+  L7_uint64 etherStatsJabbers;                  // 0x00000400
+  L7_uint64 etherStatsCollisions;               // 0x00000800
+  L7_uint64 etherStatsPkts64Octets;             // 0x00001000
+  L7_uint64 etherStatsPkts65to127Octets;        // 0x00002000
+  L7_uint64 etherStatsPkts128to255Octets;       // 0x00004000
+  L7_uint64 etherStatsPkts256to511Octets;       // 0x00008000
+  L7_uint64 etherStatsPkts512to1023Octets;      // 0x00010000
+  L7_uint64 etherStatsPkts1024to1518Octets;     // 0x00020000
+  L7_uint64 etherStatsPkts1519toMaxOctets;      // Proprietary (0x00040000)
+  L7_uint64 Throughput;                         // Proprietary (0x00080000)
+} __attribute__((packed)) msg_HWEthRFC2819_StatisticsBlock_t; //148
 
 typedef struct {
   L7_uint8  SlotId;
