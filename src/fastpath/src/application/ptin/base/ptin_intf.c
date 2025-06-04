@@ -1499,6 +1499,8 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
         PT_LOG_TRACE(LOG_CTX_INTF, " Speed:       AutoNeg");
         break;
 
+      case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+      case L7_PORTCTRL_PORTSPEED_FULL_100TX:
       case L7_PORTCTRL_PORTSPEED_FULL_100FX:
         phyState->Speed = PHY_PORT_100_MBPS;
         phyState->AutoNegComplete = L7_FALSE;
@@ -1537,6 +1539,8 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
       /* PTin end */
 
       default:
+        PT_LOG_TRACE(LOG_CTX_INTF, " speed_mode %d ", 
+                     speed_mode);
         phyState->Speed = -1;
     }
   }
