@@ -4141,8 +4141,8 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   tx->Throughput *= 8;
 
   portStats->Mask = 0x03;
-  portStats->RxMask = 0x7FBFF;  /* without Collisions, but include Pkts1024to1518Octets (0x20000) and Throughput (0x40000) */
-  portStats->TxMask = 0x7FC9F;  /* without UndersizePkts, CRCAlignErrors, Fragments, Jabbers,
+  portStats->RxMask = 0xFFBFF;  /* without Collisions, but include Pkts1024to1518Octets (0x20000) and Throughput (0x40000) */
+  portStats->TxMask = 0xFFCBF; /* without UndersizePkts, CRCAlignErrors, Fragments, Jabbers,
                                  * but include Pkts1024to1518Octets (0x20000) and Throughput (0x40000) */
 
   return L7_SUCCESS;
