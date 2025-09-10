@@ -1544,11 +1544,11 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
         {
             dsInfo->debugStats.msgsFiltered++;
             
-            //if (ptin_debug_dhcp_snooping)
-            //{
-            //    PT_LOG_TRACE(LOG_CTX_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
-            //}
-            //ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
+            if (ptin_debug_dhcp_snooping)
+            {
+                PT_LOG_TRACE(LOG_CTX_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
+            }
+            ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
             return L7_REQUEST_DENIED;
         }
     }
@@ -3166,10 +3166,12 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 ptin_port, L7_uchar8 *frame, L7_uint32 *fr
 /*********************************************************************
 * @purpose  Apply security filtering rules to received DHCP packet.
 *
-* @param    intIfNum @b{(input)} receive interface
-* @param    vlanId   @b{(input)} VLAN ID
-* @param    frame    @b{(input)} ethernet frame
-* @param    ipHeader @b{(input)} IP header inside frame
+* @param    intIfNum    @b{(input)} receive interface
+* @param    vlanId      @b{(input)} VLAN ID
+* @param    frame       @b{(input)} ethernet frame
+* @param    ipHeader    @b{(input)} IP header inside frame
+* @param    innerVlanId @b{(input)} Innervlan - vlan_gem
+* @param    client_idx  @b{(input)} client_idx
 *
 * @returns  L7_TRUE if frame is filtered
 *
@@ -3181,34 +3183,78 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
                       L7_ushort16 innerVlanId, L7_uint *client_idx)      /* PTin modified: DHCP snooping */
 {
-  /* Discard server packets received on untrusted ports */
-  if (dsFilterServerMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+   uint32_t         ptin_port;
+   ptin_client_id_t client_info;
+   L7_RC_t          rc;
+
+   if (*client_idx != DHCP_INVALID_CLIENT_IDX ) 
+   {
+       /*Get ptin_port from client_idx*/
+       rc = ptin_dhcp_clientData_get(vlanId, *client_idx, &client_info);
+       if (rc != L7_SUCCESS)
+       {
+         if (ptin_debug_dhcp_snooping)
+         {
+           PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
+         }
+         return L7_FAILURE;
+       }
+
+       ptin_port = client_info.ptin_port;
+   }
+   else
+   {
+       ptin_port =  intIfNum2port(intIfNum, 0);
+       if (ptin_port == PTIN_PORT_INVALID)
+       {
+         if (ptin_debug_dhcp_snooping)
+         {
+           PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
+         }
+         return L7_FAILURE;
+       }
+   }
+
+  if (!PTIN_PORT_IS_PON(ptin_port) ) 
   {
-    if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: server filter");
-    return L7_TRUE;
+      /* Discard server packets received on untrusted ports */
+    if (dsFilterServerMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+    {
+      if (ptin_debug_dhcp_snooping)
+        PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: server filter");
+      return L7_TRUE;
+    }
   }
 
-  /* Discard certain client messages based on rx interface */
-  if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+  if (PTIN_PORT_IS_PON(ptin_port)) 
   {
-    if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: client filter");
-     return L7_TRUE;
+      /* Discard certain client messages based on rx interface */
+      if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
+      {
+        if (ptin_debug_dhcp_snooping)
+        {
+          PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: client filter");
+        }
+         return L7_TRUE;
+      }
   }
 
   /* Verify that the source MAC matches the client hw address */
   if (dsFilterVerifyMac(intIfNum, vlanId, frame, ipHeader))
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: verify MAC");
+    }
     return L7_TRUE;
   }
 
   if (client_idx == L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
+    {
       PT_LOG_ERR(LOG_CTX_DHCP,"Client_idx is NULL");
+    }
     return L7_TRUE;
   }
 
@@ -5182,7 +5228,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
     /* Packet not under interest of current function.*/
     PT_LOG_TRACE(LOG_CTX_DHCP, "Packet not under interest of current function.");
-    return L7_FALSE;
+    return L7_TRUE;
   }
 
 
@@ -5195,7 +5241,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       {
         PT_LOG_ERR(LOG_CTX_DHCP, "Error getting ptin_port");
       }
-      return L7_FAILURE;
+      return L7_TRUE;
     }
   }
   else
@@ -5208,7 +5254,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       {
         PT_LOG_ERR(LOG_CTX_DHCP, "Error getting dhcp data");
       }
-      return L7_FAILURE;
+      return L7_TRUE;
     }
     
     ptin_port = client_info.ptin_port;
@@ -6494,6 +6540,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
   {
      PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet invalid (%u)", 
                 frameLen);
+     SYSAPI_NET_MBUF_FREE(bufHandle);
      return L7_FAILURE;    
   }
 
@@ -6539,6 +6586,7 @@ L7_RC_t dsFrameSend(L7_uint32 ptin_port, L7_ushort16 vlanId,
         {
           PT_LOG_ERR(LOG_CTX_DHCP, "Data length of the packet is invalid (%u)",
                      frameLen);
+          SYSAPI_NET_MBUF_FREE(bufHandle);
           return L7_FAILURE;
         }
       }
