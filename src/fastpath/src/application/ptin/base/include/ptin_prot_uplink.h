@@ -163,9 +163,6 @@ typedef struct {
     L7_uint16           HoldOffTimer;           ///< elapsed time in seconds
 } uplinkprot_status_st;
 
-/// DB for Uplink Protection
-extern uplinkprot_st uplinkprot[MAX_UPLINK_PROT];
-
 
 /**
  * Initialize Module 
@@ -255,6 +252,16 @@ extern L7_RC_t ptin_prot_uplink_clear_all();
  * @return L7_RC_t 
  */
 #define PROT_UPLINK_FLAGS_LASER_MASK          0x01
+#define PROT_UPLINK_FLAGS_STDBY_LASER_MASK    0x80
+/** 1=both standby and active interfaces' lasers ON, ergo UPLNK PROT acts upon
+ *    the LNK/PHY plane
+ *    ("Standby Interface Transmission" = "Laser Only")
+ *  0=standby interfaces' lasers OFF, ergo UPLNK PROT acts upon
+ *    the laser plane
+ *    ("Standby Interface Transmission" = "Disabled")
+*/
+
+/* These bits are just used internally i.e. not part of the MNG/GL interface */
 #define PROT_UPLINK_FLAGS_ALS_MASK            0x02
 #define PROT_UPLINK_FLAGS_LOCAL_FAULTS_MASK   0x04
 #define PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK  0x08
@@ -404,6 +411,16 @@ extern L7_RC_t ptin_prot_uplink_operationMode_set(L7_uint8 protIdx, L7_uint32 op
  * @return L7_RC_t 
  */
 extern L7_RC_t ptin_prot_uplink_restoreTime_set(L7_uint8 protIdx, L7_uint32 restore_time);
+
+/**
+ * Update standby laser flag
+ * 
+ * @param protIdx 
+ * @param restore_time 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_stdby_laser_flag_set(L7_uint8 protIdx, L7_uint32 stdby_laser_only);
 
 /**
  * Apply a command to a protection group

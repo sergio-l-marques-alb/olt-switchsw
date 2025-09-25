@@ -4031,13 +4031,6 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       if (value != lag_intf)
         continue;
 
-      /* At this point, we know this interface belongs to this lag. Just remove it */
-      if (usmDbDot3adMemberDeleteSet(1, lag_intf, intIfNum) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: could not remove member port# %u", lag_idx, port);
-        rc = L7_FAILURE;
-        continue;
-      }
       /* If this LAG is a static LAG and is part of a protection group, ALS should be reenabled */
       if ((lagInfo->static_enable) && 
           (ptin_prot_uplink_index_find(lag_port, L7_NULLPTR, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS))
@@ -4047,6 +4040,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       #if !defined(PTIN_LINKFAULTS_IGNORE)
         (void) ptin_intf_linkfaults_enable(port, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
       #endif
+      }
+
+      /* At this point, we know this interface belongs to this lag. Just remove it */
+      if (usmDbDot3adMemberDeleteSet(1, lag_intf, intIfNum) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: could not remove member port# %u", lag_idx, port);
+        rc = L7_FAILURE;
+        continue;
       }
 
       lagConf_data[lag_idx].members_pbmp64 &= ~((L7_uint64)1 << port);

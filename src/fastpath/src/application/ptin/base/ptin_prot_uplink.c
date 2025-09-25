@@ -16,6 +16,7 @@
 #include "dot3ad_api.h"
 #include "usmdb_dot3ad_api.h"
 #include "usmdb_mib_bridge_api.h"
+#include "usmdb_nim_api.h"
 
 #include "buff_api.h"
 #include "l7apptimer_api.h"
@@ -69,6 +70,7 @@ L7_uint32 protMngmt_TaskId = L7_ERROR;
 void *ptin_prot_timers_sem = L7_NULLPTR;
 void *ptin_prot_uplink_sem = L7_NULLPTR;
 
+static L7_RC_t ptin_prot_uplink_index_find_nosem(L7_uint32 ptin_port, L7_uint8 *protIdx, L7_uint8 *portType, L7_BOOL *is_active);
 void ptin_prot_timersMng_task(void);
 void ptin_prot_timerExpiryHdlr(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData);
 L7_RC_t prot_timer_dataDestroy(L7_sll_member_t *ll_member);
@@ -206,17 +208,50 @@ L7_RC_t ptin_prot_uplink_init(void)
 }
 
 /**
+ * Is UPLNK PROT acting upon LNK/PHY or laser?
+ * 
+ * @param protIdx (UPLNK PROT instance index
+ * 
+ * @return 1-acting upon LNK/PHY;    0-acting upon laser 
+ *         0xff, if invalid protIdx 
+ */
+unsigned char ptin_prot_uplink_over_phy_or_laser(L7_uint8 protIdx) {
+    if (protIdx>=MAX_UPLINK_PROT) {
+        PT_LOG_ERR(LOG_CTX_INTF,
+                   "Invalid protIdx %u (>=%u)", protIdx, MAX_UPLINK_PROT);
+        return 0xff;
+    }
+    //return PROT_UPLINK_FLAGS_STDBY_LASER_MASK &
+    //       uplinkprot[protIdx].protParams.flags?    1: 0;
+    return 1;
+}
+
+/**
  * Control uplink laser
  * 
  * @param slot
  * @param port
- * @param txdisable : L7_FALSE / L7_TRUE / -1
- *                    (-1 will enable ALS)
+ * @param txdisable : L7_TRUE => laser OFF; L7_FALSE => laser ON 
+ * @param ctrl_back_2_fwctrl : L7_TRUE => FWCTRL has l. control,
+ *                             L7_FALSE => SWDRV does
+ *                             (via ....stmALSConf)
+ *                             Formerly there wasn't
+ *                             "ctrl_back_2_fwctrl"
+ *                             Control was set back to FWCTRL
+ *                             passing txdisable=-1 (control to
+ *                             FWCTRL, laser on) and there was a
+ *                             comment "(-1 will enable ALS)".
+ *                             We can still see it on the
+ *                             function chain calling this one.
+ *                             But that wouldn't allow giving
+ *                             control back to FWCTRL AND
+ *                             disabling the laser.
  * 
  * @return L7_RC_t 
  */
 L7_RC_t ptin_remote_laser_control(L7_uint16 slot, L7_uint16 port,
                                    L7_int txdisable,
+                                   L7_int ctrl_back_2_fwctrl,
                                    L7_uint32 try)
 {
     msg_HwEthernet_t cfg_msg;
@@ -242,16 +277,23 @@ L7_RC_t ptin_remote_laser_control(L7_uint16 slot, L7_uint16 port,
     cfg_msg.BoardType = ENDIAN_SWAP8(0);
     cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
     cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
-    if (txdisable < 0)
-    {
-      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
-      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
+
+    if (ctrl_back_2_fwctrl) {
+        //Give laser control back to FWCTRL:
+        cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
     }
-    else
-    {
-      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
-      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
+    else {
+        //SWDRV has laser control:
+        cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
     }
+
+    if (txdisable) {
+        cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_FALSE);
+    }
+    else {
+        cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
+    }
+    //Was cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
 
     PT_LOG_INFO(LOG_CTX_INTF,
                 "Try %u: Sending message to slotId %u / ipAddr 0x%08x",
@@ -457,7 +499,11 @@ L7_RC_t ptin_remote_PHY_linkst_get(L7_uint16 slot, L7_uint16 port,
  * _ptin_prot_uplink_intf_block() 
  * 
  * @param intIfNum 
- * @param txdisable : L7_FALSE / L7_TRUE
+ * @param txdisable : L7_FALSE / L7_TRUE / -1 
+ *                   CAVEAT: 
+ *                    -1 does the same as block_state=0;
+ *                    additionally returns laser control to
+ *                    FWCTRL
  * 
  * @return L7_RC_t 
  */
@@ -469,6 +515,13 @@ L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
   L7_uint32 i, members_configured, members_number, intIfNum_list[PTIN_SYSTEM_N_PORTS], intIfNum_member;
   //L7_uint32 try;
   L7_RC_t ret;//=L7_ERROR;
+
+  L7_uint8 protIdx;
+  unsigned char acting_upon_laser0_phy1;
+  #if defined (UPLNK_PROT_DISABLE_JUST_TX) || defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)
+  L7_uint32 admin_state;
+  #endif
+
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u, txDisable=%d", intIfNum, txdisable);
   
@@ -517,7 +570,81 @@ L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
     return L7_FAILURE;
   }
   
-  PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure %u members related to intIfNum %u", members_number, intIfNum);
+
+  {   // acting_upon_laser0_phy1 = ?
+      L7_uint32 iIfN = L7_MAX_INTERFACE_COUNT; //dot3adWhoisOwnerLag needs init
+
+      if (L7_LAG_INTF == sysIntfType) {
+          iIfN = intIfNum;
+      }
+      else  // L7_PHYSICAL_INTF == sysIntfType
+#if 0
+      //dot3adDebugLagMember(), dot3adDebugLag() ...
+      // ... .actorOperPortKey != ... .actorPortNum
+      if (L7_SUCCESS != usmDbDot3adIntfIsMemberGet(1, intIfNum, &iIfN))
+      {
+          PT_LOG_CRITIC(LOG_CTX_INTF,
+                        "Found no LAG holding member %u => "
+                        "can find no UPLNK PROT instance using it",
+                        intIfNum);
+          return L7_NOT_EXIST;
+      }
+#elif 1
+      // ... .actorPortWaitSelectedAggId
+      //iIfN = L7_MAX_INTERFACE_COUNT;
+      if (L7_SUCCESS != dot3adWhoisOwnerLag(intIfNum, &iIfN)
+          ||
+          iIfN == intIfNum
+          ||
+         iIfN >= L7_MAX_INTERFACE_COUNT)
+      {
+          PT_LOG_CRITIC(LOG_CTX_INTF,
+                        "Found no LAG holding member %u => "
+                        "can find no UPLNK PROT instance using it",
+                        intIfNum);
+          return L7_NOT_EXIST;
+      }
+#elif 0
+      ... .currNumWaitSelectedMembers, .aggPortListUsp[i].(unit, slot,port)
+#elif 0
+      ... .currNumWaitSelectedMembers, .aggWaitSelectedPortList
+#else
+      ptin_intf_portmember2lag( but output is lag idx - not lag intIfNum )
+#endif
+      else {
+          PT_LOG_INFO(LOG_CTX_INTF,
+                      "Member intIfNum %u => LAG intIfNum %u",
+                      intIfNum, iIfN);
+      }
+
+      if (L7_SUCCESS !=
+          ptin_prot_uplink_index_find_nosem( intIfNum2port(iIfN, 0/*Vlan*/),
+                                            &protIdx, L7_NULLPTR,
+                                            L7_NULLPTR))
+      {
+          PT_LOG_CRITIC(LOG_CTX_INTF,
+                        "Can find no UPLNK PROT instance using intIfNum %u",
+                        intIfNum);
+          return L7_NOT_EXIST;
+      }
+
+      acting_upon_laser0_phy1 = ptin_prot_uplink_over_phy_or_laser(protIdx);
+      if (acting_upon_laser0_phy1 > 1) {
+          PT_LOG_CRITIC(LOG_CTX_INTF,
+                        "Can't say whether instance %u's acting upon "
+                        "PHY or laser",
+                        protIdx);
+          return L7_ERROR;
+      }
+  }   // acting_upon_laser0_phy1 = ?
+  
+  PT_LOG_NOTICE(LOG_CTX_INTF,
+               "Going to configure %u members related to intIfNum %u "
+               "(%s) "
+               "acting upon the %s",
+               members_number, intIfNum,
+               L7_LAG_INTF == sysIntfType? "LAG": "Physical",
+               acting_upon_laser0_phy1? "PHY": "laser");
 
   members_configured = 0;
 
@@ -638,14 +765,65 @@ L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
     break;
 #endif
 
-    PT_LOG_INFO(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+    PT_LOG_INFO(LOG_CTX_INTF,
+                "Going to configure intIfNum_member %u / slot %u + port %u "
+                "acting upon the %s",
+                intIfNum_member, slot, port,
+                acting_upon_laser0_phy1? "PHY": "laser");
+#if defined (UPLNK_PROT_DISABLE_JUST_TX) || defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)
+    admin_state = 0; //L7_DISABLE;
+    if (L7_SUCCESS != usmDbIfAdminStateGet(1, intIfNum_member, &admin_state))
+    {
+        PT_LOG_CRITIC(LOG_CTX_INTF, "Couldn't check admin state");
+    }
+    else admin_state = admin_state & 1; //L7_ENABLE;
 
-#if defined (UPLNK_PROT_DISABLE_JUST_TX)
-    ret = ptin_intf_tx_enable(intIfNum_member, txdisable<=0? 1:0);
-#elif defined (UPLNK_PROT_DISABLE_JUST_TX_PHYNOTBCM)
-    ret = ptin_remote_PHY_control(slot, port, txdisable, 0); //try);
+    if (0 == admin_state) {
+        #if defined (UPLNK_PROT_DISABLE_JUST_TX)
+        ret = ptin_intf_tx_enable(intIfNum_member, 1);
+        #else
+        ret = ptin_remote_PHY_control(slot, port, 0, 0); //try);
+        #endif
+        if (L7_SUCCESS != ret) {
+            PT_LOG_ERR(LOG_CTX_INTF,
+                       "Overriden (interface disabled) but "
+                       "ptin_intf_tx_enable() = %d", ret);
+        }
+
+        ret = ptin_remote_laser_control(slot, port, 1, txdisable<0, 0); //try);
+        if (L7_SUCCESS != ret) {
+            PT_LOG_ERR(LOG_CTX_INTF, "Overriden (interface disabled)");
+        }
+        else {
+            PT_LOG_WARN(LOG_CTX_INTF, "Overriden (interface disabled)");
+        }
+    }
+    else
+    if (acting_upon_laser0_phy1) {
+        #if defined (UPLNK_PROT_DISABLE_JUST_TX)
+        ret = ptin_intf_tx_enable(intIfNum_member, txdisable <= 0 ? 1 : 0);
+        #else
+        ret = ptin_remote_PHY_control(slot, port, txdisable, 0); //try);
+        #endif
+        ptin_remote_laser_control(slot, port, 0, txdisable<0, 0); //try);
+        if (L7_SUCCESS != ret) break;
+    }
+    else {
+        #if defined (UPLNK_PROT_DISABLE_JUST_TX)
+        ptin_intf_tx_enable(intIfNum_member, 1);
+        #else
+        ptin_remote_PHY_control(slot, port, 0, 0); //try);
+        #endif
+        ret = ptin_remote_laser_control(slot, port,
+                                        txdisable<=0? 0:1,
+                                        txdisable<0,
+                                        0); //try);
+    }
 #else
-    ret = ptin_remote_laser_control(slot, port, txdisable, 0); //try);
+    ret = ptin_remote_laser_control(slot, port,
+                                    txdisable<=0? 0:1,
+                                    txdisable<0,
+                                    0); //try);
 #endif
     if (L7_SUCCESS != ret) {
       PT_LOG_ERR(LOG_CTX_INTF, "Failed configuring intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
@@ -653,7 +831,11 @@ L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
     }
 
     members_configured++;
-    PT_LOG_INFO(LOG_CTX_INTF, "intIfNum_member %u / slot %u, port %u: Succesfully set txdisable=%d", intIfNum_member, slot, port, txdisable);
+    PT_LOG_INFO(LOG_CTX_INTF,
+                "intIfNum_member %u / slot %u, port %u: "
+                "Succesfully set txdisable=%d acting upon the %s",
+                intIfNum_member, slot, port, txdisable,
+                acting_upon_laser0_phy1? "PHY": "laser");
   }//for (i = 0; i < members_number; i++)
 
   /* Reenable local faults */
@@ -677,7 +859,11 @@ L7_RC_t _ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int txdisable,
  * Blocking mechanism implemented here
  * 
  * @param ptin_port 
- * @param block_state 
+ * @param block_state : L7_FALSE / L7_TRUE / -1 
+ *                   CAVEAT: 
+ *                    -1 does the same as block_state=0;
+ *                    additionally returns laser control to
+ *                    FWCTRL
  * 
  * @return L7_RC_t 
  */
@@ -3377,7 +3563,7 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
   L7_uint32 intIfNum1, intIfNum2;
   L7_uint32 ptin_port1, ptin_port2;
   L7_BOOL isStatic1, isStatic2;
-  L7_BOOL laserON = (flags & 1);
+  L7_BOOL laserON = (flags & PROT_UPLINK_FLAGS_LASER_MASK);
 
   if (protIdx >= MAX_UPLINK_PROT)
   {
@@ -3446,15 +3632,15 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
       return L7_FAILURE;
     }
     /* Check LASER ON/OFF parameter (but don't return error.. just warn) */
-    if (isStatic1 && laserON)
+    if ( laserON &&  (isStatic1 || isStatic2) )
     {
-      PT_LOG_WARN(LOG_CTX_INTF, "Static LAGs should have its laser OFF");
+      PT_LOG_WARN(LOG_CTX_INTF, "Static LAGs should have laser OFF");
       laserON = L7_FALSE;
       //return L7_FAILURE;
     }
-    else if (!isStatic1 && !laserON)
+    else if ( !laserON &&  !(isStatic1 && isStatic2) )
     {
-      PT_LOG_WARN(LOG_CTX_INTF, "Dynamic LAGs should have its laser ON");
+      PT_LOG_WARN(LOG_CTX_INTF, "Dynamic LAGs should have laser ON");
       laserON = L7_TRUE;
       //return L7_FAILURE;
     }
@@ -3582,7 +3768,7 @@ L7_RC_t ptin_prot_uplink_alarmFlagsEn_set(L7_uint8 protIdx, L7_uint32 alarmFlags
   if (!uplinkprot[protIdx].admin)
   {
     osapiSemaGive(ptin_prot_uplink_sem);
-    PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exists", protIdx);
+    PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exist", protIdx);
     return L7_FAILURE;
   }
 
@@ -3638,7 +3824,7 @@ L7_RC_t ptin_prot_uplink_operationMode_set(L7_uint8 protIdx, L7_uint32 operation
   if (!uplinkprot[protIdx].admin)
   {
     osapiSemaGive(ptin_prot_uplink_sem);
-    PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exists", protIdx);
+    PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exist", protIdx);
     return L7_FAILURE;
   }
 
@@ -3672,11 +3858,60 @@ L7_RC_t ptin_prot_uplink_restoreTime_set(L7_uint8 protIdx, L7_uint32 restore_tim
   if (!uplinkprot[protIdx].admin)
   {
     osapiSemaGive(ptin_prot_uplink_sem);
-    PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exists", protIdx);
+    PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exist", protIdx);
     return L7_FAILURE;
   }
 
   uplinkprot[protIdx].protParams.WaitToRestoreTimer = restore_time;
+
+  osapiSemaGive(ptin_prot_uplink_sem);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Update standby laser flag
+ * 
+ * @param protIdx 
+ * @param restore_time 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_prot_uplink_stdby_laser_flag_set(L7_uint8 protIdx, L7_uint32 stdby_laser_only)
+{
+  /* Validate protIndex */
+  if (protIdx >= MAX_UPLINK_PROT)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
+  /* If the protection group is already active, clear it */
+  if (!uplinkprot[protIdx].admin)
+  {
+    osapiSemaGive(ptin_prot_uplink_sem);
+    PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u does not exist", protIdx);
+    return L7_FAILURE;
+  }
+
+  if (stdby_laser_only)
+      uplinkprot[protIdx].protParams.flags |=
+          PROT_UPLINK_FLAGS_STDBY_LASER_MASK;
+  else
+      uplinkprot[protIdx].protParams.flags &=
+          ~PROT_UPLINK_FLAGS_STDBY_LASER_MASK;
+  {
+      L7_RC_t r;
+
+      r = ptin_prot_uplink_group_reload_nosem(protIdx);
+      if (L7_SUCCESS != r) {
+          osapiSemaGive(ptin_prot_uplink_sem);
+          PT_LOG_ERR(LOG_CTX_INTF, "Error reloading");
+          return r;
+      }
+  }
 
   osapiSemaGive(ptin_prot_uplink_sem);
 

@@ -3279,8 +3279,13 @@ typedef struct
 
   struct
   {
-     unsigned char     laserON_OFF;                  // 0800 - LaserON / LaserOFF
-     unsigned char     stmALSConf;                   // 1000 - Als ON /OFF
+     //SWDRV ETH UPLNK PROT uses these 2 fields for laser control, along with FWCTRL
+     unsigned char     laserON_OFF;                  // 0800 - LaserON (1) / LaserOFF (0)
+     unsigned char     stmALSConf;                   // 1000 - CAVEAT:
+                                                     // Was "Als ON /OFF". Nowadays, if ...
+                                                     // L7_TRUE: FWCTRL has laser control
+                                                     // L7_FALSE: SWDRV has laser control
+
      unsigned short    stmDelayTime;                 // 2000 - Intervalo de tempo para polling ALS
   } __attribute__ ((packed)) optico;
   unsigned char        serviceType;                  // 4000 - { 1 - inni, 0 - uni }

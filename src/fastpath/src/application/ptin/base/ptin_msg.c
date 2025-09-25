@@ -14011,7 +14011,9 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   msg_HWuplinkProtConf *protConf = (msg_HWuplinkProtConf *) inbuffer->info;
   L7_uint16 i, n_elem = inbuffer->infoDim / sizeof(msg_HWuplinkProtConf);
   L7_RC_t rc, rc_global = L7_SUCCESS;
+  L7_RC_t r = L7_SUCCESS;
   ptin_intf_t intfW, intfP;
+  L7_uint32 flags;
 
   for (i = 0; i < n_elem; i++)
   {
@@ -14041,6 +14043,7 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
     PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotP/portP = %u/%u", protConf[i].protParams.slotP, protConf[i].protParams.portP);
 
     rc = L7_SUCCESS;
+    r  = L7_SUCCESS;
 
     /* Validate index */
     if (protConf[i].protIndex >= MAX_UPLINK_PROT)
@@ -14054,7 +14057,7 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
     if ((protConf[i].confMask & HWUPLINKPROT_CONFMASK_slotW) && (protConf[i].confMask & HWUPLINKPROT_CONFMASK_portW) &&
         (protConf[i].confMask & HWUPLINKPROT_CONFMASK_slotP) && (protConf[i].confMask & HWUPLINKPROT_CONFMASK_portP))
     {
-      L7_uint32 operationMode, alarmFlagsEn, flags, restore_time;
+      L7_uint32 operationMode, alarmFlagsEn, restore_time;
 
       /* Operation mode */
       operationMode = L7_FALSE;
@@ -14146,7 +14149,6 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
                                    restore_time, operationMode, alarmFlagsEn, flags, L7_TRUE);
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
       if (L7_SUCCESS == rc) {   /* Need to synchronize FSM status from active CXO after instance creation */
-          L7_RC_t r;  
           
           /*check if this is the inactive matrix*/
           if (!ptin_fpga_mx_is_matrixactive_rt())
@@ -14174,6 +14176,32 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_prot_uplink_restoreTime_set(protConf[i].protIndex, protConf[i].protParams.WaitToRestoreTimer);
     }
 
+    if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_flags) {
+        uplinkprotParams_st bd;
+        L7_uint8 protIdx = protConf[i].protIndex;
+
+        flags = protConf[i].protParams.flags;
+
+        r = ptin_prot_uplink_config_get(protIdx, &bd);
+        if (L7_SUCCESS != r) {
+            PT_LOG_ERR(LOG_CTX_MSG,
+                       "ptin_prot_uplink_config_get(protIdx=%u, ...)=%d",
+                       protIdx, r);
+            rc_global = L7_FAILURE;
+        }
+        else
+        //Standby laser flag configuration changed ?
+        if ((flags ^ bd.flags) & PROT_UPLINK_FLAGS_STDBY_LASER_MASK) {
+            r = ptin_prot_uplink_stdby_laser_flag_set(protIdx, flags & PROT_UPLINK_FLAGS_STDBY_LASER_MASK);
+            if (L7_SUCCESS != r) {
+                PT_LOG_ERR(LOG_CTX_MSG,
+                           "ptin_prot_uplink_stdby_laser_flag_set(protIdx=%u, ...)=%d",
+                           protIdx, r);
+                rc_global = L7_FAILURE;
+            }
+        } //if ((flags ^ bd.flags) & PROT_UPLINK_FLAGS_STDBY_LASER_MASK)
+    } //if (protConf[i].conf_mask & HWUPLINKPROT_CONFMASK_flags)
+
     /* Validate result */
     if (rc != L7_SUCCESS)
     {
@@ -14181,7 +14209,7 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc_global = L7_FAILURE;
       continue;
     }
-  }
+  } //for (i = 0; i < n_elem; i++)
 
   return rc_global;
 }
