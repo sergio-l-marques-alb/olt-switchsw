@@ -112,6 +112,8 @@
 #define CCMSG_ETH_NTW_CONNECTIVITY_GET      0x9060  // struct msg_NtwConnectivity_t
 #define CCMSG_ETH_NTW_CONNECTIVITY_SET      0x9061  // struct msg_NtwConnectivity_t
 
+#define CCMSG_ETH_PHY_LINK_STATE_GET        0x9062  // struct msg_HWEthPhyLinkState_t
+
 #define CCMSG_AGENT_TRAP_CONFIGURE          0x9110  // struct msg_agent_trap_conf_t
 
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
@@ -131,6 +133,7 @@
 #define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
 #define CCMSG_HW_INTF_INFO_GET              0x91E4  // struct msg_HwIntfInfo_t
 #define CCMSG_HW_INTF_STATUS                0x91E5  // struct msg_HwIntfStatus_t
+#define CCMSG_ETH_PHY_LINK_STATE_NOTIFY     0x91E6  // struct msg_HWEthPhyLinkState_t
 
 #define CCMSG_APP_CHANGE_STDOUT             0x91F0  // (To be used with fastpath.cli)
 #define CCMSG_APP_SHELL_CMD_RUN             0x91F1  // (To be used with fastpath.cli)
@@ -1387,9 +1390,9 @@ typedef struct {
 #define MSG_EVC_COUNTERS_MASK_STATS_TX 0x02
 
 typedef struct {
-  L7_uint8 mask_stat;         // Máscara de contadores
-  msg_counters_t  rx;         // [mask_stat=0x01] Estrutura de estatísticas de recepção (RX)
-  msg_counters_t  tx;         // [mask_stat=0x02] Estrutura de estatísticas de transmissão (TX)
+  L7_uint8 mask_stat;         // Mï¿½scara de contadores
+  msg_counters_t  rx;         // [mask_stat=0x01] Estrutura de estatï¿½sticas de recepï¿½ï¿½o (RX)
+  msg_counters_t  tx;         // [mask_stat=0x02] Estrutura de estatï¿½sticas de transmissï¿½o (TX)
 } __attribute__((packed)) msg_evcStats_counters_t;
 
 #define MSG_EVC_COUNTERS_MASK_NONE     0x00
@@ -1401,13 +1404,13 @@ typedef struct {
 
 typedef struct {
   L7_uint8             SlotId;       // Indice da slot
-  L7_uint32            evc_id;       // Indice do Serviço do OLT      /* L7_uint32 */
-  L7_uint8             mask;         // Máscara de campos a utilizar
+  L7_uint32            evc_id;       // Indice do Serviï¿½o do OLT      /* L7_uint32 */
+  L7_uint8             mask;         // Mï¿½scara de campos a utilizar
   msg_HwEthInterface_t intf;         // [mask=0x01] Interface
   L7_uint16            service_vlan; // [mask=0x02] (reservado para uso futuro)
   L7_uint16            client_vlan;  // [mask=0x04] Inner Vlan que identifica o ONT (apenas para contadores ao ONT)
   L7_uint32            channel_ip;   // [mask=0x08] Destination IP que identifica o canal (contadores ao canal)
-  msg_evcStats_counters_t stats;     // [mask=0x80] Estatísticas
+  msg_evcStats_counters_t stats;     // [mask=0x80] Estatï¿½sticas
 } __attribute__((packed)) msg_evcStats_t;
 
 /***************************************************** 
@@ -2250,7 +2253,7 @@ typedef struct
   L7_uint8 SlotId;           // Slot id: Slot de destino para a mensagem
   struct {                   // List de port modes para o backplane:
     L7_uint8 slot_config;        // 1 para configurar a respectiva slot; 0, para ignorar este elemento
-    L7_uint8 slot_index;         // Índice da slot a configurar
+    L7_uint8 slot_index;         // ï¿½ndice da slot a configurar
     L7_uint8 slot_mode;          // Modo da slot
   } slot_list[MSG_SLOTMODECFG_NSLOTS];
 } __attribute__((packed)) msg_slotModeCfg_t;
@@ -3284,7 +3287,12 @@ typedef struct
   L7_uint8   admin;                        // 1 = enable, 0 - disable
 }__attribute__((packed)) msg_agent_trap_conf_t;
 
-
+typedef struct 
+{
+  L7_uint8   slot_id;     // Slot ID
+  L7_uint8   port;        // Port number
+  L7_uint8   link_up;     // Link status: 0 = Down, 1 = Up
+} __attribute__((packed)) msg_HWEthPhyLinkState_t;
 /***************************************************************************** 
  * Functions prototypes
  *****************************************************************************/

@@ -149,6 +149,10 @@ void _10msTask(void);
 /* Task for processing messages */
 void ptin_control_task_process(void);
 
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+static L7_RC_t ptin_link_state_matrix_send(L7_uint32 intIfNum, L7_PORT_EVENTS_t event);
+#endif
+
 /******************************** 
  * Interface events 
  ********************************/
@@ -2534,6 +2538,96 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
   return L7_SUCCESS;
 }
 
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+/**
+ * Send link state notification to matrix switch driver
+ *
+ * @param  intIfNum    Internal interface number
+ * @param  event       Link event: L7_UP or L7_DOWN
+ *
+ * @return L7_RC_t
+ */
+L7_RC_t ptin_link_state_matrix_send(L7_uint32 intIfNum, L7_PORT_EVENTS_t event)
+{
+  info_header_t header;
+  msg_HWEthPhyLinkState_t notification;
+  size_t msg_size = sizeof(notification) + sizeof(header);
+  char msg[msg_size];
+  L7_uint32 ptin_port;
+  L7_uint8 slot;
+  char *env_var;
+
+  if ((event != L7_UP) && (event != L7_DOWN))
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Invalid link event %d for interface %u", event, intIfNum);
+    return L7_FAILURE;
+  }
+
+  memset(&header, 0x00, sizeof(header));
+  memset(&msg, 0x00, sizeof(msg));
+
+  if (ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to convert intIfNum %u to ptin_port", intIfNum);
+    return L7_FAILURE;
+  }
+
+  env_var = getenv("MY_SLOTID");
+  if (env_var == NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Cannot read MY_SLOTID!");
+    return L7_FAILURE;
+  }
+
+  slot = strtol(env_var, (char **) NULL, 10);
+
+  header.timeout = 1; // Standard timeout
+  notification.slot_id = slot;
+  notification.port = (L7_uint8)ptin_port;
+  notification.link_up = (event == L7_UP) ? 1 : 0;
+
+  memcpy((char *)&msg, (char *)&header, sizeof(header));
+  memcpy((char *)&msg + sizeof(header), (char *)&notification, sizeof(notification));
+
+  /* NOTE: this sends the message to both matrices without knowing which is the active one */
+  /* Send to working matrix */
+  if (send_ipc_message(IPC_HW_FP_CTRL_PORT2,
+                       IPC_SERVER_IPADDR_WORKING,
+                       CCMSG_ETH_PHY_LINK_STATE_NOTIFY,
+                       (char*)&msg,
+                       L7_NULLPTR,
+                       msg_size,
+                       NULL) != 0)
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to send link %s notification to WORKING matrix for port %u",
+                                notification.link_up ? "UP" : "DOWN", ptin_port);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_INFO(LOG_CTX_CONTROL, "Sent link %s notification to WORKING matrix for port %u",
+                                notification.link_up ? "UP" : "DOWN", ptin_port);
+
+  /* Send to protection matrix */
+  if (send_ipc_message(IPC_HW_FP_CTRL_PORT2,
+                       IPC_SERVER_IPADDR_PROTECTION,
+                       CCMSG_ETH_PHY_LINK_STATE_NOTIFY,
+                       (char*)&msg,
+                       L7_NULLPTR,
+                       msg_size,
+                       NULL) != 0)
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to send link %s notification to PROTECTION matrix for port %u",
+                                notification.link_up ? "UP" : "DOWN", ptin_port);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_INFO(LOG_CTX_CONTROL, "Sent link %s notification to PROTECTION matrix for port %u",
+                                notification.link_up ? "UP" : "DOWN", ptin_port);
+
+  return L7_SUCCESS;
+}
+#endif
+
 /**
  * Process interface events
  * 
@@ -2562,11 +2656,27 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
   {
     PT_LOG_INFO(LOG_CTX_CONTROL, "Link up detected at interface intIfNum %u", eventMsg->intIfNum);
     rc = uplinkProtEventProcess(eventMsg->intIfNum, eventMsg->event);
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+    /* Send link state notification to matrix switch driver (only for ethernet ports) */
+    if (eventMsg->intIfNum < PTIN_SYSTEM_N_ETH)
+    {
+      ptin_link_state_matrix_send(eventMsg->intIfNum, eventMsg->event);
+    }
+#endif
   }
   else if ( eventMsg->event == L7_DOWN )
   {
     PT_LOG_INFO(LOG_CTX_CONTROL, "Link down detected at interface intIfNum %u", eventMsg->intIfNum);
     rc = uplinkProtEventProcess(eventMsg->intIfNum, eventMsg->event);
+
+#if (PTIN_BOARD == PTIN_BOARD_AE48GE)
+    /* Send link state notification to matrix switch driver (only for ethernet ports) */
+    if (eventMsg->intIfNum < PTIN_SYSTEM_N_ETH)
+    {
+      ptin_link_state_matrix_send(eventMsg->intIfNum, eventMsg->event);
+    }
+#endif
   }
   else if ( eventMsg->event == L7_LAG_ACTIVE_MEMBER_ADDED || eventMsg->event == L7_LAG_ACTIVE_MEMBER_REMOVED )
   {

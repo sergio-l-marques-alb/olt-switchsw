@@ -1609,5 +1609,13 @@ typedef struct
   L7_uint8  admin;                        // 1 = enable, 0 - disable
 } agent_trap_conf_t;
 
+/* Header struct for message's info field (sometimes needed 
+ * when sending an ipc message to the matrix swdrv) */
+typedef struct
+{
+    uint32_t timeout;
+    uint32_t timestamp;
+} __attribute__((packed)) info_header_t;
+
 #endif /* _PTIN_STRUCTS_H */
 

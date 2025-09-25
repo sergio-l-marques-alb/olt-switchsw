@@ -1389,6 +1389,76 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_PHY_STATE_GET */
     }
 
+    /* Get PHY Link State for all ethernet interfaces */
+    case CCMSG_ETH_PHY_LINK_STATE_GET:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_LINK_STATE_GET (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_HwGenReq_t);
+
+      msg_HwGenReq_t            *request;
+      msg_HWEthPhyLinkState_t   *ptr;
+      L7_uint32                 port, intIfNum, index, link_state = 0;
+      ptin_intf_t               ptin_intf;
+
+      request   = (msg_HwGenReq_t *) inbuffer->info;
+      ptr       = (msg_HWEthPhyLinkState_t *) outbuffer->info;
+
+      index = 0;
+
+      /* Go through all Ethernet interfaces */
+      for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
+      {
+          /* Get ptin interface info for this port */
+          if (ptin_intf_port2ptintf(port, &ptin_intf) != L7_SUCCESS)
+          {
+              PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error converting port %u to ptin interface", port);
+              continue;
+          }
+
+          /* Only process physical interfaces (skip LAG and other types) */
+          if (ptin_intf.intf_type != PTIN_EVC_INTF_PHYSICAL)
+          {
+              PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Skipping non-physical interface port %u (type %u)", 
+                                             port, ptin_intf.intf_type);
+              continue;
+          }
+
+          /* Convert ptin interface to internal interface number */
+          if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
+          {
+              PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error converting ptin interface %u/%u to intIfNum", 
+                                             ptin_intf.intf_type, ptin_intf.intf_id);
+              continue;
+          }
+
+          /* Set slot_id and port number for this entry */
+          ptr[index].slot_id = request->slot_id;
+          ptr[index].port    = port;
+
+          /* Get link state from NIM */
+          if (nimGetIntfLinkState(intIfNum, &link_state) == L7_SUCCESS)
+          {
+              ptr[index].link_up = (link_state == L7_UP) ? 1 : 0;
+          }
+          else
+          {
+              /* Set default values on error */
+              ptr[index].link_up = 0;
+              PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Failed to get link state for port %u (intIfNum %u)", port, intIfNum);
+          }
+
+          index++;
+          /* Stop when we've processed enough Ethernet ports */
+          if (index >= PTIN_SYSTEM_N_ETH)
+          {
+              break;
+          }
+      }
+
+      SETIPC_INFODIM(index * sizeof(msg_HWEthPhyLinkState_t));
+      break;  /* CCMSG_ETH_PHY_LINK_STATE_GET */
+    }
     /************************************************************************** 
      * PHY COUNTERS Processing
      **************************************************************************/
